@@ -140,15 +140,15 @@ export function BenefitDetails({ benefit }: BenefitDetailsProps) {
             <tbody>
               ${Emprestimos.map(emprestimo => `
                 <tr>
-                  <td>${emprestimo.NomeBanco}</td>
-                  <td>${emprestimo.Contrato}</td>
+                  <td>${emprestimo.NomeBanco || 'N/A'}</td>
+                  <td>${emprestimo.Contrato || 'N/A'}</td>
                   <td>${formatCurrency(emprestimo.ValorParcela)}</td>
                   <td style="color: #dc2626; font-weight: bold;">${formatCurrency(emprestimo.Quitacao)}</td>
                   <td>${formatCurrency(emprestimo.ValorEmprestimo)}</td>
-                  <td>${emprestimo.Prazo}</td>
-                  <td>${emprestimo.ParcelasRestantes}</td>
-                  <td>${formatDate(emprestimo.DataAverbacao)}</td>
-                  <td>${emprestimo.Taxa.toFixed(2)}%</td>
+                  <td>${emprestimo.Prazo || 'N/A'}</td>
+                  <td>${emprestimo.ParcelasRestantes || 'N/A'}</td>
+                  <td>${emprestimo.DataAverbacao ? formatDate(emprestimo.DataAverbacao) : 'N/A'}</td>
+                  <td>${emprestimo.Taxa ? emprestimo.Taxa.toFixed(2) : '0.00'}%</td>
                 </tr>
               `).join('')}
             </tbody>
@@ -415,50 +415,71 @@ export function BenefitDetails({ benefit }: BenefitDetailsProps) {
               )}
               {Emprestimos.length > 0 ? (
                 <div className="space-y-4">
-                  <div className="overflow-x-auto">
-                    <Table>
+                  <div className="overflow-x-auto border rounded-lg">
+                    <Table className="min-w-full">
                       <TableHeader>
-                        <TableRow>
-                          <TableHead>Banco</TableHead>
-                          <TableHead>Contrato</TableHead>
-                          <TableHead>Valor Parcela</TableHead>
-                          <TableHead>Saldo Devedor</TableHead>
-                          <TableHead>Prazo</TableHead>
-                          <TableHead>Parcelas Rest.</TableHead>
-                          <TableHead>Averbação</TableHead>
+                        <TableRow className="bg-muted/50">
+                          <TableHead className="font-semibold text-foreground min-w-[120px]">Banco</TableHead>
+                          <TableHead className="font-semibold text-foreground min-w-[140px]">Contrato</TableHead>
+                          <TableHead className="font-semibold text-foreground min-w-[120px]">Valor Parcela</TableHead>
+                          <TableHead className="font-semibold text-foreground min-w-[120px]">Saldo Devedor</TableHead>
+                          <TableHead className="font-semibold text-foreground min-w-[80px]">Prazo</TableHead>
+                          <TableHead className="font-semibold text-foreground min-w-[100px]">Parcelas Rest.</TableHead>
+                          <TableHead className="font-semibold text-foreground min-w-[120px]">Averbação</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
                         {Emprestimos.map((emprestimo, index) => (
-                          <TableRow key={index}>
+                          <TableRow key={index} className="hover:bg-muted/30">
                             <TableCell className="font-medium">
-                              {emprestimo.NomeBanco}
+                              <div className="truncate max-w-[120px]" title={emprestimo.NomeBanco}>
+                                {emprestimo.NomeBanco || 'N/A'}
+                              </div>
                             </TableCell>
-                            <TableCell>{emprestimo.Contrato}</TableCell>
-                            <TableCell className="font-semibold">
+                            <TableCell className="font-mono text-sm">
+                              <div className="truncate max-w-[140px]" title={emprestimo.Contrato}>
+                                {emprestimo.Contrato || 'N/A'}
+                              </div>
+                            </TableCell>
+                            <TableCell className="font-semibold text-green-600">
                               {formatCurrency(emprestimo.ValorParcela)}
                             </TableCell>
-                            <TableCell className="font-semibold text-red-600">
+                            <TableCell className="font-semibold text-red-600 bg-red-50 dark:bg-red-950/20">
                               {formatCurrency(emprestimo.Quitacao)}
                             </TableCell>
-                            <TableCell>{emprestimo.Prazo}</TableCell>
-                            <TableCell>{emprestimo.ParcelasRestantes}</TableCell>
-                            <TableCell>{formatDate(emprestimo.DataAverbacao)}</TableCell>
+                            <TableCell className="text-center">
+                              {emprestimo.Prazo || 'N/A'}
+                            </TableCell>
+                            <TableCell className="text-center font-medium">
+                              {emprestimo.ParcelasRestantes || 'N/A'}
+                            </TableCell>
+                            <TableCell className="text-sm">
+                              {emprestimo.DataAverbacao ? formatDate(emprestimo.DataAverbacao) : 'N/A'}
+                            </TableCell>
                           </TableRow>
                         ))}
                       </TableBody>
                     </Table>
                   </div>
-                  <div className="bg-white rounded-lg p-4">
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-muted-foreground">Total de Empréstimos:</span>
-                      <span className="font-bold">{Emprestimos.length} contratos</span>
-                    </div>
-                    <div className="flex items-center justify-between mt-2">
-                      <span className="text-sm text-muted-foreground">Total de Parcelas:</span>
-                      <span className="font-bold">
-                        {formatCurrency(ResumoFinanceiro.TotalParcelas)}
-                      </span>
+                  <div className="bg-white dark:bg-card rounded-lg p-4 border">
+                    <h4 className="font-semibold mb-3 text-foreground">Resumo dos Contratos</h4>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <div className="text-center p-3 bg-blue-50 dark:bg-blue-950/20 rounded-lg">
+                        <div className="text-2xl font-bold text-blue-600">{Emprestimos.length}</div>
+                        <div className="text-sm text-muted-foreground">Contratos Ativos</div>
+                      </div>
+                      <div className="text-center p-3 bg-green-50 dark:bg-green-950/20 rounded-lg">
+                        <div className="text-lg font-bold text-green-600">
+                          {formatCurrency(ResumoFinanceiro.TotalParcelas)}
+                        </div>
+                        <div className="text-sm text-muted-foreground">Total Parcelas</div>
+                      </div>
+                      <div className="text-center p-3 bg-red-50 dark:bg-red-950/20 rounded-lg">
+                        <div className="text-lg font-bold text-red-600">
+                          {formatCurrency(Emprestimos.reduce((sum, emp) => sum + emp.Quitacao, 0))}
+                        </div>
+                        <div className="text-sm text-muted-foreground">Saldo Total Devedor</div>
+                      </div>
                     </div>
                   </div>
                 </div>
