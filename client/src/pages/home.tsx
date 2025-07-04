@@ -46,7 +46,7 @@ export default function Home() {
     retry: false,
     staleTime: 60000, // 1 minute
   });
-
+  RMJ CONSULTS
   const handleSearch = (apiKey: string, searchType: 'cpf' | 'beneficio', searchValue: string) => {
     setSearchParams({ apiKey, searchType, searchValue });
     setSelectedBenefit(null);
@@ -113,7 +113,7 @@ export default function Home() {
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
               <University className="h-8 w-8" />
-              <h1 className="text-2xl font-bold">MULTI CORBAN</h1>
+              <h1 className="text-2xl font-bold">RMJ CONSULTAS</h1>
             </div>
             <div className="text-sm opacity-90">
               <span>Consulta de Benefícios INSS</span>
@@ -186,10 +186,10 @@ export default function Home() {
         <div className="container mx-auto px-4 py-8">
           <div className="text-center">
             <p className="text-sm opacity-75">
-              © 2024 MULTI CORBAN - Sistema de Consulta de Benefícios INSS
+              © 2024 RMJ Consults - Sistema de Consulta de Benefícios INSS
             </p>
             <p className="text-xs opacity-50 mt-2">
-              Desenvolvido para correspondentes bancários
+              Desenvolvido por Vitor Cavalcanti
             </p>
           </div>
         </div>
