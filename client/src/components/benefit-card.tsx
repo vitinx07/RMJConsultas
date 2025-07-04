@@ -40,25 +40,25 @@ export function BenefitCard({ benefit, onViewDetails }: BenefitCardProps) {
         <div className="grid grid-cols-2 gap-4 mb-4">
           <div>
             <p className="text-sm text-muted-foreground">Benefício</p>
-            <p className="font-semibold">{Beneficiario.Beneficio}</p>
+            <p className="font-semibold text-foreground">{Beneficiario.Beneficio}</p>
           </div>
           <div>
             <p className="text-sm text-muted-foreground">Espécie</p>
-            <p className="font-semibold">{Beneficiario.Especie}</p>
+            <p className="font-semibold text-foreground">{Beneficiario.Especie}</p>
           </div>
         </div>
         
-        <div className="bg-green-50 rounded-lg p-4 mb-4">
+        <div className="bg-green-50 dark:bg-green-900/20 rounded-lg p-4 mb-4 border border-green-200 dark:border-green-800">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-muted-foreground">Margem Disponível</p>
-              <p className="text-2xl font-bold text-green-600">
+              <p className="text-2xl font-bold text-green-600 dark:text-green-400">
                 {formatCurrency(ResumoFinanceiro.MargemDisponivelEmprestimo)}
               </p>
             </div>
             <div className="text-right">
               <p className="text-sm text-muted-foreground">Valor do Benefício</p>
-              <p className="text-lg font-semibold">
+              <p className="text-lg font-semibold text-foreground">
                 {formatCurrency(ResumoFinanceiro.ValorBeneficio)}
               </p>
             </div>
