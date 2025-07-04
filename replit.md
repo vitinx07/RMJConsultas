@@ -120,3 +120,4 @@ Changelog:
 - July 04, 2025. Fixed dark mode contrast issues in table and accordion sections, improved text visibility and background colors
 - July 04, 2025. Comprehensive dark mode contrast fixes: replaced all white backgrounds with theme-aware bg-card, added text-foreground classes for proper text visibility, fixed RMC/RCC sections, financial summary cards, and other information panels
 - July 04, 2025. Final dark mode contrast fixes: updated benefit cards and green margin sections with proper dark mode variants (dark:bg-green-900/20, dark:text-green-400) and border styling
+- July 04, 2025. Fixed contract text truncation in loan contracts table: removed truncation and increased column width to display full contract numbers

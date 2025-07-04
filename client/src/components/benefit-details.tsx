@@ -420,7 +420,7 @@ export function BenefitDetails({ benefit }: BenefitDetailsProps) {
                       <TableHeader>
                         <TableRow className="bg-muted/50 border-b">
                           <TableHead className="font-semibold text-foreground min-w-[120px] h-12">Banco</TableHead>
-                          <TableHead className="font-semibold text-foreground min-w-[140px] h-12">Contrato</TableHead>
+                          <TableHead className="font-semibold text-foreground min-w-[180px] h-12">Contrato</TableHead>
                           <TableHead className="font-semibold text-foreground min-w-[120px] h-12">Valor Parcela</TableHead>
                           <TableHead className="font-semibold text-foreground min-w-[120px] h-12">Saldo Devedor</TableHead>
                           <TableHead className="font-semibold text-foreground min-w-[80px] h-12">Prazo</TableHead>
@@ -437,7 +437,7 @@ export function BenefitDetails({ benefit }: BenefitDetailsProps) {
                               </div>
                             </TableCell>
                             <TableCell className="font-mono text-sm text-foreground bg-background">
-                              <div className="truncate max-w-[140px]" title={emprestimo.Contrato}>
+                              <div className="break-all min-w-[160px]" title={emprestimo.Contrato}>
                                 {emprestimo.Contrato || 'N/A'}
                               </div>
                             </TableCell>
