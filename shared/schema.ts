@@ -1,4 +1,15 @@
 import { z } from "zod";
+import {
+  pgTable,
+  text,
+  varchar,
+  timestamp,
+  boolean,
+  uuid,
+  index,
+} from "drizzle-orm/pg-core";
+import { createInsertSchema } from "drizzle-zod";
+import { relations } from "drizzle-orm";
 
 export const beneficiarySchema = z.object({
   Nome: z.string(),
@@ -114,6 +125,87 @@ export const searchRequestSchema = z.object({
   searchType: z.enum(["cpf", "beneficio"]),
   searchValue: z.string().min(1, "Valor de busca é obrigatório"),
 });
+
+// Database Tables for User Management
+export const users = pgTable("users", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  username: varchar("username", { length: 50 }).unique().notNull(),
+  email: varchar("email", { length: 100 }).unique(),
+  passwordHash: text("password_hash").notNull(),
+  role: varchar("role", { length: 20 }).notNull().default("vendedor"), // administrator, gerente, vendedor
+  firstName: varchar("first_name", { length: 50 }),
+  lastName: varchar("last_name", { length: 50 }),
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+  createdBy: uuid("created_by"),
+});
+
+export const sessions = pgTable(
+  "sessions",
+  {
+    sid: varchar("sid").primaryKey(),
+    sess: text("sess").notNull(),
+    expire: timestamp("expire").notNull(),
+  },
+  (table) => [index("IDX_session_expire").on(table.expire)],
+);
+
+// User relations
+export const usersRelations = relations(users, ({ many, one }) => ({
+  createdUsers: many(users, { relationName: "creator" }),
+  creator: one(users, {
+    fields: [users.createdBy],
+    references: [users.id],
+    relationName: "creator",
+  }),
+}));
+
+// User schemas
+export const userSchema = z.object({
+  id: z.string().uuid(),
+  username: z.string().min(3, "Username deve ter pelo menos 3 caracteres"),
+  email: z.string().email("Email inválido").optional(),
+  role: z.enum(["administrator", "gerente", "vendedor"]),
+  firstName: z.string().optional(),
+  lastName: z.string().optional(),
+  isActive: z.boolean(),
+  createdAt: z.date(),
+  updatedAt: z.date(),
+  createdBy: z.string().uuid().optional(),
+});
+
+export const createUserSchema = createInsertSchema(users).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+  passwordHash: true,
+}).extend({
+  password: z.string().min(6, "Senha deve ter pelo menos 6 caracteres"),
+  confirmPassword: z.string(),
+}).refine((data) => data.password === data.confirmPassword, {
+  message: "Senhas não coincidem",
+  path: ["confirmPassword"],
+});
+
+export const loginSchema = z.object({
+  username: z.string().min(1, "Username é obrigatório"),
+  password: z.string().min(1, "Senha é obrigatória"),
+});
+
+export const updateUserSchema = z.object({
+  firstName: z.string().optional(),
+  lastName: z.string().optional(),
+  email: z.string().email().optional(),
+  role: z.enum(["administrator", "gerente", "vendedor"]).optional(),
+  isActive: z.boolean().optional(),
+});
+
+// Types
+export type User = typeof users.$inferSelect;
+export type CreateUser = z.infer<typeof createUserSchema>;
+export type LoginData = z.infer<typeof loginSchema>;
+export type UpdateUser = z.infer<typeof updateUserSchema>;
 
 export type Beneficiary = z.infer<typeof beneficiarySchema>;
 export type FinancialSummary = z.infer<typeof financialSummarySchema>;

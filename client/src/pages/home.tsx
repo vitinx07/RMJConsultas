@@ -1,6 +1,10 @@
 import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { University, AlertCircle, Loader2 } from "lucide-react";
+import { Link } from "wouter";
+import { useAuth } from "@/hooks/useAuth";
+import { University, AlertCircle, Loader2, LogOut, Users, User, Shield, ShieldCheck } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Card, CardContent } from "@/components/ui/card";
 import { BenefitSearch } from "@/components/benefit-search";
@@ -10,6 +14,18 @@ import { searchBenefits, getBenefitDetails, ApiError } from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
 import { Benefit } from "@shared/schema";
 
+const roleLabels = {
+  administrator: "Administrador",
+  gerente: "Gerente", 
+  vendedor: "Vendedor"
+};
+
+const roleIcons = {
+  administrator: ShieldCheck,
+  gerente: Shield,
+  vendedor: User
+};
+
 export default function Home() {
   const [searchParams, setSearchParams] = useState<{
     apiKey: string;
@@ -18,7 +34,24 @@ export default function Home() {
   } | null>(null);
   
   const [selectedBenefit, setSelectedBenefit] = useState<string | null>(null);
+  const { user, logout, isLoggingOut } = useAuth();
   const { toast } = useToast();
+
+  const handleLogout = async () => {
+    try {
+      await logout();
+      toast({
+        title: "Sucesso",
+        description: "Logout realizado com sucesso!",
+      });
+    } catch (error: any) {
+      toast({
+        title: "Erro",
+        description: error.message || "Erro ao fazer logout",
+        variant: "destructive",
+      });
+    }
+  };
 
   // Search benefits query
   const { 
@@ -108,14 +141,55 @@ export default function Home() {
     <div className="min-h-screen bg-background">
       {/* Header */}
       <header className="bg-primary text-primary-foreground shadow-lg">
-        <div className="container mx-auto px-4 py-6">
+        <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
               <University className="h-8 w-8" />
-              <h1 className="text-2xl font-bold">RMJ CONSULTAS</h1>
+              <div>
+                <h1 className="text-2xl font-bold">RMJ CONSULTAS</h1>
+                <p className="text-sm opacity-90">Consulta de Benefícios INSS</p>
+              </div>
             </div>
-            <div className="text-sm opacity-90">
-              <span>Consulta de Benefícios INSS</span>
+            
+            <div className="flex items-center space-x-4">
+              {user && (
+                <>
+                  <div className="text-right">
+                    <p className="font-semibold">
+                      {user.firstName || user.username}
+                    </p>
+                    <div className="flex items-center justify-end space-x-1">
+                      {(() => {
+                        const RoleIcon = roleIcons[user.role as keyof typeof roleIcons];
+                        return <RoleIcon className="h-3 w-3" />;
+                      })()}
+                      <span className="text-xs opacity-80">
+                        {roleLabels[user.role as keyof typeof roleLabels]}
+                      </span>
+                    </div>
+                  </div>
+                  
+                  {user.role === "administrator" && (
+                    <Link href="/usuarios">
+                      <Button variant="outline" size="sm" className="text-primary bg-primary-foreground hover:bg-primary-foreground/90">
+                        <Users className="h-4 w-4 mr-2" />
+                        Usuários
+                      </Button>
+                    </Link>
+                  )}
+                  
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={handleLogout}
+                    disabled={isLoggingOut}
+                    className="text-primary bg-primary-foreground hover:bg-primary-foreground/90"
+                  >
+                    <LogOut className="h-4 w-4 mr-2" />
+                    {isLoggingOut ? "Saindo..." : "Sair"}
+                  </Button>
+                </>
+              )}
             </div>
           </div>
         </div>
