@@ -73,7 +73,13 @@ export const loanSchema = z.object({
 export const benefitSchema = z.object({
   Beneficiario: beneficiarySchema,
   ResumoFinanceiro: financialSummarySchema,
-  DadosRepresentante: z.array(z.unknown()),
+  DadosRepresentante: z.array(z.object({
+    Nome: z.string(),
+    CPF: z.string(),
+    Parentesco: z.string(),
+    Telefone: z.string().optional(),
+    Email: z.string().optional(),
+  })).optional(),
   DadosBancarios: bankingDataSchema,
   Rmc: z.object({
     Banco: z.string(),

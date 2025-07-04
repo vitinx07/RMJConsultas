@@ -45,7 +45,8 @@ export function BenefitDetails({ benefit }: BenefitDetailsProps) {
     Emprestimos, 
     Rmc,
     RCC,
-    Associacao 
+    Associacao,
+    DadosRepresentante 
   } = benefit;
 
   const handlePrintContracts = () => {
@@ -74,7 +75,27 @@ export function BenefitDetails({ benefit }: BenefitDetailsProps) {
           <h2>Relatório de Contratos de Empréstimo</h2>
           <p>Benefício: ${Beneficiario.Beneficio}</p>
           <p>Data: ${new Date().toLocaleDateString('pt-BR')}</p>
+          ${DadosRepresentante && DadosRepresentante.length > 0 ? `
+          <div style="background: #fff3cd; border: 2px solid #ffc107; padding: 10px; margin: 10px 0; border-radius: 5px;">
+            <h3 style="color: #856404; margin: 0 0 5px 0;">⚠️ ATENÇÃO: BENEFICIÁRIO COM REPRESENTANTE LEGAL</h3>
+            <p style="color: #856404; margin: 0;">Este beneficiário possui representante legal responsável por suas decisões financeiras.</p>
+          </div>
+          ` : ''}
         </div>
+
+        ${DadosRepresentante && DadosRepresentante.length > 0 ? `
+        <div class="section">
+          <h3>Dados do Representante Legal</h3>
+          ${DadosRepresentante.map(rep => `
+          <div class="personal-info">
+            <div class="info-item"><strong>Nome:</strong> ${rep.Nome}</div>
+            <div class="info-item"><strong>CPF:</strong> ${formatCPF(rep.CPF)}</div>
+            <div class="info-item"><strong>Parentesco:</strong> ${rep.Parentesco}</div>
+            ${rep.Telefone ? `<div class="info-item"><strong>Telefone:</strong> ${rep.Telefone}</div>` : ''}
+          </div>
+          `).join('')}
+        </div>
+        ` : ''}
 
         <div class="section">
           <h3>Dados Pessoais</h3>
@@ -108,6 +129,7 @@ export function BenefitDetails({ benefit }: BenefitDetailsProps) {
                 <th>Banco</th>
                 <th>Contrato</th>
                 <th>Valor Parcela</th>
+                <th>Saldo Devedor</th>
                 <th>Valor Empréstimo</th>
                 <th>Prazo</th>
                 <th>Parcelas Restantes</th>
@@ -121,6 +143,7 @@ export function BenefitDetails({ benefit }: BenefitDetailsProps) {
                   <td>${emprestimo.NomeBanco}</td>
                   <td>${emprestimo.Contrato}</td>
                   <td>${formatCurrency(emprestimo.ValorParcela)}</td>
+                  <td style="color: #dc2626; font-weight: bold;">${formatCurrency(emprestimo.Quitacao)}</td>
                   <td>${formatCurrency(emprestimo.ValorEmprestimo)}</td>
                   <td>${emprestimo.Prazo}</td>
                   <td>${emprestimo.ParcelasRestantes}</td>
@@ -188,11 +211,56 @@ export function BenefitDetails({ benefit }: BenefitDetailsProps) {
 
   return (
     <div className="space-y-6">
+      {/* Legal Representative Warning */}
+      {DadosRepresentante && DadosRepresentante.length > 0 && (
+        <Card className="border-orange-200 bg-orange-50">
+          <CardContent className="pt-6">
+            <div className="flex items-center gap-3 mb-4">
+              <UserX className="h-6 w-6 text-orange-600" />
+              <div>
+                <h3 className="font-bold text-orange-800">ATENÇÃO: BENEFICIÁRIO COM REPRESENTANTE LEGAL</h3>
+                <p className="text-orange-700">Este beneficiário possui representante legal responsável por suas decisões financeiras.</p>
+              </div>
+            </div>
+            {DadosRepresentante.map((representante, index) => (
+              <div key={index} className="bg-white rounded-lg p-4 border border-orange-200">
+                <h4 className="font-semibold text-orange-800 mb-2">Dados do Representante Legal:</h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <div>
+                    <span className="text-sm text-muted-foreground">Nome:</span>
+                    <p className="font-semibold">{representante.Nome}</p>
+                  </div>
+                  <div>
+                    <span className="text-sm text-muted-foreground">CPF:</span>
+                    <p className="font-semibold">{formatCPF(representante.CPF)}</p>
+                  </div>
+                  <div>
+                    <span className="text-sm text-muted-foreground">Parentesco:</span>
+                    <p className="font-semibold">{representante.Parentesco}</p>
+                  </div>
+                  {representante.Telefone && (
+                    <div>
+                      <span className="text-sm text-muted-foreground">Telefone:</span>
+                      <p className="font-semibold">{representante.Telefone}</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+      )}
+
       <Card>
         <CardHeader className="border-b">
           <CardTitle className="flex items-center gap-2">
             <Info className="h-5 w-5 text-primary" />
             Detalhes do Benefício {Beneficiario.Beneficio}
+            {DadosRepresentante && DadosRepresentante.length > 0 && (
+              <Badge variant="secondary" className="ml-2 bg-orange-100 text-orange-800">
+                Com Representante Legal
+              </Badge>
+            )}
           </CardTitle>
         </CardHeader>
 
@@ -354,6 +422,7 @@ export function BenefitDetails({ benefit }: BenefitDetailsProps) {
                           <TableHead>Banco</TableHead>
                           <TableHead>Contrato</TableHead>
                           <TableHead>Valor Parcela</TableHead>
+                          <TableHead>Saldo Devedor</TableHead>
                           <TableHead>Prazo</TableHead>
                           <TableHead>Parcelas Rest.</TableHead>
                           <TableHead>Averbação</TableHead>
@@ -368,6 +437,9 @@ export function BenefitDetails({ benefit }: BenefitDetailsProps) {
                             <TableCell>{emprestimo.Contrato}</TableCell>
                             <TableCell className="font-semibold">
                               {formatCurrency(emprestimo.ValorParcela)}
+                            </TableCell>
+                            <TableCell className="font-semibold text-red-600">
+                              {formatCurrency(emprestimo.Quitacao)}
                             </TableCell>
                             <TableCell>{emprestimo.Prazo}</TableCell>
                             <TableCell>{emprestimo.ParcelasRestantes}</TableCell>

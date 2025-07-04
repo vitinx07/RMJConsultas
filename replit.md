@@ -114,3 +114,5 @@ Changelog:
 - July 04, 2025. Enhanced accordion behavior to allow multiple sections open simultaneously
 - July 04, 2025. Added print functionality to loan contracts section with comprehensive PDF report generation
 - July 04, 2025. Added RMC and RCC card information display sections with complete card details and bank information
+- July 04, 2025. Added "Saldo Devedor" (outstanding balance) column to loan contracts table
+- July 04, 2025. Implemented explicit legal representative warning system with prominent visual indicators and complete representative data display
