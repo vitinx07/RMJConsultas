@@ -113,3 +113,4 @@ Changelog:
 - July 04, 2025. Fixed app startup errors by removing syntax errors and cleaning up storage interface
 - July 04, 2025. Enhanced accordion behavior to allow multiple sections open simultaneously
 - July 04, 2025. Added print functionality to loan contracts section with comprehensive PDF report generation
+- July 04, 2025. Added RMC and RCC card information display sections with complete card details and bank information

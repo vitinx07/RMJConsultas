@@ -44,6 +44,7 @@ export function BenefitDetails({ benefit }: BenefitDetailsProps) {
     DadosBancarios, 
     Emprestimos, 
     Rmc,
+    RCC,
     Associacao 
   } = benefit;
 
@@ -131,11 +132,41 @@ export function BenefitDetails({ benefit }: BenefitDetailsProps) {
           </table>
         </div>
 
+        ${Rmc ? `
+        <div class="section">
+          <h3>RMC - Cartão de Crédito Consignado</h3>
+          <div class="personal-info">
+            <div class="info-item"><strong>Banco:</strong> ${Rmc.Banco} - ${Rmc.NomeBanco}</div>
+            <div class="info-item"><strong>Contrato:</strong> ${Rmc.Contrato}</div>
+            <div class="info-item"><strong>Valor Empréstimo:</strong> ${formatCurrency(Rmc.Valor_emprestimo)}</div>
+            <div class="info-item"><strong>Valor Parcela:</strong> ${formatCurrency(Rmc.ValorParcela)}</div>
+            <div class="info-item"><strong>Data de Inclusão:</strong> ${formatDate(Rmc.Data_inclusao)}</div>
+            <div class="info-item"><strong>Valor Atual:</strong> ${formatCurrency(Rmc.Valor)}</div>
+          </div>
+        </div>
+        ` : ''}
+
+        ${RCC ? `
+        <div class="section">
+          <h3>RCC - Reserva de Margem Consignável</h3>
+          <div class="personal-info">
+            <div class="info-item"><strong>Banco:</strong> ${RCC.Banco} ${RCC.NomeBanco ? `- ${RCC.NomeBanco}` : ''}</div>
+            <div class="info-item"><strong>Contrato:</strong> ${RCC.Contrato}</div>
+            <div class="info-item"><strong>Valor Empréstimo:</strong> ${formatCurrency(RCC.Valor_emprestimo)}</div>
+            ${RCC.ValorParcela ? `<div class="info-item"><strong>Valor Parcela:</strong> ${formatCurrency(RCC.ValorParcela)}</div>` : ''}
+            <div class="info-item"><strong>Data de Inclusão:</strong> ${formatDate(RCC.Data_inclusao)}</div>
+            <div class="info-item"><strong>Valor Atual:</strong> ${formatCurrency(RCC.Valor)}</div>
+          </div>
+        </div>
+        ` : ''}
+
         <div class="summary">
           <h3>Resumo dos Contratos</h3>
           <p><strong>Total de Contratos:</strong> ${Emprestimos.length}</p>
           <p><strong>Total de Parcelas:</strong> ${formatCurrency(ResumoFinanceiro.TotalParcelas)}</p>
           <p><strong>Total de Contratos:</strong> ${formatCurrency(ResumoFinanceiro.TotalContrato)}</p>
+          ${Rmc ? `<p><strong>RMC Ativo:</strong> Sim</p>` : ''}
+          ${RCC ? `<p><strong>RCC Ativo:</strong> Sim</p>` : ''}
         </div>
 
         <div class="footer">
@@ -369,6 +400,138 @@ export function BenefitDetails({ benefit }: BenefitDetailsProps) {
               )}
             </AccordionContent>
           </AccordionItem>
+
+          {/* RMC - Cartão de Crédito Consignado */}
+          {Rmc && (
+            <AccordionItem value="rmc" className="border-b">
+              <AccordionTrigger className="px-4 py-4 hover:bg-gray-50">
+                <span className="flex items-center gap-2 font-medium">
+                  <CreditCard className="h-4 w-4" />
+                  RMC - Cartão de Crédito Consignado
+                </span>
+              </AccordionTrigger>
+              <AccordionContent className="px-4 pb-4 bg-gray-50">
+                <div className="bg-white rounded-lg p-4 shadow-sm">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="flex items-center gap-3">
+                      <University className="h-5 w-5 text-muted-foreground" />
+                      <div>
+                        <p className="text-sm text-muted-foreground">Banco</p>
+                        <p className="font-semibold">{Rmc.Banco} - {Rmc.NomeBanco}</p>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-center gap-3">
+                      <FileText className="h-5 w-5 text-muted-foreground" />
+                      <div>
+                        <p className="text-sm text-muted-foreground">Contrato</p>
+                        <p className="font-semibold">{Rmc.Contrato}</p>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-center gap-3">
+                      <DollarSign className="h-5 w-5 text-muted-foreground" />
+                      <div>
+                        <p className="text-sm text-muted-foreground">Valor Empréstimo</p>
+                        <p className="font-semibold">{formatCurrency(Rmc.Valor_emprestimo)}</p>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-center gap-3">
+                      <DollarSign className="h-5 w-5 text-muted-foreground" />
+                      <div>
+                        <p className="text-sm text-muted-foreground">Valor Parcela</p>
+                        <p className="font-semibold">{formatCurrency(Rmc.ValorParcela)}</p>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-center gap-3">
+                      <Calendar className="h-5 w-5 text-muted-foreground" />
+                      <div>
+                        <p className="text-sm text-muted-foreground">Data de Inclusão</p>
+                        <p className="font-semibold">{formatDate(Rmc.Data_inclusao)}</p>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-center gap-3">
+                      <DollarSign className="h-5 w-5 text-muted-foreground" />
+                      <div>
+                        <p className="text-sm text-muted-foreground">Valor Atual</p>
+                        <p className="font-semibold">{formatCurrency(Rmc.Valor)}</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </AccordionContent>
+            </AccordionItem>
+          )}
+
+          {/* RCC - Reserva de Margem Consignável */}
+          {RCC && (
+            <AccordionItem value="rcc" className="border-b">
+              <AccordionTrigger className="px-4 py-4 hover:bg-gray-50">
+                <span className="flex items-center gap-2 font-medium">
+                  <CreditCard className="h-4 w-4" />
+                  RCC - Reserva de Margem Consignável
+                </span>
+              </AccordionTrigger>
+              <AccordionContent className="px-4 pb-4 bg-gray-50">
+                <div className="bg-white rounded-lg p-4 shadow-sm">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="flex items-center gap-3">
+                      <University className="h-5 w-5 text-muted-foreground" />
+                      <div>
+                        <p className="text-sm text-muted-foreground">Banco</p>
+                        <p className="font-semibold">{RCC.Banco} {RCC.NomeBanco && `- ${RCC.NomeBanco}`}</p>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-center gap-3">
+                      <FileText className="h-5 w-5 text-muted-foreground" />
+                      <div>
+                        <p className="text-sm text-muted-foreground">Contrato</p>
+                        <p className="font-semibold">{RCC.Contrato}</p>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-center gap-3">
+                      <DollarSign className="h-5 w-5 text-muted-foreground" />
+                      <div>
+                        <p className="text-sm text-muted-foreground">Valor Empréstimo</p>
+                        <p className="font-semibold">{formatCurrency(RCC.Valor_emprestimo)}</p>
+                      </div>
+                    </div>
+                    
+                    {RCC.ValorParcela && (
+                      <div className="flex items-center gap-3">
+                        <DollarSign className="h-5 w-5 text-muted-foreground" />
+                        <div>
+                          <p className="text-sm text-muted-foreground">Valor Parcela</p>
+                          <p className="font-semibold">{formatCurrency(RCC.ValorParcela)}</p>
+                        </div>
+                      </div>
+                    )}
+                    
+                    <div className="flex items-center gap-3">
+                      <Calendar className="h-5 w-5 text-muted-foreground" />
+                      <div>
+                        <p className="text-sm text-muted-foreground">Data de Inclusão</p>
+                        <p className="font-semibold">{formatDate(RCC.Data_inclusao)}</p>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-center gap-3">
+                      <DollarSign className="h-5 w-5 text-muted-foreground" />
+                      <div>
+                        <p className="text-sm text-muted-foreground">Valor Atual</p>
+                        <p className="font-semibold">{formatCurrency(RCC.Valor)}</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </AccordionContent>
+            </AccordionItem>
+          )}
 
           {/* Other Information */}
           <AccordionItem value="other">

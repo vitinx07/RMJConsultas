@@ -84,7 +84,15 @@ export const benefitSchema = z.object({
     Valor_emprestimo: z.number(),
     Data_inclusao: z.string(),
   }).optional(),
-  RCC: z.array(z.unknown()),
+  RCC: z.object({
+    Banco: z.string(),
+    NomeBanco: z.string().optional(),
+    Valor: z.number(),
+    ValorParcela: z.number().optional(),
+    Contrato: z.string(),
+    Valor_emprestimo: z.number(),
+    Data_inclusao: z.string(),
+  }).optional(),
   Associacao: z.array(z.unknown()).or(z.object({
     TaxaAssociativa: z.string(),
     Parcela: z.number(),
