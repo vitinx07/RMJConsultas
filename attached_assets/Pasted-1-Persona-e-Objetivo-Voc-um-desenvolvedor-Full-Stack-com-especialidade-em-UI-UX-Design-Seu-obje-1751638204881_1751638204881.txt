@@ -1,0 +1,80 @@
+1. Persona e Objetivo
+Você é um desenvolvedor Full-Stack com especialidade em UI/UX Design. Seu objetivo é criar o protótipo funcional de uma página web moderna, responsiva e intuitiva para consultar informações de benefícios do INSS, utilizando a API "MULTI CORBAN". A interface deve ser projetada para ser usada por correspondentes bancários, que precisam de acesso rápido e claro às informações para oferecer produtos de crédito.
+
+2. Visão Geral da Interface
+A aplicação será uma "Single-Page Application" (SPA) que permite ao usuário consultar dados por CPF ou por Número de Benefício. O resultado deve ser apresentado em um layout de "cards" ou painéis bem organizados, priorizando a legibilidade e a rápida identificação de informações financeiras chave, como a margem consignável.
+
+3. Componentes e Funcionalidades Chave
+3.1. Painel de Consulta (Onde a ação começa)
+
+Campo "Chave de API (api_key)": Um campo de texto no topo, que permita salvar a chave no navegador (usando localStorage) para que o usuário não precise digitá-la toda vez.
+
+Seletor de Tipo de Consulta: Botões de rádio ou um "toggle switch" para que o usuário escolha entre "Consultar por CPF" e "Consultar por Benefício".
+
+Campo de Entrada: Um único campo de texto que se adapta à escolha acima, aceitando o número do CPF ou do benefício.
+
+Botão "Consultar": Um botão grande e claro. Ao ser clicado, ele deve exibir um indicador de carregamento (um "spinner" ou "loading") enquanto a consulta à API é realizada.
+
+Área de Notificações/Erros: Um espaço abaixo do botão para exibir mensagens de erro de forma clara e amigável (ex: "CPF não encontrado", "Chave de API inválida", etc.).
+
+3.2. Área de Resultados (Onde os dados são exibidos)
+
+Esta área deve ser dinâmica e se adaptar ao resultado da consulta.
+
+Caso 1: Consulta por CPF retorna múltiplos benefícios:
+
+A tela deve exibir uma lista de cartões de resumo, um para cada benefício encontrado.
+
+Cada cartão de resumo deve mostrar as informações principais: Nome do Titular, Número do Benefício e Situação ("Ativo", "Inativo").
+
+Esses cartões devem ser "clicáveis" ou ter um botão "Ver Detalhes". Ao clicar, o sistema deve fazer a segunda chamada à API (para a rota /offline) e exibir o relatório detalhado abaixo ou em um modal.
+
+Caso 2: Visualização detalhada de um benefício (resultado da consulta por benefício ou clique no resumo):
+
+O layout deve ser dividido em seções claras, cada uma em seu próprio "card" expansível (formato "accordion").
+
+Card 1: "Dados do Beneficiário"
+
+Exibir todas as informações pessoais (Nome, CPF, Data de Nascimento, Nome da Mãe, etc.) de forma bem espaçada.
+
+Utilizar ícones ao lado de cada campo para melhor apelo visual (ex: ícone de calendário para datas, ícone de usuário para nome).
+
+Card 2: "Resumo Financeiro e Margens" (O mais importante)
+
+Destaque visual para o Valor do Benefício e, principalmente, para as Margens Disponíveis (Empréstimo, RMC, RCC).
+
+Use uma tipografia maior, cores diferentes (verde para margem positiva) e talvez um pequeno gráfico de barra ou "gauge" para representar visualmente a margem disponível.
+
+Card 3: "Contratos de Empréstimo Ativos"
+
+Se houver empréstimos, exibi-los em formato de tabela com colunas: "Banco", "Nº do Contrato", "Valor da Parcela", "Prazo", "Parcelas Restantes", "Data de Averbação".
+
+Se não houver empréstimos, exibir uma mensagem clara: "Nenhum contrato de empréstimo ativo encontrado."
+
+Card 4: "Outras Informações"
+
+Um último card para dados secundários, como "Dados Bancários para Pagamento" e "Dados do Representante Legal".
+
+4. Requisitos de Design e UX (Aparência e Usabilidade)
+Estilo Visual: Moderno, limpo e profissional. Utilize uma paleta de cores sóbria (tons de azul, cinza e branco) com cores de destaque (como verde) para informações positivas. Use fontes legíveis como Montserrat, Lato ou Roboto.
+
+Responsividade: A interface deve ser totalmente funcional e esteticamente agradável tanto em telas de desktop quanto em dispositivos móveis.
+
+Dinamismo: A transição entre estados (consulta, carregamento, resultado) deve ser suave, com animações sutis. A busca por detalhes não deve recarregar a página inteira.
+
+5. Exemplo de Fluxo de Usuário
+Usuário acessa a página, digita sua chave de API (que fica salva).
+
+Ele seleciona "Consultar por CPF" e digita o número.
+
+Clica em "Consultar". Um ícone de carregamento aparece.
+
+A API retorna dois benefícios. A tela exibe dois cartões de resumo, um para cada benefício.
+
+O usuário clica em "Ver Detalhes" no primeiro benefício.
+
+Aparece um novo ícone de carregamento.
+
+Logo abaixo, o relatório detalhado daquele benefício é exibido, com os cards de "Dados do Beneficiário", "Resumo Financeiro" e a tabela de "Contratos".
+
+O usuário pode "recolher" essa seção e clicar em "Ver Detalhes" do segundo benefício para analisá-lo.
