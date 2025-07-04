@@ -107,3 +107,6 @@ Preferred communication style: Simple, everyday language.
 
 Changelog:
 - July 04, 2025. Initial setup
+- July 04, 2025. Fixed React render loop errors and configured fixed API key (4630e3b1ad52c0397c64c81e5a3fb8ec)
+- July 04, 2025. Added example buttons for quick testing with real data (CPF: 15713132811, Benefits: 1272021804, 1697028109)
+- July 04, 2025. Optimized query performance and error handling

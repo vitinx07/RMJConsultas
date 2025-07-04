@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { University, AlertCircle, Loader2 } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -56,35 +56,54 @@ export default function Home() {
     setSelectedBenefit(benefitNumber);
   };
 
-  const handleError = (error: unknown) => {
-    if (error instanceof ApiError) {
-      toast({
-        title: "Erro na API",
-        description: error.message,
-        variant: "destructive",
-      });
-    } else if (error instanceof Error) {
-      toast({
-        title: "Erro",
-        description: error.message,
-        variant: "destructive",
-      });
-    } else {
-      toast({
-        title: "Erro",
-        description: "Ocorreu um erro inesperado. Tente novamente.",
-        variant: "destructive",
-      });
+  // Handle errors with useEffect to avoid render loops
+  useEffect(() => {
+    if (searchError) {
+      if (searchError instanceof ApiError) {
+        toast({
+          title: "Erro na API",
+          description: searchError.message,
+          variant: "destructive",
+        });
+      } else if (searchError instanceof Error) {
+        toast({
+          title: "Erro",
+          description: searchError.message,
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Erro",
+          description: "Ocorreu um erro inesperado. Tente novamente.",
+          variant: "destructive",
+        });
+      }
     }
-  };
+  }, [searchError, toast]);
 
-  if (searchError) {
-    handleError(searchError);
-  }
-
-  if (detailsError) {
-    handleError(detailsError);
-  }
+  useEffect(() => {
+    if (detailsError) {
+      if (detailsError instanceof ApiError) {
+        toast({
+          title: "Erro na API",
+          description: detailsError.message,
+          variant: "destructive",
+        });
+      } else if (detailsError instanceof Error) {
+        toast({
+          title: "Erro",
+          description: detailsError.message,
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Erro",
+          description: "Ocorreu um erro inesperado. Tente novamente.",
+          variant: "destructive",
+        });
+      }
+    }
+  }, [detailsError, toast]);
 
   return (
     <div className="min-h-screen bg-background">
