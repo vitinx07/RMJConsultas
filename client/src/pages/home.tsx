@@ -25,12 +25,13 @@ export default function Home() {
     data: benefits, 
     isLoading: isSearching, 
     error: searchError,
-    refetch: searchBenefits 
+    refetch 
   } = useQuery({
     queryKey: ['benefits', searchParams],
     queryFn: () => searchBenefits(searchParams!),
     enabled: !!searchParams,
     retry: false,
+    staleTime: 30000, // 30 seconds
   });
 
   // Get benefit details query
@@ -43,6 +44,7 @@ export default function Home() {
     queryFn: () => getBenefitDetails(searchParams!.apiKey, selectedBenefit!),
     enabled: !!selectedBenefit && !!searchParams?.apiKey,
     retry: false,
+    staleTime: 60000, // 1 minute
   });
 
   const handleSearch = (apiKey: string, searchType: 'cpf' | 'beneficio', searchValue: string) => {

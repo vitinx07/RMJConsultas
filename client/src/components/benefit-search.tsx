@@ -14,19 +14,17 @@ interface BenefitSearchProps {
 }
 
 export function BenefitSearch({ onSearch, isLoading }: BenefitSearchProps) {
-  const [apiKey, setApiKey] = useState(() => localStorage.getItem('multicorban_api_key') || '');
+  const [apiKey, setApiKey] = useState('4630e3b1ad52c0397c64c81e5a3fb8ec');
   const [searchType, setSearchType] = useState<'cpf' | 'beneficio'>('cpf');
   const [searchValue, setSearchValue] = useState('');
   const { toast } = useToast();
 
   const handleSaveApiKey = () => {
-    if (apiKey.trim()) {
-      localStorage.setItem('multicorban_api_key', apiKey);
-      toast({
-        title: "API Key salva",
-        description: "Sua chave de API foi salva com sucesso no navegador.",
-      });
-    }
+    // API key já está configurada
+    toast({
+      title: "API Key configurada",
+      description: "Chave de API já está configurada no sistema.",
+    });
   };
 
   const handleSearch = () => {
@@ -74,25 +72,26 @@ export function BenefitSearch({ onSearch, isLoading }: BenefitSearchProps) {
               <Input
                 id="apiKey"
                 type="password"
-                placeholder="Digite sua chave de API"
-                value={apiKey}
-                onChange={(e) => setApiKey(e.target.value)}
+                placeholder="Chave configurada no sistema"
+                value="••••••••••••••••••••••••••••••••"
                 className="mt-2"
+                disabled
               />
             </div>
             <Button 
               onClick={handleSaveApiKey}
               variant="secondary"
               className="flex items-center gap-2"
+              disabled
             >
               <Save className="h-4 w-4" />
-              Salvar
+              Configurada
             </Button>
           </div>
           <Alert className="mt-4">
             <AlertDescription>
               <Key className="h-4 w-4 inline mr-1" />
-              Sua chave será salva no navegador para uso futuro
+              Chave de API configurada e pronta para uso
             </AlertDescription>
           </Alert>
         </CardContent>
@@ -139,12 +138,30 @@ export function BenefitSearch({ onSearch, isLoading }: BenefitSearchProps) {
                 <Input
                   id="searchInput"
                   type="text"
-                  placeholder={searchType === 'cpf' ? 'Digite o CPF' : 'Digite o número do benefício'}
+                  placeholder={searchType === 'cpf' ? 'Ex: 15713132811' : 'Ex: 1272021804'}
                   value={searchValue}
                   onChange={(e) => setSearchValue(e.target.value)}
                   onKeyPress={handleKeyPress}
                   className="mt-2"
                 />
+                <div className="flex flex-wrap gap-2 mt-2">
+                  <button
+                    type="button"
+                    onClick={() => setSearchValue(searchType === 'cpf' ? '15713132811' : '1272021804')}
+                    className="text-xs px-2 py-1 bg-blue-100 text-blue-700 rounded hover:bg-blue-200"
+                  >
+                    Exemplo 1
+                  </button>
+                  {searchType === 'beneficio' && (
+                    <button
+                      type="button"
+                      onClick={() => setSearchValue('1697028109')}
+                      className="text-xs px-2 py-1 bg-blue-100 text-blue-700 rounded hover:bg-blue-200"
+                    >
+                      Exemplo 2
+                    </button>
+                  )}
+                </div>
               </div>
               <Button 
                 onClick={handleSearch}
