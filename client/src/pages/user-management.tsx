@@ -50,15 +50,19 @@ export default function UserManagement() {
   const queryClient = useQueryClient();
 
   // Query para buscar todos os usuários
-  const { data: users, isLoading } = useQuery({
+  const { data: users, isLoading, error } = useQuery({
     queryKey: ["/api/users"],
     queryFn: async () => {
-      const response = await fetch("/api/users");
+      const response = await fetch("/api/users", {
+        credentials: 'include'
+      });
       if (!response.ok) {
-        throw new Error("Erro ao carregar usuários");
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Erro ao carregar usuários");
       }
       return response.json();
     },
+    enabled: currentUser?.role === "administrator",
   });
 
   // Mutation para criar usuário
@@ -69,6 +73,7 @@ export default function UserManagement() {
         headers: {
           "Content-Type": "application/json",
         },
+        credentials: 'include',
         body: JSON.stringify(userData),
       });
 
@@ -111,6 +116,7 @@ export default function UserManagement() {
     mutationFn: async (userId: string) => {
       const response = await fetch(`/api/users/${userId}`, {
         method: "DELETE",
+        credentials: 'include',
       });
 
       if (!response.ok) {
@@ -181,6 +187,21 @@ export default function UserManagement() {
             <CardTitle className="text-center text-red-600">Acesso Negado</CardTitle>
             <CardDescription className="text-center">
               Apenas administradores podem acessar esta página.
+            </CardDescription>
+          </CardHeader>
+        </Card>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Card className="max-w-md">
+          <CardHeader>
+            <CardTitle className="text-center text-red-600">Erro ao Carregar</CardTitle>
+            <CardDescription className="text-center">
+              {error.message || "Erro ao carregar usuários"}
             </CardDescription>
           </CardHeader>
         </Card>
