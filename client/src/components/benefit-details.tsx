@@ -10,7 +10,8 @@ import {
   MapPin,
   UserX,
   PiggyBank,
-  Calculator
+  Calculator,
+  Printer
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { 
@@ -20,6 +21,7 @@ import {
   AccordionTrigger 
 } from "@/components/ui/accordion";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { 
   Table, 
   TableBody, 
@@ -45,6 +47,114 @@ export function BenefitDetails({ benefit }: BenefitDetailsProps) {
     Associacao 
   } = benefit;
 
+  const handlePrintContracts = () => {
+    const printContent = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <title>Relatório de Contratos - ${Beneficiario.Nome}</title>
+        <style>
+          body { font-family: Arial, sans-serif; margin: 20px; }
+          .header { text-align: center; border-bottom: 2px solid #333; padding-bottom: 10px; margin-bottom: 20px; }
+          .section { margin-bottom: 20px; }
+          .section h3 { color: #333; border-bottom: 1px solid #ddd; padding-bottom: 5px; }
+          .personal-info { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; }
+          .info-item { padding: 5px; background: #f5f5f5; border-radius: 4px; }
+          table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+          th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+          th { background-color: #f2f2f2; }
+          .summary { background: #e8f5e8; padding: 15px; border-radius: 5px; }
+          .footer { text-align: center; margin-top: 30px; font-size: 12px; color: #666; }
+        </style>
+      </head>
+      <body>
+        <div class="header">
+          <h1>RMJ CONSULTAS</h1>
+          <h2>Relatório de Contratos de Empréstimo</h2>
+          <p>Benefício: ${Beneficiario.Beneficio}</p>
+          <p>Data: ${new Date().toLocaleDateString('pt-BR')}</p>
+        </div>
+
+        <div class="section">
+          <h3>Dados Pessoais</h3>
+          <div class="personal-info">
+            <div class="info-item"><strong>Nome:</strong> ${Beneficiario.Nome}</div>
+            <div class="info-item"><strong>CPF:</strong> ${formatCPF(Beneficiario.CPF)}</div>
+            <div class="info-item"><strong>Data de Nascimento:</strong> ${formatDate(Beneficiario.DataNascimento)}</div>
+            <div class="info-item"><strong>Nome da Mãe:</strong> ${Beneficiario.NomeMae}</div>
+            <div class="info-item"><strong>Endereço:</strong> ${Beneficiario.Endereco}, ${Beneficiario.Bairro}</div>
+            <div class="info-item"><strong>Cidade/UF:</strong> ${Beneficiario.Cidade} - ${Beneficiario.UF}</div>
+            <div class="info-item"><strong>CEP:</strong> ${Beneficiario.CEP}</div>
+            <div class="info-item"><strong>Situação:</strong> ${Beneficiario.Situacao}</div>
+          </div>
+        </div>
+
+        <div class="section">
+          <h3>Resumo Financeiro</h3>
+          <div class="personal-info">
+            <div class="info-item"><strong>Valor do Benefício:</strong> ${formatCurrency(ResumoFinanceiro.ValorBeneficio)}</div>
+            <div class="info-item"><strong>Base de Cálculo:</strong> ${formatCurrency(ResumoFinanceiro.BaseCalculo)}</div>
+            <div class="info-item"><strong>Margem Disponível:</strong> ${formatCurrency(ResumoFinanceiro.MargemDisponivelEmprestimo)}</div>
+            <div class="info-item"><strong>Total de Empréstimos:</strong> ${formatCurrency(ResumoFinanceiro.TotalEmprestimos)}</div>
+          </div>
+        </div>
+
+        <div class="section">
+          <h3>Contratos de Empréstimo Ativos (${Emprestimos.length})</h3>
+          <table>
+            <thead>
+              <tr>
+                <th>Banco</th>
+                <th>Contrato</th>
+                <th>Valor Parcela</th>
+                <th>Valor Empréstimo</th>
+                <th>Prazo</th>
+                <th>Parcelas Restantes</th>
+                <th>Data Averbação</th>
+                <th>Taxa (%)</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${Emprestimos.map(emprestimo => `
+                <tr>
+                  <td>${emprestimo.NomeBanco}</td>
+                  <td>${emprestimo.Contrato}</td>
+                  <td>${formatCurrency(emprestimo.ValorParcela)}</td>
+                  <td>${formatCurrency(emprestimo.ValorEmprestimo)}</td>
+                  <td>${emprestimo.Prazo}</td>
+                  <td>${emprestimo.ParcelasRestantes}</td>
+                  <td>${formatDate(emprestimo.DataAverbacao)}</td>
+                  <td>${emprestimo.Taxa.toFixed(2)}%</td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        </div>
+
+        <div class="summary">
+          <h3>Resumo dos Contratos</h3>
+          <p><strong>Total de Contratos:</strong> ${Emprestimos.length}</p>
+          <p><strong>Total de Parcelas:</strong> ${formatCurrency(ResumoFinanceiro.TotalParcelas)}</p>
+          <p><strong>Total de Contratos:</strong> ${formatCurrency(ResumoFinanceiro.TotalContrato)}</p>
+        </div>
+
+        <div class="footer">
+          <p>© 2024 RMJ Consultas - Sistema de Consulta de Benefícios INSS</p>
+          <p>Relatório gerado em ${new Date().toLocaleString('pt-BR')}</p>
+        </div>
+      </body>
+      </html>
+    `;
+
+    const printWindow = window.open('', '_blank');
+    if (printWindow) {
+      printWindow.document.write(printContent);
+      printWindow.document.close();
+      printWindow.focus();
+      printWindow.print();
+    }
+  };
+
   return (
     <div className="space-y-6">
       <Card>
@@ -55,7 +165,7 @@ export function BenefitDetails({ benefit }: BenefitDetailsProps) {
           </CardTitle>
         </CardHeader>
 
-        <Accordion type="single" collapsible className="w-full">
+        <Accordion type="multiple" className="w-full">
           {/* Beneficiary Data */}
           <AccordionItem value="beneficiary" className="border-b">
             <AccordionTrigger className="px-4 py-4 hover:bg-gray-50">
@@ -196,6 +306,14 @@ export function BenefitDetails({ benefit }: BenefitDetailsProps) {
               </span>
             </AccordionTrigger>
             <AccordionContent className="px-4 pb-4 bg-gray-50">
+              {Emprestimos.length > 0 && (
+                <div className="mb-4 flex justify-end">
+                  <Button onClick={handlePrintContracts} variant="outline" className="flex items-center gap-2">
+                    <Printer className="h-4 w-4" />
+                    Imprimir Relatório
+                  </Button>
+                </div>
+              )}
               {Emprestimos.length > 0 ? (
                 <div className="space-y-4">
                   <div className="overflow-x-auto">

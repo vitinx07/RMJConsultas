@@ -46,7 +46,6 @@ export default function Home() {
     retry: false,
     staleTime: 60000, // 1 minute
   });
-
   const handleSearch = (apiKey: string, searchType: 'cpf' | 'beneficio', searchValue: string) => {
     setSearchParams({ apiKey, searchType, searchValue });
     setSelectedBenefit(null);
@@ -186,7 +185,7 @@ export default function Home() {
         <div className="container mx-auto px-4 py-8">
           <div className="text-center">
             <p className="text-sm opacity-75">
-              © 2024 RMJ Consults - Sistema de Consulta de Benefícios INSS
+              © 2025 RMJ Consultas - Sistema de Consulta de Benefícios INSS
             </p>
             <p className="text-xs opacity-50 mt-2">
               Desenvolvido por Vitor Cavalcanti
