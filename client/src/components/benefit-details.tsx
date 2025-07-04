@@ -267,19 +267,19 @@ export function BenefitDetails({ benefit }: BenefitDetailsProps) {
         <Accordion type="multiple" className="w-full">
           {/* Beneficiary Data */}
           <AccordionItem value="beneficiary" className="border-b">
-            <AccordionTrigger className="px-4 py-4 hover:bg-gray-50">
+            <AccordionTrigger className="px-4 py-4 hover:bg-muted/30">
               <span className="flex items-center gap-2 font-medium">
                 <User className="h-4 w-4" />
                 Dados do Beneficiário
               </span>
             </AccordionTrigger>
-            <AccordionContent className="px-4 pb-4 bg-gray-50">
+            <AccordionContent className="px-4 pb-4 bg-muted/20">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="flex items-center gap-3">
                   <User className="h-5 w-5 text-muted-foreground" />
                   <div>
                     <p className="text-sm text-muted-foreground">Nome</p>
-                    <p className="font-semibold">{Beneficiario.Nome}</p>
+                    <p className="font-semibold text-foreground">{Beneficiario.Nome}</p>
                   </div>
                 </div>
                 
@@ -287,7 +287,7 @@ export function BenefitDetails({ benefit }: BenefitDetailsProps) {
                   <FileText className="h-5 w-5 text-muted-foreground" />
                   <div>
                     <p className="text-sm text-muted-foreground">CPF</p>
-                    <p className="font-semibold">{formatCPF(Beneficiario.CPF)}</p>
+                    <p className="font-semibold text-foreground">{formatCPF(Beneficiario.CPF)}</p>
                   </div>
                 </div>
                 
@@ -328,13 +328,13 @@ export function BenefitDetails({ benefit }: BenefitDetailsProps) {
 
           {/* Financial Summary */}
           <AccordionItem value="financial" className="border-b">
-            <AccordionTrigger className="px-4 py-4 hover:bg-gray-50">
+            <AccordionTrigger className="px-4 py-4 hover:bg-muted/30">
               <span className="flex items-center gap-2 font-medium">
                 <DollarSign className="h-4 w-4" />
                 Resumo Financeiro e Margens
               </span>
             </AccordionTrigger>
-            <AccordionContent className="px-4 pb-4 bg-gray-50">
+            <AccordionContent className="px-4 pb-4 bg-muted/20">
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 {/* Financial Values */}
                 <div className="space-y-4">
@@ -398,13 +398,13 @@ export function BenefitDetails({ benefit }: BenefitDetailsProps) {
 
           {/* Loan Contracts */}
           <AccordionItem value="loans" className="border-b">
-            <AccordionTrigger className="px-4 py-4 hover:bg-gray-50">
+            <AccordionTrigger className="px-4 py-4 hover:bg-muted/30">
               <span className="flex items-center gap-2 font-medium">
                 <FileText className="h-4 w-4" />
                 Contratos de Empréstimo Ativos ({Emprestimos.length})
               </span>
             </AccordionTrigger>
-            <AccordionContent className="px-4 pb-4 bg-gray-50">
+            <AccordionContent className="px-4 pb-4 bg-muted/20">
               {Emprestimos.length > 0 && (
                 <div className="mb-4 flex justify-end">
                   <Button onClick={handlePrintContracts} variant="outline" className="flex items-center gap-2">
@@ -418,42 +418,42 @@ export function BenefitDetails({ benefit }: BenefitDetailsProps) {
                   <div className="overflow-x-auto border rounded-lg">
                     <Table className="min-w-full">
                       <TableHeader>
-                        <TableRow className="bg-muted/50">
-                          <TableHead className="font-semibold text-foreground min-w-[120px]">Banco</TableHead>
-                          <TableHead className="font-semibold text-foreground min-w-[140px]">Contrato</TableHead>
-                          <TableHead className="font-semibold text-foreground min-w-[120px]">Valor Parcela</TableHead>
-                          <TableHead className="font-semibold text-foreground min-w-[120px]">Saldo Devedor</TableHead>
-                          <TableHead className="font-semibold text-foreground min-w-[80px]">Prazo</TableHead>
-                          <TableHead className="font-semibold text-foreground min-w-[100px]">Parcelas Rest.</TableHead>
-                          <TableHead className="font-semibold text-foreground min-w-[120px]">Averbação</TableHead>
+                        <TableRow className="bg-muted/50 border-b">
+                          <TableHead className="font-semibold text-foreground min-w-[120px] h-12">Banco</TableHead>
+                          <TableHead className="font-semibold text-foreground min-w-[140px] h-12">Contrato</TableHead>
+                          <TableHead className="font-semibold text-foreground min-w-[120px] h-12">Valor Parcela</TableHead>
+                          <TableHead className="font-semibold text-foreground min-w-[120px] h-12">Saldo Devedor</TableHead>
+                          <TableHead className="font-semibold text-foreground min-w-[80px] h-12">Prazo</TableHead>
+                          <TableHead className="font-semibold text-foreground min-w-[100px] h-12">Parcelas Rest.</TableHead>
+                          <TableHead className="font-semibold text-foreground min-w-[120px] h-12">Averbação</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
                         {Emprestimos.map((emprestimo, index) => (
-                          <TableRow key={index} className="hover:bg-muted/30">
-                            <TableCell className="font-medium">
+                          <TableRow key={index} className="hover:bg-muted/30 border-b">
+                            <TableCell className="font-medium text-foreground bg-background">
                               <div className="truncate max-w-[120px]" title={emprestimo.NomeBanco}>
                                 {emprestimo.NomeBanco || 'N/A'}
                               </div>
                             </TableCell>
-                            <TableCell className="font-mono text-sm">
+                            <TableCell className="font-mono text-sm text-foreground bg-background">
                               <div className="truncate max-w-[140px]" title={emprestimo.Contrato}>
                                 {emprestimo.Contrato || 'N/A'}
                               </div>
                             </TableCell>
-                            <TableCell className="font-semibold text-green-600">
+                            <TableCell className="font-semibold text-green-600 bg-background">
                               {formatCurrency(emprestimo.ValorParcela)}
                             </TableCell>
-                            <TableCell className="font-semibold text-red-600 bg-red-50 dark:bg-red-950/20">
+                            <TableCell className="font-semibold text-red-600 bg-red-50 dark:bg-red-950/30 dark:text-red-400">
                               {formatCurrency(emprestimo.Quitacao)}
                             </TableCell>
-                            <TableCell className="text-center">
+                            <TableCell className="text-center text-foreground bg-background">
                               {emprestimo.Prazo || 'N/A'}
                             </TableCell>
-                            <TableCell className="text-center font-medium">
+                            <TableCell className="text-center font-medium text-foreground bg-background">
                               {emprestimo.ParcelasRestantes || 'N/A'}
                             </TableCell>
-                            <TableCell className="text-sm">
+                            <TableCell className="text-sm text-foreground bg-background">
                               {emprestimo.DataAverbacao ? formatDate(emprestimo.DataAverbacao) : 'N/A'}
                             </TableCell>
                           </TableRow>
@@ -497,13 +497,13 @@ export function BenefitDetails({ benefit }: BenefitDetailsProps) {
           {/* RMC - Cartão de Crédito Consignado */}
           {Rmc && (
             <AccordionItem value="rmc" className="border-b">
-              <AccordionTrigger className="px-4 py-4 hover:bg-gray-50">
+              <AccordionTrigger className="px-4 py-4 hover:bg-muted/30">
                 <span className="flex items-center gap-2 font-medium">
                   <CreditCard className="h-4 w-4" />
                   RMC - Cartão de Crédito Consignado
                 </span>
               </AccordionTrigger>
-              <AccordionContent className="px-4 pb-4 bg-gray-50">
+              <AccordionContent className="px-4 pb-4 bg-muted/20">
                 <div className="bg-white rounded-lg p-4 shadow-sm">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="flex items-center gap-3">
@@ -562,13 +562,13 @@ export function BenefitDetails({ benefit }: BenefitDetailsProps) {
           {/* RCC - Reserva de Margem Consignável */}
           {RCC && (
             <AccordionItem value="rcc" className="border-b">
-              <AccordionTrigger className="px-4 py-4 hover:bg-gray-50">
+              <AccordionTrigger className="px-4 py-4 hover:bg-muted/30">
                 <span className="flex items-center gap-2 font-medium">
                   <CreditCard className="h-4 w-4" />
                   RCC - Reserva de Margem Consignável
                 </span>
               </AccordionTrigger>
-              <AccordionContent className="px-4 pb-4 bg-gray-50">
+              <AccordionContent className="px-4 pb-4 bg-muted/20">
                 <div className="bg-white rounded-lg p-4 shadow-sm">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="flex items-center gap-3">
@@ -628,13 +628,13 @@ export function BenefitDetails({ benefit }: BenefitDetailsProps) {
 
           {/* Other Information */}
           <AccordionItem value="other">
-            <AccordionTrigger className="px-4 py-4 hover:bg-gray-50">
+            <AccordionTrigger className="px-4 py-4 hover:bg-muted/30">
               <span className="flex items-center gap-2 font-medium">
                 <Info className="h-4 w-4" />
                 Outras Informações
               </span>
             </AccordionTrigger>
-            <AccordionContent className="px-4 pb-4 bg-gray-50">
+            <AccordionContent className="px-4 pb-4 bg-muted/20">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {/* Banking Data */}
                 <div className="bg-white rounded-lg p-4 shadow-sm">
