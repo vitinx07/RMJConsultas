@@ -338,7 +338,7 @@ export function BenefitDetails({ benefit }: BenefitDetailsProps) {
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 {/* Financial Values */}
                 <div className="space-y-4">
-                  <div className="bg-white rounded-lg p-4 shadow-sm">
+                  <div className="bg-card border rounded-lg p-4 shadow-sm">
                     <div className="flex items-center justify-between">
                       <div>
                         <p className="text-sm text-muted-foreground">Valor do Benefício</p>
@@ -349,11 +349,11 @@ export function BenefitDetails({ benefit }: BenefitDetailsProps) {
                       <DollarSign className="h-8 w-8 text-green-600" />
                     </div>
                   </div>
-                  <div className="bg-white rounded-lg p-4 shadow-sm">
+                  <div className="bg-card border rounded-lg p-4 shadow-sm">
                     <div className="flex items-center justify-between">
                       <div>
                         <p className="text-sm text-muted-foreground">Base de Cálculo</p>
-                        <p className="text-xl font-semibold">
+                        <p className="text-xl font-semibold text-foreground">
                           {formatCurrency(ResumoFinanceiro.BaseCalculo)}
                         </p>
                       </div>
@@ -378,15 +378,15 @@ export function BenefitDetails({ benefit }: BenefitDetailsProps) {
                     </div>
                   </div>
                   <div className="grid grid-cols-2 gap-4">
-                    <div className="bg-white rounded-lg p-3 shadow-sm">
+                    <div className="bg-card border rounded-lg p-3 shadow-sm">
                       <p className="text-xs text-muted-foreground">Margem RMC</p>
-                      <p className="text-lg font-semibold">
+                      <p className="text-lg font-semibold text-foreground">
                         {formatCurrency(ResumoFinanceiro.MargemDisponivelRmc)}
                       </p>
                     </div>
-                    <div className="bg-white rounded-lg p-3 shadow-sm">
+                    <div className="bg-card border rounded-lg p-3 shadow-sm">
                       <p className="text-xs text-muted-foreground">Margem RCC</p>
-                      <p className="text-lg font-semibold">
+                      <p className="text-lg font-semibold text-foreground">
                         {formatCurrency(ResumoFinanceiro.MargemDisponivelRcc)}
                       </p>
                     </div>
@@ -504,13 +504,13 @@ export function BenefitDetails({ benefit }: BenefitDetailsProps) {
                 </span>
               </AccordionTrigger>
               <AccordionContent className="px-4 pb-4 bg-muted/20">
-                <div className="bg-white rounded-lg p-4 shadow-sm">
+                <div className="bg-card border rounded-lg p-4 shadow-sm">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="flex items-center gap-3">
                       <University className="h-5 w-5 text-muted-foreground" />
                       <div>
                         <p className="text-sm text-muted-foreground">Banco</p>
-                        <p className="font-semibold">{Rmc.Banco} - {Rmc.NomeBanco}</p>
+                        <p className="font-semibold text-foreground">{Rmc.Banco} - {Rmc.NomeBanco}</p>
                       </div>
                     </div>
                     
@@ -518,7 +518,7 @@ export function BenefitDetails({ benefit }: BenefitDetailsProps) {
                       <FileText className="h-5 w-5 text-muted-foreground" />
                       <div>
                         <p className="text-sm text-muted-foreground">Contrato</p>
-                        <p className="font-semibold">{Rmc.Contrato}</p>
+                        <p className="font-semibold text-foreground">{Rmc.Contrato}</p>
                       </div>
                     </div>
                     
@@ -526,7 +526,7 @@ export function BenefitDetails({ benefit }: BenefitDetailsProps) {
                       <DollarSign className="h-5 w-5 text-muted-foreground" />
                       <div>
                         <p className="text-sm text-muted-foreground">Valor Empréstimo</p>
-                        <p className="font-semibold">{formatCurrency(Rmc.Valor_emprestimo)}</p>
+                        <p className="font-semibold text-foreground">{formatCurrency(Rmc.Valor_emprestimo)}</p>
                       </div>
                     </div>
                     
@@ -534,7 +534,7 @@ export function BenefitDetails({ benefit }: BenefitDetailsProps) {
                       <DollarSign className="h-5 w-5 text-muted-foreground" />
                       <div>
                         <p className="text-sm text-muted-foreground">Valor Parcela</p>
-                        <p className="font-semibold">{formatCurrency(Rmc.ValorParcela)}</p>
+                        <p className="font-semibold text-foreground">{formatCurrency(Rmc.ValorParcela)}</p>
                       </div>
                     </div>
                     
@@ -542,7 +542,7 @@ export function BenefitDetails({ benefit }: BenefitDetailsProps) {
                       <Calendar className="h-5 w-5 text-muted-foreground" />
                       <div>
                         <p className="text-sm text-muted-foreground">Data de Inclusão</p>
-                        <p className="font-semibold">{formatDate(Rmc.Data_inclusao)}</p>
+                        <p className="font-semibold text-foreground">{formatDate(Rmc.Data_inclusao)}</p>
                       </div>
                     </div>
                     
@@ -550,7 +550,7 @@ export function BenefitDetails({ benefit }: BenefitDetailsProps) {
                       <DollarSign className="h-5 w-5 text-muted-foreground" />
                       <div>
                         <p className="text-sm text-muted-foreground">Valor Atual</p>
-                        <p className="font-semibold">{formatCurrency(Rmc.Valor)}</p>
+                        <p className="font-semibold text-foreground">{formatCurrency(Rmc.Valor)}</p>
                       </div>
                     </div>
                   </div>
@@ -569,13 +569,13 @@ export function BenefitDetails({ benefit }: BenefitDetailsProps) {
                 </span>
               </AccordionTrigger>
               <AccordionContent className="px-4 pb-4 bg-muted/20">
-                <div className="bg-white rounded-lg p-4 shadow-sm">
+                <div className="bg-card border rounded-lg p-4 shadow-sm">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="flex items-center gap-3">
                       <University className="h-5 w-5 text-muted-foreground" />
                       <div>
                         <p className="text-sm text-muted-foreground">Banco</p>
-                        <p className="font-semibold">{RCC.Banco} {RCC.NomeBanco && `- ${RCC.NomeBanco}`}</p>
+                        <p className="font-semibold text-foreground">{RCC.Banco} {RCC.NomeBanco && `- ${RCC.NomeBanco}`}</p>
                       </div>
                     </div>
                     
@@ -583,7 +583,7 @@ export function BenefitDetails({ benefit }: BenefitDetailsProps) {
                       <FileText className="h-5 w-5 text-muted-foreground" />
                       <div>
                         <p className="text-sm text-muted-foreground">Contrato</p>
-                        <p className="font-semibold">{RCC.Contrato}</p>
+                        <p className="font-semibold text-foreground">{RCC.Contrato}</p>
                       </div>
                     </div>
                     
@@ -591,7 +591,7 @@ export function BenefitDetails({ benefit }: BenefitDetailsProps) {
                       <DollarSign className="h-5 w-5 text-muted-foreground" />
                       <div>
                         <p className="text-sm text-muted-foreground">Valor Empréstimo</p>
-                        <p className="font-semibold">{formatCurrency(RCC.Valor_emprestimo)}</p>
+                        <p className="font-semibold text-foreground">{formatCurrency(RCC.Valor_emprestimo)}</p>
                       </div>
                     </div>
                     
@@ -600,7 +600,7 @@ export function BenefitDetails({ benefit }: BenefitDetailsProps) {
                         <DollarSign className="h-5 w-5 text-muted-foreground" />
                         <div>
                           <p className="text-sm text-muted-foreground">Valor Parcela</p>
-                          <p className="font-semibold">{formatCurrency(RCC.ValorParcela)}</p>
+                          <p className="font-semibold text-foreground">{formatCurrency(RCC.ValorParcela)}</p>
                         </div>
                       </div>
                     )}
@@ -609,7 +609,7 @@ export function BenefitDetails({ benefit }: BenefitDetailsProps) {
                       <Calendar className="h-5 w-5 text-muted-foreground" />
                       <div>
                         <p className="text-sm text-muted-foreground">Data de Inclusão</p>
-                        <p className="font-semibold">{formatDate(RCC.Data_inclusao)}</p>
+                        <p className="font-semibold text-foreground">{formatDate(RCC.Data_inclusao)}</p>
                       </div>
                     </div>
                     
@@ -617,7 +617,7 @@ export function BenefitDetails({ benefit }: BenefitDetailsProps) {
                       <DollarSign className="h-5 w-5 text-muted-foreground" />
                       <div>
                         <p className="text-sm text-muted-foreground">Valor Atual</p>
-                        <p className="font-semibold">{formatCurrency(RCC.Valor)}</p>
+                        <p className="font-semibold text-foreground">{formatCurrency(RCC.Valor)}</p>
                       </div>
                     </div>
                   </div>
@@ -637,30 +637,30 @@ export function BenefitDetails({ benefit }: BenefitDetailsProps) {
             <AccordionContent className="px-4 pb-4 bg-muted/20">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {/* Banking Data */}
-                <div className="bg-white rounded-lg p-4 shadow-sm">
-                  <h4 className="font-semibold mb-3 flex items-center gap-2">
+                <div className="bg-card border rounded-lg p-4 shadow-sm">
+                  <h4 className="font-semibold mb-3 flex items-center gap-2 text-foreground">
                     <University className="h-4 w-4" />
                     Dados Bancários
                   </h4>
                   <div className="space-y-2">
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">Banco:</span>
-                      <span className="font-medium">{DadosBancarios.Banco}</span>
+                      <span className="font-medium text-foreground">{DadosBancarios.Banco}</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">Agência:</span>
-                      <span className="font-medium">{DadosBancarios.Agencia}</span>
+                      <span className="font-medium text-foreground">{DadosBancarios.Agencia}</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">Conta:</span>
-                      <span className="font-medium">{DadosBancarios.ContaPagto}</span>
+                      <span className="font-medium text-foreground">{DadosBancarios.ContaPagto}</span>
                     </div>
                   </div>
                 </div>
 
                 {/* Additional Services */}
-                <div className="bg-white rounded-lg p-4 shadow-sm">
-                  <h4 className="font-semibold mb-3 flex items-center gap-2">
+                <div className="bg-card border rounded-lg p-4 shadow-sm">
+                  <h4 className="font-semibold mb-3 flex items-center gap-2 text-foreground">
                     <CreditCard className="h-4 w-4" />
                     Serviços Adicionais
                   </h4>
@@ -673,14 +673,14 @@ export function BenefitDetails({ benefit }: BenefitDetailsProps) {
                     </div>
                     <div className="flex justify-between items-center">
                       <span className="text-muted-foreground">Desconto Associação:</span>
-                      <span className="font-medium">
+                      <span className="font-medium text-foreground">
                         {formatCurrency(ResumoFinanceiro.DescontoAssociacao)}
                       </span>
                     </div>
                     {typeof Associacao === 'object' && 'TaxaAssociativa' in Associacao && (
                       <div className="flex justify-between items-center">
                         <span className="text-muted-foreground">Taxa Associativa:</span>
-                        <span className="font-medium">
+                        <span className="font-medium text-foreground">
                           {Associacao.TaxaAssociativa} - {formatCurrency(Associacao.Parcela)}
                         </span>
                       </div>

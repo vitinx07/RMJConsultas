@@ -118,3 +118,4 @@ Changelog:
 - July 04, 2025. Implemented explicit legal representative warning system with prominent visual indicators and complete representative data display
 - July 04, 2025. Added dark mode toggle with blue-themed design, fixed top-right positioning, and localStorage persistence
 - July 04, 2025. Fixed dark mode contrast issues in table and accordion sections, improved text visibility and background colors
+- July 04, 2025. Comprehensive dark mode contrast fixes: replaced all white backgrounds with theme-aware bg-card, added text-foreground classes for proper text visibility, fixed RMC/RCC sections, financial summary cards, and other information panels
