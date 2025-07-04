@@ -12,8 +12,14 @@ import UserManagement from "@/pages/user-management";
 import NotFound from "@/pages/not-found";
 
 function Router() {
-  const { isAuthenticated, isLoading } = useAuth();
+  const { isAuthenticated, isLoading, error } = useAuth();
 
+  // Se há erro e não está carregando, assume não autenticado
+  if (error && !isLoading) {
+    return <Login />;
+  }
+
+  // Se está carregando pela primeira vez
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -25,10 +31,12 @@ function Router() {
     );
   }
 
+  // Se não está autenticado, mostra login
   if (!isAuthenticated) {
     return <Login />;
   }
 
+  // Se está autenticado, mostra o app principal
   return (
     <div className="relative">
       <ThemeToggle />

@@ -1,15 +1,67 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { apiRequest } from "@/lib/queryClient";
+import { useState, useEffect } from "react";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import type { User, LoginData } from "@shared/schema";
+
+let authState = {
+  user: null as User | null,
+  isLoading: true,
+  isAuthenticated: false,
+  hasChecked: false
+};
+
+let listeners: ((state: typeof authState) => void)[] = [];
+
+const notifyListeners = () => {
+  listeners.forEach(listener => listener(authState));
+};
+
+const setAuthState = (newState: Partial<typeof authState>) => {
+  authState = { ...authState, ...newState };
+  notifyListeners();
+};
+
+// Check authentication once on app load
+if (!authState.hasChecked) {
+  fetch("/api/auth/me")
+    .then(response => {
+      if (response.ok) {
+        return response.json();
+      }
+      return null;
+    })
+    .then(userData => {
+      setAuthState({
+        user: userData,
+        isAuthenticated: !!userData,
+        isLoading: false,
+        hasChecked: true
+      });
+    })
+    .catch(() => {
+      setAuthState({
+        user: null,
+        isAuthenticated: false,
+        isLoading: false,
+        hasChecked: true
+      });
+    });
+}
 
 export function useAuth() {
   const queryClient = useQueryClient();
+  const [localState, setLocalState] = useState(authState);
 
-  const { data: user, isLoading } = useQuery({
-    queryKey: ["/api/auth/me"],
-    retry: false,
-    staleTime: 5 * 60 * 1000, // 5 minutes
-  });
+  useEffect(() => {
+    const listener = (newState: typeof authState) => {
+      setLocalState(newState);
+    };
+    
+    listeners.push(listener);
+    
+    return () => {
+      listeners = listeners.filter(l => l !== listener);
+    };
+  }, []);
 
   const loginMutation = useMutation({
     mutationFn: async (credentials: LoginData) => {
@@ -28,8 +80,13 @@ export function useAuth() {
 
       return response.json();
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/auth/me"] });
+    onSuccess: (userData) => {
+      setAuthState({
+        user: userData,
+        isAuthenticated: true,
+        isLoading: false
+      });
+      queryClient.invalidateQueries();
     },
   });
 
@@ -47,15 +104,20 @@ export function useAuth() {
       return response.json();
     },
     onSuccess: () => {
-      queryClient.setQueryData(["/api/auth/me"], null);
+      setAuthState({
+        user: null,
+        isAuthenticated: false,
+        isLoading: false
+      });
       queryClient.clear();
     },
   });
 
   return {
-    user: user as User | undefined,
-    isLoading,
-    isAuthenticated: !!user,
+    user: localState.user,
+    isLoading: localState.isLoading,
+    error: null,
+    isAuthenticated: localState.isAuthenticated,
     login: loginMutation.mutateAsync,
     logout: logoutMutation.mutateAsync,
     isLoggingIn: loginMutation.isPending,
