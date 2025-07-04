@@ -116,3 +116,4 @@ Changelog:
 - July 04, 2025. Added RMC and RCC card information display sections with complete card details and bank information
 - July 04, 2025. Added "Saldo Devedor" (outstanding balance) column to loan contracts table
 - July 04, 2025. Implemented explicit legal representative warning system with prominent visual indicators and complete representative data display
+- July 04, 2025. Added dark mode toggle with blue-themed design, fixed top-right positioning, and localStorage persistence
