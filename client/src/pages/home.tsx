@@ -160,11 +160,11 @@ export default function Home() {
                     </p>
                     <div className="flex items-center justify-end space-x-1">
                       {(() => {
-                        const RoleIcon = roleIcons[user.role as keyof typeof roleIcons];
+                        const RoleIcon = roleIcons[user.role as keyof typeof roleIcons] || User;
                         return <RoleIcon className="h-3 w-3" />;
                       })()}
                       <span className="text-xs opacity-80">
-                        {roleLabels[user.role as keyof typeof roleLabels]}
+                        {roleLabels[user.role as keyof typeof roleLabels] || "Usuário"}
                       </span>
                     </div>
                   </div>

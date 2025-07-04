@@ -364,7 +364,7 @@ export default function UserManagement() {
                         </Badge>
                       </TableCell>
                       <TableCell>
-                        {user.createdAt ? new Date(user.createdAt as string).toLocaleDateString("pt-BR") : "N/A"}
+                        {user.createdAt ? new Date(String(user.createdAt)).toLocaleDateString("pt-BR") : "N/A"}
                       </TableCell>
                       <TableCell>
                         <div className="flex gap-2">
