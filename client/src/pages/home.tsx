@@ -46,7 +46,7 @@ export default function Home() {
     retry: false,
     staleTime: 60000, // 1 minute
   });
-  RMJ CONSULTS
+
   const handleSearch = (apiKey: string, searchType: 'cpf' | 'beneficio', searchValue: string) => {
     setSearchParams({ apiKey, searchType, searchValue });
     setSelectedBenefit(null);
