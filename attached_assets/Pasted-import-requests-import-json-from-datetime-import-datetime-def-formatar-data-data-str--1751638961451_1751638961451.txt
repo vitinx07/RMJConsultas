@@ -1,0 +1,135 @@
+import requests
+import json
+from datetime import datetime
+
+def formatar_data(data_str):
+    """Converte a data do formato AAAA-MM-DD para DD/MM/AAAA."""
+    if not data_str:
+        return "N/A"
+    try:
+        return datetime.strptime(data_str, '%Y-%m-%d').strftime('%d/%m/%Y')
+    except ValueError:
+        return data_str
+
+def formatar_moeda(valor):
+    """Formata um número para o padrão de moeda brasileiro."""
+    try:
+        return f"R$ {float(valor):,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
+    except (ValueError, TypeError):
+        return "N/A"
+
+def imprimir_resposta_formatada(data):
+    """Imprime a resposta da API de forma organizada e legível."""
+    print("\n" + "="*50)
+    print(" " * 15 + "RELATÓRIO DA CONSULTA")
+    print("="*50)
+
+    # --- Dados do Beneficiário ---
+    beneficiario = data.get('Beneficiario', {})
+    if beneficiario:
+        print("\n--- DADOS DO BENEFICIÁRIO ---")
+        print(f"Nome: {beneficiario.get('Nome', 'N/A')}")
+        print(f"CPF: {beneficiario.get('CPF', 'N/A')}")
+        print(f"Data de Nascimento: {formatar_data(beneficiario.get('DataNascimento'))}")
+        print(f"Sexo: {beneficiario.get('Sexo', 'N/A')} | RG: {beneficiario.get('Rg', 'N/A')}")
+        print(f"Nome da Mãe: {beneficiario.get('NomeMae', 'N/A')}")
+        print(f"Benefício: {beneficiario.get('Beneficio', 'N/A')} | Espécie: {beneficiario.get('Especie', 'N/A')} | UF: {beneficiario.get('UFBeneficio', 'N/A')}")
+        print(f"Situação: {beneficiario.get('Situacao', 'N/A')}")
+        print(f"Endereço: {beneficiario.get('Endereco', 'N/A')}, {beneficiario.get('Bairro', 'N/A')} - {beneficiario.get('Cidade', 'N/A')} / {beneficiario.get('UF', 'N/A')}")
+        print(f"CEP: {beneficiario.get('CEP', 'N/A')}")
+        print(f"DIB: {formatar_data(data.get('DIB'))} | DDB: {formatar_data(data.get('DDB'))}")
+
+    # --- Dados do Representante Legal ---
+    representante = data.get('Dados Representante')
+    if representante:
+        print("\n--- DADOS DO REPRESENTANTE LEGAL ---")
+        print(f"Informações: {representante}")
+    else:
+        print("\n--- DADOS DO REPRESENTANTE LEGAL ---")
+        print("Nenhum representante legal associado.")
+
+    # --- Resumo Financeiro ---
+    resumo = data.get('Resumo Financeiro', {})
+    if resumo:
+        print("\n--- RESUMO FINANCEIRO ---")
+        print(f"Valor do Benefício: {formatar_moeda(resumo.get('ValorBeneficio'))}")
+        print(f"Base de Cálculo: {formatar_moeda(resumo.get('BaseCalculo'))}")
+        print(f"Margem para Empréstimo: {formatar_moeda(resumo.get('MargemDisponivelEmprestimo'))}")
+        print(f"Margem para RMC: {formatar_moeda(resumo.get('MargemDisponivelRmc'))}")
+        print(f"Margem para RCC: {formatar_moeda(resumo.get('MargemDisponivelRcc'))}")
+        print(f"Total de Empréstimos Ativos: {resumo.get('TotalEmprestimos', 0)}")
+
+        rmc = resumo.get('Rmc', {})
+        if rmc:
+            print("\n  > Detalhes RMC:")
+            print(f"    Banco: {rmc.get('Banco')} | Contrato: {rmc.get('Contrato')} | Valor Empréstimo: {formatar_moeda(rmc.get('Valor_emprestimo'))}")
+
+        rcc = resumo.get('Rcc', {})
+        if rcc:
+            print("\n  > Detalhes RCC:")
+            print(f"    Banco: {rcc.get('Banco')} | Contrato: {rcc.get('Contrato')} | Valor Empréstimo: {formatar_moeda(rcc.get('Valor_emprestimo'))}")
+
+    # --- Empréstimos ---
+    emprestimos = data.get('Emprestimos', [])
+    if emprestimos:
+        print("\n--- DETALHAMENTO DE EMPRÉSTIMOS ---")
+        for i, emp in enumerate(emprestimos):
+            print(f"\n  > Empréstimo #{i+1}")
+            print(f"    Contrato: {emp.get('Contrato', 'N/A')} | Banco: {emp.get('Banco', 'N/A')}")
+            print(f"    Valor da Parcela: {formatar_moeda(emp.get('ValorParcela'))} | Valor do Empréstimo: {formatar_moeda(emp.get('ValorEmprestimo'))}")
+            print(f"    Prazo: {emp.get('Prazo', 'N/A')} | Parcelas Restantes: {emp.get('ParcelasRestantes', 'N/A')}")
+            print(f"    Taxa de Juros: {emp.get('Taxa', 'N/A')}%")
+            print(f"    Data de Averbação: {formatar_data(emp.get('DataAverbacao'))}")
+            print(f"    Início do Desconto: {formatar_data(emp.get('InicioDesconto'))} | Final do Desconto: {formatar_data(emp.get('FinalDesconto'))}")
+
+    # --- Dados Bancários ---
+    banco = data.get('DadosBancarios', {})
+    if banco:
+        print("\n--- DADOS BANCÁRIOS (PAGAMENTO) ---")
+        print(f"Banco: {banco.get('Banco', 'N/A')} | Agência: {banco.get('Agencia', 'N/A')}")
+        print(f"Conta: {banco.get('ContaPagto', 'N/A')} | Meio de Pagamento: {banco.get('MeioPagamento', 'N/A')}")
+
+    print("\n" + "="*50 + "\n")
+
+
+def consultar_beneficio(api_key, beneficio):
+    """Função principal que realiza a consulta e chama a formatação."""
+    url = "https://api.multicorban.com/offline"
+    headers = {'Authorization': api_key, 'Content-Type': 'application/json'}
+    payload = {"beneficio": beneficio}
+
+    print("\n--- Realizando consulta... ---")
+
+    try:
+        response = requests.post(url, headers=headers, data=json.dumps(payload))
+
+        if response.status_code == 200:
+            print("Consulta realizada com sucesso! Exibindo relatório:")
+            imprimir_resposta_formatada(response.json())
+        else:
+            print(f"\n!!! ERRO NA REQUISIÇÃO !!!")
+            print(f"Código de Status: {response.status_code}")
+            print(f"Resposta do Servidor: {response.text}")
+            if response.status_code == 401:
+                print("Causa provável: Chave de API inválida, usuário não autorizado ou licença expirada.")
+            elif response.status_code == 402:
+                print("Causa provável: Empresa ou usuário sem saldo ou limite.")
+            elif response.status_code == 405:
+                print("Causa provável: Método HTTP não permitido (deveria ser POST).")
+            elif response.status_code == 503:
+                print("Causa provável: Serviço em manutenção. Tente novamente mais tarde.")
+
+    except requests.exceptions.RequestException as e:
+        print(f"Ocorreu um erro de conexão ao tentar acessar a API: {e}")
+
+# --- ENTRADA DE DADOS ---
+print("--- Consulta à API MULTI CORBAN ---")
+
+# ATENÇÃO: Manter chaves e senhas diretamente no código não é uma prática recomendada por segurança.
+api_key_do_usuario = "4630e3b1ad52c0397c64c81e5a3fb8ec"
+numero_do_beneficio = input("Agora, insira o número do benefício a ser consultado: ")
+
+if api_key_do_usuario and numero_do_beneficio:
+    consultar_beneficio(api_key_do_usuario, numero_do_beneficio)
+else:
+    print("O número do benefício é obrigatório.")
