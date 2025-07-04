@@ -1,7 +1,5 @@
 import { SearchRequest, Benefit } from "@shared/schema";
 
-const API_BASE_URL = 'https://api.multicorban.com';
-
 export class ApiError extends Error {
   constructor(public status: number, message: string) {
     super(message);
@@ -21,18 +19,17 @@ export async function searchBenefits(request: SearchRequest): Promise<Benefit[]>
 }
 
 export async function searchByCPF(apiKey: string, cpf: string): Promise<Benefit[]> {
-  const response = await fetch(`${API_BASE_URL}/cpf`, {
+  const response = await fetch('/api/multicorban/cpf', {
     method: 'POST',
     headers: {
-      'Authorization': apiKey,
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify({ cpf }),
+    body: JSON.stringify({ apiKey, cpf }),
   });
 
   if (!response.ok) {
-    const errorText = await response.text();
-    throw new ApiError(response.status, `Erro ao consultar CPF: ${errorText}`);
+    const errorData = await response.json().catch(() => ({ error: 'Erro desconhecido' }));
+    throw new ApiError(response.status, errorData.error || 'Erro ao consultar CPF');
   }
 
   const data = await response.json();
@@ -45,18 +42,17 @@ export async function searchByCPF(apiKey: string, cpf: string): Promise<Benefit[
 }
 
 export async function searchByBenefit(apiKey: string, benefitNumber: string): Promise<Benefit> {
-  const response = await fetch(`${API_BASE_URL}/offline`, {
+  const response = await fetch('/api/multicorban/offline', {
     method: 'POST',
     headers: {
-      'Authorization': apiKey,
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify({ beneficio: benefitNumber }),
+    body: JSON.stringify({ apiKey, beneficio: benefitNumber }),
   });
 
   if (!response.ok) {
-    const errorText = await response.text();
-    throw new ApiError(response.status, `Erro ao consultar benefício: ${errorText}`);
+    const errorData = await response.json().catch(() => ({ error: 'Erro desconhecido' }));
+    throw new ApiError(response.status, errorData.error || 'Erro ao consultar benefício');
   }
 
   const data = await response.json();
