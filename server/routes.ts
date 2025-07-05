@@ -175,56 +175,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { cpf } = req.body;
       
-      // Lista de endpoints para tentar
-      const endpoints = [
-        "https://sistema.multicorban.com.br/api/consulta-completa-cpf",
-        "https://api.multicorban.com.br/consulta-completa-cpf",
-        "https://multicorban.com.br/api/consulta-completa-cpf"
-      ];
-
-      let response = null;
-      let lastError = null;
-
-      // Tenta cada endpoint até encontrar um que funcione
-      for (const endpoint of endpoints) {
-        try {
-          console.log(`Tentando endpoint: ${endpoint}`);
-          response = await fetch(endpoint, {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
-            },
-            body: JSON.stringify({
-              apikey: "4630e3b1ad52c0397c64c81e5a3fb8ec",
-              cpf: cpf,
-            }),
-          });
-          
-          if (response.ok) {
-            console.log(`Sucesso com endpoint: ${endpoint}`);
-            break;
-          }
-        } catch (error) {
-          const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido';
-          console.log(`Erro no endpoint ${endpoint}:`, errorMessage);
-          lastError = error;
-          response = null;
-        }
-      }
-
-      // Se nenhum endpoint funcionou
-      if (!response) {
-        console.error("Todos os endpoints falharam:", lastError);
-        return res.status(503).json({ 
-          error: "Serviço MULTI CORBAN temporariamente indisponível",
-          details: "Verifique com o provedor da API os endpoints corretos ou chaves de acesso atualizadas",
-          sugestion: "Entre em contato com o suporte técnico da MULTI CORBAN para obter a documentação atualizada da API"
-        });
-      }
+      console.log(`Consultando CPF: ${cpf}`);
+      const response = await fetch("https://api.multicorban.com/cpf", {
+        method: "POST",
+        headers: {
+          "Authorization": "4630e3b1ad52c0397c64c81e5a3fb8ec",
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          cpf: cpf,
+        }),
+      });
 
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        console.error(`Erro na API MULTI CORBAN: ${response.status} - ${response.statusText}`);
+        const errorText = await response.text();
+        console.error("Resposta de erro:", errorText);
+        
+        return res.status(response.status).json({ 
+          error: `Erro na API MULTI CORBAN: ${response.status}`,
+          details: errorText || "Erro desconhecido da API"
+        });
       }
 
       const data = await response.json();
@@ -239,56 +210,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { beneficio } = req.body;
       
-      // Lista de endpoints para tentar
-      const endpoints = [
-        "https://sistema.multicorban.com.br/api/dados-offline",
-        "https://api.multicorban.com.br/dados-offline",
-        "https://multicorban.com.br/api/dados-offline"
-      ];
-
-      let response = null;
-      let lastError = null;
-
-      // Tenta cada endpoint até encontrar um que funcione
-      for (const endpoint of endpoints) {
-        try {
-          console.log(`Tentando endpoint offline: ${endpoint}`);
-          response = await fetch(endpoint, {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
-            },
-            body: JSON.stringify({
-              apikey: "4630e3b1ad52c0397c64c81e5a3fb8ec",
-              beneficio: beneficio,
-            }),
-          });
-          
-          if (response.ok) {
-            console.log(`Sucesso com endpoint offline: ${endpoint}`);
-            break;
-          }
-        } catch (error) {
-          const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido';
-          console.log(`Erro no endpoint offline ${endpoint}:`, errorMessage);
-          lastError = error;
-          response = null;
-        }
-      }
-
-      // Se nenhum endpoint funcionou
-      if (!response) {
-        console.error("Todos os endpoints offline falharam:", lastError);
-        return res.status(503).json({ 
-          error: "Serviço MULTI CORBAN temporariamente indisponível",
-          details: "Verifique com o provedor da API os endpoints corretos ou chaves de acesso atualizadas",
-          sugestion: "Entre em contato com o suporte técnico da MULTI CORBAN para obter a documentação atualizada da API"
-        });
-      }
+      console.log(`Consultando benefício: ${beneficio}`);
+      const response = await fetch("https://api.multicorban.com/offline", {
+        method: "POST",
+        headers: {
+          "Authorization": "4630e3b1ad52c0397c64c81e5a3fb8ec",
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          beneficio: beneficio,
+        }),
+      });
 
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        console.error(`Erro na API MULTI CORBAN offline: ${response.status} - ${response.statusText}`);
+        const errorText = await response.text();
+        console.error("Resposta de erro offline:", errorText);
+        
+        return res.status(response.status).json({ 
+          error: `Erro na API MULTI CORBAN: ${response.status}`,
+          details: errorText || "Erro desconhecido da API"
+        });
       }
 
       const data = await response.json();
