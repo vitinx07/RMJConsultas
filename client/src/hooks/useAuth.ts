@@ -22,7 +22,7 @@ const setAuthState = (newState: Partial<typeof authState>) => {
 
 // Check authentication once on app load
 if (!authState.hasChecked) {
-  fetch("/api/auth/me")
+  fetch("/api/auth/me", { credentials: 'include' })
     .then(response => {
       if (response.ok) {
         return response.json();
@@ -70,6 +70,7 @@ export function useAuth() {
         headers: {
           "Content-Type": "application/json",
         },
+        credentials: 'include',
         body: JSON.stringify(credentials),
       });
 
@@ -80,12 +81,21 @@ export function useAuth() {
 
       return response.json();
     },
-    onSuccess: (userData) => {
-      setAuthState({
-        user: userData,
-        isAuthenticated: true,
-        isLoading: false
-      });
+    onSuccess: async () => {
+      // Buscar dados do usuário após login bem-sucedido
+      try {
+        const response = await fetch("/api/auth/me", { credentials: 'include' });
+        if (response.ok) {
+          const userData = await response.json();
+          setAuthState({
+            user: userData,
+            isAuthenticated: true,
+            isLoading: false
+          });
+        }
+      } catch (error) {
+        console.error("Erro ao buscar dados do usuário:", error);
+      }
       queryClient.invalidateQueries();
     },
   });
@@ -94,6 +104,7 @@ export function useAuth() {
     mutationFn: async () => {
       const response = await fetch("/api/auth/logout", {
         method: "POST",
+        credentials: 'include',
       });
 
       if (!response.ok) {
@@ -110,6 +121,8 @@ export function useAuth() {
         isLoading: false
       });
       queryClient.clear();
+      // Força recarregamento da página para limpar qualquer cache residual
+      window.location.reload();
     },
   });
 
