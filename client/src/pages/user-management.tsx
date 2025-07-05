@@ -155,10 +155,10 @@ export default function UserManagement() {
       return;
     }
 
-    if (!newUser.username || !newUser.password || newUser.password.length < 6) {
+    if (newUser.password.length < 4) {
       toast({
         title: "Erro",
-        description: "Username é obrigatório e senha deve ter pelo menos 6 caracteres",
+        description: "A senha deve ter pelo menos 4 caracteres",
         variant: "destructive",
       });
       return;
@@ -171,7 +171,7 @@ export default function UserManagement() {
     if (userId === currentUser?.id) {
       toast({
         title: "Erro",
-        description: "Não é possível deletar seu próprio usuário",
+        description: "Você não pode deletar seu próprio usuário",
         variant: "destructive",
       });
       return;
@@ -228,122 +228,134 @@ export default function UserManagement() {
           </div>
         </div>
 
-        <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-          <DialogTrigger asChild>
-            <Button>
-              <Plus className="h-4 w-4 mr-2" />
-              Novo Usuário
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="max-w-md">
-            <DialogHeader>
-              <DialogTitle>Criar Novo Usuário</DialogTitle>
-              <DialogDescription>
-                Preencha os dados para criar um novo usuário no sistema.
-              </DialogDescription>
-            </DialogHeader>
-            
-            <form onSubmit={handleCreateUser} className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
+        <div className="flex items-center space-x-4">
+          {currentUser && (
+            <div className="text-right">
+              <p className="text-sm font-medium">
+                Logado como: {currentUser.firstName || currentUser.username}
+              </p>
+              <div className="flex items-center justify-end space-x-1">
+                {(() => {
+                  const RoleIcon = roleIcons[currentUser.role as keyof typeof roleIcons] || User;
+                  return <RoleIcon className="h-3 w-3" />;
+                })()}
+                <span className="text-xs text-muted-foreground">
+                  {roleLabels[currentUser.role as keyof typeof roleLabels] || "Usuário"}
+                </span>
+              </div>
+            </div>
+          )}
+          
+          <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+            <DialogTrigger asChild>
+              <Button>
+                <Plus className="h-4 w-4 mr-2" />
+                Novo Usuário
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-md">
+              <DialogHeader>
+                <DialogTitle>Criar Novo Usuário</DialogTitle>
+                <DialogDescription>
+                  Preencha os dados para criar um novo usuário no sistema.
+                </DialogDescription>
+              </DialogHeader>
+              
+              <form onSubmit={handleCreateUser} className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="firstName">Nome</Label>
+                    <Input
+                      id="firstName"
+                      value={newUser.firstName}
+                      onChange={(e) => setNewUser({ ...newUser, firstName: e.target.value })}
+                      placeholder="Nome"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="lastName">Sobrenome</Label>
+                    <Input
+                      id="lastName"
+                      value={newUser.lastName}
+                      onChange={(e) => setNewUser({ ...newUser, lastName: e.target.value })}
+                      placeholder="Sobrenome"
+                    />
+                  </div>
+                </div>
+                
                 <div>
-                  <Label htmlFor="firstName">Nome</Label>
+                  <Label htmlFor="username">Nome de Usuário</Label>
                   <Input
-                    id="firstName"
-                    value={newUser.firstName || ""}
-                    onChange={(e) => setNewUser({ ...newUser, firstName: e.target.value })}
-                    placeholder="Nome"
+                    id="username"
+                    value={newUser.username}
+                    onChange={(e) => setNewUser({ ...newUser, username: e.target.value })}
+                    placeholder="Nome de usuário"
+                    required
                   />
                 </div>
+                
                 <div>
-                  <Label htmlFor="lastName">Sobrenome</Label>
+                  <Label htmlFor="email">Email</Label>
                   <Input
-                    id="lastName"
-                    value={newUser.lastName || ""}
-                    onChange={(e) => setNewUser({ ...newUser, lastName: e.target.value })}
-                    placeholder="Sobrenome"
+                    id="email"
+                    type="email"
+                    value={newUser.email}
+                    onChange={(e) => setNewUser({ ...newUser, email: e.target.value })}
+                    placeholder="email@exemplo.com"
                   />
                 </div>
-              </div>
-
-              <div>
-                <Label htmlFor="username">Username *</Label>
-                <Input
-                  id="username"
-                  value={newUser.username}
-                  onChange={(e) => setNewUser({ ...newUser, username: e.target.value })}
-                  placeholder="username"
-                  required
-                />
-              </div>
-
-              <div>
-                <Label htmlFor="email">Email</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  value={newUser.email || ""}
-                  onChange={(e) => setNewUser({ ...newUser, email: e.target.value })}
-                  placeholder="email@exemplo.com"
-                />
-              </div>
-
-              <div>
-                <Label htmlFor="role">Tipo de Usuário *</Label>
-                <Select value={newUser.role} onValueChange={(value) => setNewUser({ ...newUser, role: value as any })}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="vendedor">Vendedor - Acesso básico</SelectItem>
-                    <SelectItem value="gerente">Gerente - Acesso intermediário</SelectItem>
-                    <SelectItem value="administrator">Administrador - Acesso total</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div>
-                <Label htmlFor="password">Senha *</Label>
-                <Input
-                  id="password"
-                  type="password"
-                  value={newUser.password}
-                  onChange={(e) => setNewUser({ ...newUser, password: e.target.value })}
-                  placeholder="Mínimo 6 caracteres"
-                  required
-                />
-              </div>
-
-              <div>
-                <Label htmlFor="confirmPassword">Confirmar Senha *</Label>
-                <Input
-                  id="confirmPassword"
-                  type="password"
-                  value={newUser.confirmPassword}
-                  onChange={(e) => setNewUser({ ...newUser, confirmPassword: e.target.value })}
-                  placeholder="Digite a senha novamente"
-                  required
-                />
-              </div>
-
-              <div className="flex justify-end gap-2 pt-4">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => setIsCreateDialogOpen(false)}
-                  disabled={createUserMutation.isPending}
-                >
-                  Cancelar
-                </Button>
-                <Button
-                  type="submit"
-                  disabled={createUserMutation.isPending}
-                >
-                  {createUserMutation.isPending ? "Criando..." : "Criar Usuário"}
-                </Button>
-              </div>
-            </form>
-          </DialogContent>
-        </Dialog>
+                
+                <div>
+                  <Label htmlFor="role">Papel</Label>
+                  <Select value={newUser.role} onValueChange={(value: any) => setNewUser({ ...newUser, role: value })}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione o papel" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="vendedor">Vendedor</SelectItem>
+                      <SelectItem value="gerente">Gerente</SelectItem>
+                      <SelectItem value="administrator">Administrador</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="password">Senha</Label>
+                    <Input
+                      id="password"
+                      type="password"
+                      value={newUser.password}
+                      onChange={(e) => setNewUser({ ...newUser, password: e.target.value })}
+                      placeholder="Senha"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="confirmPassword">Confirmar Senha</Label>
+                    <Input
+                      id="confirmPassword"
+                      type="password"
+                      value={newUser.confirmPassword}
+                      onChange={(e) => setNewUser({ ...newUser, confirmPassword: e.target.value })}
+                      placeholder="Confirmar senha"
+                      required
+                    />
+                  </div>
+                </div>
+                
+                <div className="flex justify-end space-x-2">
+                  <Button type="button" variant="outline" onClick={() => setIsCreateDialogOpen(false)}>
+                    Cancelar
+                  </Button>
+                  <Button type="submit" disabled={createUserMutation.isPending}>
+                    {createUserMutation.isPending ? "Criando..." : "Criar Usuário"}
+                  </Button>
+                </div>
+              </form>
+            </DialogContent>
+          </Dialog>
+        </div>
       </div>
 
       <Card>
@@ -360,32 +372,33 @@ export default function UserManagement() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Usuário</TableHead>
                   <TableHead>Nome</TableHead>
+                  <TableHead>Usuário</TableHead>
                   <TableHead>Email</TableHead>
-                  <TableHead>Tipo</TableHead>
+                  <TableHead>Papel</TableHead>
                   <TableHead>Status</TableHead>
-                  <TableHead>Criado em</TableHead>
                   <TableHead>Ações</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {users?.map((user: UserType) => {
-                  const RoleIcon = roleIcons[user.role as keyof typeof roleIcons];
+                  const RoleIcon = roleIcons[user.role as keyof typeof roleIcons] || User;
                   return (
                     <TableRow key={user.id}>
-                      <TableCell className="font-medium">{user.username}</TableCell>
                       <TableCell>
-                        {user.firstName || user.lastName 
-                          ? `${user.firstName || ""} ${user.lastName || ""}`.trim()
-                          : "-"
-                        }
+                        <div className="font-medium">
+                          {user.firstName && user.lastName 
+                            ? `${user.firstName} ${user.lastName}`
+                            : user.firstName || user.username
+                          }
+                        </div>
                       </TableCell>
-                      <TableCell>{user.email || "-"}</TableCell>
+                      <TableCell>{user.username}</TableCell>
+                      <TableCell>{user.email || "N/A"}</TableCell>
                       <TableCell>
-                        <Badge className={roleColors[user.role as keyof typeof roleColors]}>
+                        <Badge variant="secondary" className={roleColors[user.role as keyof typeof roleColors]}>
                           <RoleIcon className="h-3 w-3 mr-1" />
-                          {roleLabels[user.role as keyof typeof roleLabels]}
+                          {roleLabels[user.role as keyof typeof roleLabels] || "Usuário"}
                         </Badge>
                       </TableCell>
                       <TableCell>
@@ -394,25 +407,33 @@ export default function UserManagement() {
                         </Badge>
                       </TableCell>
                       <TableCell>
-                        {user.createdAt ? new Date(String(user.createdAt)).toLocaleDateString("pt-BR") : "N/A"}
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex gap-2">
-                          <Button size="sm" variant="outline">
-                            <Edit className="h-3 w-3" />
+                        <div className="flex space-x-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => {
+                              // TODO: Implementar edição
+                              toast({
+                                title: "Em desenvolvimento",
+                                description: "Funcionalidade de edição será implementada em breve",
+                              });
+                            }}
+                          >
+                            <Edit className="h-4 w-4" />
                           </Button>
+                          
                           {user.id !== currentUser?.id && (
                             <AlertDialog>
                               <AlertDialogTrigger asChild>
-                                <Button size="sm" variant="outline" className="text-red-600 hover:text-red-700">
-                                  <Trash2 className="h-3 w-3" />
+                                <Button variant="outline" size="sm" className="text-red-600 hover:text-red-700">
+                                  <Trash2 className="h-4 w-4" />
                                 </Button>
                               </AlertDialogTrigger>
                               <AlertDialogContent>
                                 <AlertDialogHeader>
                                   <AlertDialogTitle>Confirmar Exclusão</AlertDialogTitle>
                                   <AlertDialogDescription>
-                                    Tem certeza que deseja deletar o usuário <strong>{user.username}</strong>?
+                                    Tem certeza que deseja deletar o usuário "{user.username}"? 
                                     Esta ação não pode ser desfeita.
                                   </AlertDialogDescription>
                                 </AlertDialogHeader>
@@ -421,9 +442,8 @@ export default function UserManagement() {
                                   <AlertDialogAction
                                     onClick={() => handleDeleteUser(user.id)}
                                     className="bg-red-600 hover:bg-red-700"
-                                    disabled={deleteUserMutation.isPending}
                                   >
-                                    {deleteUserMutation.isPending ? "Deletando..." : "Deletar"}
+                                    Deletar
                                   </AlertDialogAction>
                                 </AlertDialogFooter>
                               </AlertDialogContent>
