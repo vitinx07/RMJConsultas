@@ -217,8 +217,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!response) {
         console.error("Todos os endpoints falharam:", lastError);
         return res.status(503).json({ 
-          error: "Serviço MULTI CORBAN temporariamente indisponível. Tente novamente em alguns minutos.",
-          details: "Não foi possível conectar ao servidor da API" 
+          error: "Serviço MULTI CORBAN temporariamente indisponível",
+          details: "Verifique com o provedor da API os endpoints corretos ou chaves de acesso atualizadas",
+          sugestion: "Entre em contato com o suporte técnico da MULTI CORBAN para obter a documentação atualizada da API"
         });
       }
 
@@ -280,8 +281,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!response) {
         console.error("Todos os endpoints offline falharam:", lastError);
         return res.status(503).json({ 
-          error: "Serviço MULTI CORBAN temporariamente indisponível. Tente novamente em alguns minutos.",
-          details: "Não foi possível conectar ao servidor da API" 
+          error: "Serviço MULTI CORBAN temporariamente indisponível",
+          details: "Verifique com o provedor da API os endpoints corretos ou chaves de acesso atualizadas",
+          sugestion: "Entre em contato com o suporte técnico da MULTI CORBAN para obter a documentação atualizada da API"
         });
       }
 
