@@ -121,18 +121,7 @@ export default function Login() {
             </Button>
           </form>
 
-          <div className="mt-6 pt-4 border-t">
-            <div className="text-sm text-muted-foreground text-center">
-              <p className="font-medium mb-2">Credenciais padrão:</p>
-              <div className="bg-muted p-3 rounded-md text-xs">
-                <p><strong>Usuário:</strong> Vitor.admin</p>
-                <p><strong>Senha:</strong> admin</p>
-                <p className="mt-1 text-green-600 dark:text-green-400">
-                  (Administrador Geral)
-                </p>
-              </div>
-            </div>
-          </div>
+
         </CardContent>
       </Card>
     </div>
