@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Benefit } from "@shared/schema";
-import { formatCurrency, formatCPF, getStatusColor } from "@/lib/utils";
+import { formatCurrency, formatCPF, getStatusColor, getBenefitSpeciesName } from "@/lib/utils";
 
 interface BenefitCardProps {
   benefit: Benefit;
@@ -45,6 +45,9 @@ export function BenefitCard({ benefit, onViewDetails }: BenefitCardProps) {
           <div>
             <p className="text-sm text-muted-foreground">Espécie</p>
             <p className="font-semibold text-foreground">{Beneficiario.Especie}</p>
+            <p className="text-xs text-blue-600 dark:text-blue-400 mt-1">
+              {getBenefitSpeciesName(Beneficiario.Especie)}
+            </p>
           </div>
         </div>
         

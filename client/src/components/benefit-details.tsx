@@ -31,7 +31,7 @@ import {
   TableRow 
 } from "@/components/ui/table";
 import { Benefit } from "@shared/schema";
-import { formatCurrency, formatDate, formatCPF, formatBankAccount } from "@/lib/utils";
+import { formatCurrency, formatDate, formatCPF, formatBankAccount, getBenefitSpeciesName } from "@/lib/utils";
 
 interface BenefitDetailsProps {
   benefit: Benefit;
@@ -112,6 +112,7 @@ export function BenefitDetails({ benefit }: BenefitDetailsProps) {
             <div class="info-item"><strong>CEP:</strong> ${Beneficiario.CEP}</div>
             <div class="info-item"><strong>Situação:</strong> ${Beneficiario.Situacao}</div>
             <div class="info-item"><strong>Bloqueado para Empréstimo:</strong> ${Beneficiario.BloqueadoEmprestimo === '1' ? 'SIM' : 'NÃO'}</div>
+            <div class="info-item"><strong>Espécie:</strong> ${Beneficiario.Especie} - ${getBenefitSpeciesName(Beneficiario.Especie)}</div>
           </div>
         </div>
 
@@ -387,6 +388,9 @@ export function BenefitDetails({ benefit }: BenefitDetailsProps) {
                   <div>
                     <p className="text-sm text-muted-foreground">Espécie</p>
                     <p className="font-semibold">{Beneficiario.Especie || 'N/A'}</p>
+                    <p className="text-xs text-blue-600 dark:text-blue-400 mt-1">
+                      {getBenefitSpeciesName(Beneficiario.Especie)}
+                    </p>
                   </div>
                 </div>
                 
