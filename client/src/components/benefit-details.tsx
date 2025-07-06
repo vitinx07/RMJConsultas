@@ -274,7 +274,7 @@ export function BenefitDetails({ benefit }: BenefitDetailsProps) {
               </span>
             </AccordionTrigger>
             <AccordionContent className="px-4 pb-4 bg-muted/20">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 <div className="flex items-center gap-3">
                   <User className="h-5 w-5 text-muted-foreground" />
                   <div>
@@ -300,10 +300,42 @@ export function BenefitDetails({ benefit }: BenefitDetailsProps) {
                 </div>
                 
                 <div className="flex items-center gap-3">
+                  <User className="h-5 w-5 text-muted-foreground" />
+                  <div>
+                    <p className="text-sm text-muted-foreground">Sexo</p>
+                    <p className="font-semibold">{Beneficiario.Sexo === 'M' ? 'Masculino' : Beneficiario.Sexo === 'F' ? 'Feminino' : Beneficiario.Sexo || 'N/A'}</p>
+                  </div>
+                </div>
+                
+                <div className="flex items-center gap-3">
+                  <FileText className="h-5 w-5 text-muted-foreground" />
+                  <div>
+                    <p className="text-sm text-muted-foreground">RG</p>
+                    <p className="font-semibold">{Beneficiario.Rg || 'N/A'}</p>
+                  </div>
+                </div>
+                
+                <div className="flex items-center gap-3">
+                  <Calendar className="h-5 w-5 text-muted-foreground" />
+                  <div>
+                    <p className="text-sm text-muted-foreground">DIB (Data de Início do Benefício)</p>
+                    <p className="font-semibold">{formatDate(Beneficiario.DIB)}</p>
+                  </div>
+                </div>
+                
+                <div className="flex items-center gap-3">
                   <UserX className="h-5 w-5 text-muted-foreground" />
                   <div>
                     <p className="text-sm text-muted-foreground">Nome da Mãe</p>
                     <p className="font-semibold">{Beneficiario.NomeMae}</p>
+                  </div>
+                </div>
+                
+                <div className="flex items-center gap-3">
+                  <MapPin className="h-5 w-5 text-muted-foreground" />
+                  <div>
+                    <p className="text-sm text-muted-foreground">CEP</p>
+                    <p className="font-semibold">{Beneficiario.CEP || 'N/A'}</p>
                   </div>
                 </div>
                 
@@ -320,6 +352,63 @@ export function BenefitDetails({ benefit }: BenefitDetailsProps) {
                   <div>
                     <p className="text-sm text-muted-foreground">Cidade/UF</p>
                     <p className="font-semibold">{Beneficiario.Cidade} - {Beneficiario.UF}</p>
+                  </div>
+                </div>
+                
+                <div className="flex items-center gap-3">
+                  <Info className="h-5 w-5 text-muted-foreground" />
+                  <div>
+                    <p className="text-sm text-muted-foreground">UF do Benefício</p>
+                    <p className="font-semibold">{Beneficiario.UFBeneficio || 'N/A'}</p>
+                  </div>
+                </div>
+                
+                <div className="flex items-center gap-3">
+                  <Info className="h-5 w-5 text-muted-foreground" />
+                  <div>
+                    <p className="text-sm text-muted-foreground">Espécie</p>
+                    <p className="font-semibold">{Beneficiario.Especie || 'N/A'}</p>
+                  </div>
+                </div>
+                
+                <div className="flex items-center gap-3">
+                  <Info className={`h-5 w-5 ${Beneficiario.Situacao === 'Ativo' ? 'text-green-600' : 'text-red-600'}`} />
+                  <div>
+                    <p className="text-sm text-muted-foreground">Situação do Benefício</p>
+                    <p className={`font-semibold ${Beneficiario.Situacao === 'Ativo' ? 'text-green-600' : 'text-red-600'}`}>
+                      {Beneficiario.Situacao || 'N/A'}
+                    </p>
+                  </div>
+                </div>
+                
+                <div className="flex items-center gap-3">
+                  <Info className={`h-5 w-5 ${Beneficiario.BloqueadoEmprestimo === '1' ? 'text-red-600' : 'text-green-600'}`} />
+                  <div>
+                    <p className="text-sm text-muted-foreground">Bloqueado para Empréstimo</p>
+                    <p className={`font-semibold ${Beneficiario.BloqueadoEmprestimo === '1' ? 'text-red-600' : 'text-green-600'}`}>
+                      {Beneficiario.BloqueadoEmprestimo === '1' ? 'SIM - BLOQUEADO' : 'NÃO - LIBERADO'}
+                    </p>
+                  </div>
+                </div>
+                
+                {/* Representante Legal e Procuração */}
+                <div className="flex items-center gap-3">
+                  <UserX className={`h-5 w-5 ${Beneficiario.RL === '1' ? 'text-orange-600' : 'text-muted-foreground'}`} />
+                  <div>
+                    <p className="text-sm text-muted-foreground">Representante Legal</p>
+                    <p className={`font-semibold ${Beneficiario.RL === '1' ? 'text-orange-600' : 'text-muted-foreground'}`}>
+                      {Beneficiario.RL === '1' ? 'POSSUI' : 'NÃO POSSUI'}
+                    </p>
+                  </div>
+                </div>
+                
+                <div className="flex items-center gap-3">
+                  <FileText className={`h-5 w-5 ${Beneficiario.PA === '1' ? 'text-blue-600' : 'text-muted-foreground'}`} />
+                  <div>
+                    <p className="text-sm text-muted-foreground">Procuração</p>
+                    <p className={`font-semibold ${Beneficiario.PA === '1' ? 'text-blue-600' : 'text-muted-foreground'}`}>
+                      {Beneficiario.PA === '1' ? 'POSSUI' : 'NÃO POSSUI'}
+                    </p>
                   </div>
                 </div>
               </div>
@@ -378,17 +467,53 @@ export function BenefitDetails({ benefit }: BenefitDetailsProps) {
                     </div>
                   </div>
                   <div className="grid grid-cols-2 gap-4">
-                    <div className="bg-card border rounded-lg p-3 shadow-sm">
-                      <p className="text-xs text-muted-foreground">Margem RMC</p>
-                      <p className="text-lg font-semibold text-foreground">
+                    <div className={`border rounded-lg p-3 shadow-sm ${
+                      ResumoFinanceiro.MargemDisponivelRmc < 0 ? 
+                      'bg-red-50 dark:bg-red-950/20 border-red-200' : 
+                      'bg-card'
+                    }`}>
+                      <div className="flex items-center justify-between">
+                        <p className="text-xs text-muted-foreground">Margem RMC</p>
+                        {ResumoFinanceiro.MargemDisponivelRmc < 0 && (
+                          <Badge variant="destructive" className="text-xs">NEGATIVA</Badge>
+                        )}
+                      </div>
+                      <p className={`text-lg font-semibold ${
+                        ResumoFinanceiro.MargemDisponivelRmc < 0 ? 
+                        'text-red-600 dark:text-red-400' : 
+                        'text-foreground'
+                      }`}>
                         {formatCurrency(ResumoFinanceiro.MargemDisponivelRmc)}
                       </p>
+                      {ResumoFinanceiro.MargemDisponivelRmc < 0 && (
+                        <p className="text-xs text-red-600 dark:text-red-400 mt-1">
+                          Cliente com cartão em débito
+                        </p>
+                      )}
                     </div>
-                    <div className="bg-card border rounded-lg p-3 shadow-sm">
-                      <p className="text-xs text-muted-foreground">Margem RCC</p>
-                      <p className="text-lg font-semibold text-foreground">
+                    <div className={`border rounded-lg p-3 shadow-sm ${
+                      ResumoFinanceiro.MargemDisponivelRcc < 0 ? 
+                      'bg-red-50 dark:bg-red-950/20 border-red-200' : 
+                      'bg-card'
+                    }`}>
+                      <div className="flex items-center justify-between">
+                        <p className="text-xs text-muted-foreground">Margem RCC</p>
+                        {ResumoFinanceiro.MargemDisponivelRcc < 0 && (
+                          <Badge variant="destructive" className="text-xs">NEGATIVA</Badge>
+                        )}
+                      </div>
+                      <p className={`text-lg font-semibold ${
+                        ResumoFinanceiro.MargemDisponivelRcc < 0 ? 
+                        'text-red-600 dark:text-red-400' : 
+                        'text-foreground'
+                      }`}>
                         {formatCurrency(ResumoFinanceiro.MargemDisponivelRcc)}
                       </p>
+                      {ResumoFinanceiro.MargemDisponivelRcc < 0 && (
+                        <p className="text-xs text-red-600 dark:text-red-400 mt-1">
+                          Cliente com cartão em débito
+                        </p>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -425,6 +550,8 @@ export function BenefitDetails({ benefit }: BenefitDetailsProps) {
                           <TableHead className="font-semibold text-foreground min-w-[120px] h-12">Saldo Devedor</TableHead>
                           <TableHead className="font-semibold text-foreground min-w-[80px] h-12">Prazo</TableHead>
                           <TableHead className="font-semibold text-foreground min-w-[100px] h-12">Parcelas Rest.</TableHead>
+                          <TableHead className="font-semibold text-foreground min-w-[100px] h-12">Parcelas Pagas</TableHead>
+                          <TableHead className="font-semibold text-foreground min-w-[100px] h-12">Taxa (%)</TableHead>
                           <TableHead className="font-semibold text-foreground min-w-[120px] h-12">Averbação</TableHead>
                         </TableRow>
                       </TableHeader>
@@ -452,6 +579,13 @@ export function BenefitDetails({ benefit }: BenefitDetailsProps) {
                             </TableCell>
                             <TableCell className="text-center font-medium text-foreground bg-background">
                               {emprestimo.ParcelasRestantes || 'N/A'}
+                            </TableCell>
+                            <TableCell className="text-center font-medium text-blue-600 bg-background">
+                              {emprestimo.Prazo && emprestimo.ParcelasRestantes ? 
+                                (parseInt(emprestimo.Prazo) - parseInt(emprestimo.ParcelasRestantes)) : 'N/A'}
+                            </TableCell>
+                            <TableCell className="text-center font-semibold text-orange-600 bg-background">
+                              {emprestimo.Taxa ? `${emprestimo.Taxa.toFixed(2)}%` : '0.00%'}
                             </TableCell>
                             <TableCell className="text-sm text-foreground bg-background">
                               {emprestimo.DataAverbacao ? formatDate(emprestimo.DataAverbacao) : 'N/A'}
@@ -662,7 +796,7 @@ export function BenefitDetails({ benefit }: BenefitDetailsProps) {
                 <div className="bg-card border rounded-lg p-4 shadow-sm">
                   <h4 className="font-semibold mb-3 flex items-center gap-2 text-foreground">
                     <CreditCard className="h-4 w-4" />
-                    Serviços Adicionais
+                    Informações do Cartão
                   </h4>
                   <div className="space-y-2">
                     <div className="flex justify-between items-center">
@@ -670,6 +804,21 @@ export function BenefitDetails({ benefit }: BenefitDetailsProps) {
                       <Badge variant={ResumoFinanceiro.PossuiCartao ? "default" : "secondary"}>
                         {ResumoFinanceiro.PossuiCartao ? "Sim" : "Não"}
                       </Badge>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-muted-foreground">Tipo do Cartão:</span>
+                      <span className="font-medium text-foreground">
+                        {ResumoFinanceiro.PossuiCartao ? "Cartão Magnético" : "Não Possui"}
+                      </span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-muted-foreground">Meio de Pagamento:</span>
+                      <span className="font-medium text-foreground">
+                        {DadosBancarios.MeioPagamento === '1' ? 'Conta Corrente' : 
+                         DadosBancarios.MeioPagamento === '2' ? 'Conta Poupança' : 
+                         DadosBancarios.MeioPagamento === '3' ? 'Cartão Magnético' : 
+                         `Código: ${DadosBancarios.MeioPagamento}`}
+                      </span>
                     </div>
                     <div className="flex justify-between items-center">
                       <span className="text-muted-foreground">Desconto Associação:</span>

@@ -179,7 +179,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const response = await fetch("https://api.multicorban.com/cpf", {
         method: "POST",
         headers: {
-          "Authorization": "4630e3b1ad52c0397c64c81e5a3fb8ec",
+          "Authorization": "379825096e2347b3064194022ea59b03",
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
@@ -214,7 +214,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const response = await fetch("https://api.multicorban.com/offline", {
         method: "POST",
         headers: {
-          "Authorization": "4630e3b1ad52c0397c64c81e5a3fb8ec",
+          "Authorization": "379825096e2347b3064194022ea59b03",
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
