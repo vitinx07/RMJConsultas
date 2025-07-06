@@ -103,11 +103,30 @@ export function BenefitDetails({ benefit }: BenefitDetailsProps) {
             <div class="info-item"><strong>Nome:</strong> ${Beneficiario.Nome}</div>
             <div class="info-item"><strong>CPF:</strong> ${formatCPF(Beneficiario.CPF)}</div>
             <div class="info-item"><strong>Data de Nascimento:</strong> ${formatDate(Beneficiario.DataNascimento)}</div>
+            <div class="info-item"><strong>Sexo:</strong> ${Beneficiario.Sexo === 'M' ? 'Masculino' : Beneficiario.Sexo === 'F' ? 'Feminino' : Beneficiario.Sexo || 'N/A'}</div>
+            <div class="info-item"><strong>RG:</strong> ${Beneficiario.Rg || 'N/A'}</div>
+            <div class="info-item"><strong>DIB:</strong> ${formatDate(Beneficiario.DIB)}</div>
             <div class="info-item"><strong>Nome da Mãe:</strong> ${Beneficiario.NomeMae}</div>
             <div class="info-item"><strong>Endereço:</strong> ${Beneficiario.Endereco}, ${Beneficiario.Bairro}</div>
             <div class="info-item"><strong>Cidade/UF:</strong> ${Beneficiario.Cidade} - ${Beneficiario.UF}</div>
             <div class="info-item"><strong>CEP:</strong> ${Beneficiario.CEP}</div>
             <div class="info-item"><strong>Situação:</strong> ${Beneficiario.Situacao}</div>
+            <div class="info-item"><strong>Bloqueado para Empréstimo:</strong> ${Beneficiario.BloqueadoEmprestimo === '1' ? 'SIM' : 'NÃO'}</div>
+          </div>
+        </div>
+
+        <div class="section">
+          <h3>Dados Bancários e Meio de Recebimento</h3>
+          <div class="personal-info">
+            <div class="info-item"><strong>Banco:</strong> ${DadosBancarios.Banco}</div>
+            <div class="info-item"><strong>Agência:</strong> ${DadosBancarios.Agencia}</div>
+            ${DadosBancarios.MeioPagamento === '3' ? `
+              <div class="info-item" style="background: #e3f2fd;"><strong>Meio de Recebimento:</strong> CARTÃO MAGNÉTICO</div>
+              <div class="info-item" style="background: #fff3e0;"><strong>Observação:</strong> Beneficiário NÃO possui conta bancária - recebe via cartão magnético</div>
+            ` : `
+              <div class="info-item"><strong>Conta:</strong> ${DadosBancarios.ContaPagto}</div>
+              <div class="info-item"><strong>Meio de Recebimento:</strong> ${DadosBancarios.MeioPagamento === '1' ? 'Conta Corrente' : 'Conta Poupança'}</div>
+            `}
           </div>
         </div>
 
@@ -785,10 +804,19 @@ export function BenefitDetails({ benefit }: BenefitDetailsProps) {
                       <span className="text-muted-foreground">Agência:</span>
                       <span className="font-medium text-foreground">{DadosBancarios.Agencia}</span>
                     </div>
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Conta:</span>
-                      <span className="font-medium text-foreground">{DadosBancarios.ContaPagto}</span>
-                    </div>
+                    {DadosBancarios.MeioPagamento === '3' || !DadosBancarios.ContaPagto ? (
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Conta:</span>
+                        <Badge variant="secondary" className="bg-blue-100 text-blue-800">
+                          Recebe via Cartão Magnético
+                        </Badge>
+                      </div>
+                    ) : (
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Conta:</span>
+                        <span className="font-medium text-foreground">{DadosBancarios.ContaPagto}</span>
+                      </div>
+                    )}
                   </div>
                 </div>
 
@@ -806,19 +834,20 @@ export function BenefitDetails({ benefit }: BenefitDetailsProps) {
                       </Badge>
                     </div>
                     <div className="flex justify-between items-center">
-                      <span className="text-muted-foreground">Tipo do Cartão:</span>
-                      <span className="font-medium text-foreground">
-                        {ResumoFinanceiro.PossuiCartao ? "Cartão Magnético" : "Não Possui"}
-                      </span>
-                    </div>
-                    <div className="flex justify-between items-center">
-                      <span className="text-muted-foreground">Meio de Pagamento:</span>
-                      <span className="font-medium text-foreground">
+                      <span className="text-muted-foreground">Meio de Recebimento:</span>
+                      <Badge variant={DadosBancarios.MeioPagamento === '3' ? "default" : "secondary"} 
+                             className={DadosBancarios.MeioPagamento === '3' ? "bg-blue-100 text-blue-800" : ""}>
                         {DadosBancarios.MeioPagamento === '1' ? 'Conta Corrente' : 
                          DadosBancarios.MeioPagamento === '2' ? 'Conta Poupança' : 
                          DadosBancarios.MeioPagamento === '3' ? 'Cartão Magnético' : 
                          `Código: ${DadosBancarios.MeioPagamento}`}
-                      </span>
+                      </Badge>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-muted-foreground">Possui Conta Bancária:</span>
+                      <Badge variant={DadosBancarios.MeioPagamento === '3' ? "destructive" : "default"}>
+                        {DadosBancarios.MeioPagamento === '3' ? 'NÃO - Só Cartão' : 'SIM - Tem Conta'}
+                      </Badge>
                     </div>
                     <div className="flex justify-between items-center">
                       <span className="text-muted-foreground">Desconto Associação:</span>

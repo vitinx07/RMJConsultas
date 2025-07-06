@@ -122,3 +122,4 @@ Changelog:
 - July 04, 2025. Final dark mode contrast fixes: updated benefit cards and green margin sections with proper dark mode variants (dark:bg-green-900/20, dark:text-green-400) and border styling
 - July 04, 2025. Fixed contract text truncation in loan contracts table: removed truncation and increased column width to display full contract numbers
 - July 05, 2025. Fixed user authentication display issues: corrected useAuth hook to properly show logged user information, added credentials to all API requests, and improved session management for user switching
+- July 06, 2025. Comprehensive data expansion: Added complete beneficiary information (CEP, sex, RG, DIB, loan blocking status, legal representative info), enhanced banking data with magnetic card detection, implemented negative margin calculations for RMC/RCC cards with visual indicators, expanded loan contracts table with paid installments and interest rates columns
