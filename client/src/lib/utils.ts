@@ -101,6 +101,21 @@ export function getBankName(code: string): string {
 }
 
 // Função para obter cor do banco baseado no código
+export function getBankIcon(code: string): string {
+  // Mapeia códigos de banco para ícones disponíveis
+  const availableIcons = [
+    '001', '033', '104', '237', '341', '935', '707', '626', '012', '925'
+  ];
+  
+  const normalizedCode = code.padStart(3, '0');
+  
+  if (availableIcons.includes(normalizedCode)) {
+    return `@assets/bank-icons/${normalizedCode}.svg`;
+  }
+  
+  return '@assets/bank-icons/default.svg';
+}
+
 export function getBankColor(code: string): string {
   const colorMap: { [key: string]: string } = {
     '001': 'bg-yellow-500', // Banco do Brasil

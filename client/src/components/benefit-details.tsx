@@ -31,7 +31,8 @@ import {
   TableRow 
 } from "@/components/ui/table";
 import { Benefit } from "@shared/schema";
-import { formatCurrency, formatDate, formatCPF, formatBankAccount, getBenefitSpeciesName, getBankName, getBankColor, getBankCodeFromName } from "@/lib/utils";
+import { formatCurrency, formatDate, formatCPF, formatBankAccount, getBenefitSpeciesName, getBankName, getBankCodeFromName } from "@/lib/utils";
+import { BankIcon } from "@/components/bank-icon";
 
 interface BenefitDetailsProps {
   benefit: Benefit;
@@ -595,7 +596,7 @@ export function BenefitDetails({ benefit }: BenefitDetailsProps) {
                                     
                                     return (
                                       <>
-                                        <div className={`w-2 h-2 rounded-full ${getBankColor(normalizedCode)}`}></div>
+                                        <BankIcon bankCode={normalizedCode} className="w-6 h-6" />
                                         <div className="max-w-[160px] break-words" title={`${displayCode} - ${bankName}`}>
                                           {bankName !== 'Banco ' + normalizedCode ? `${displayCode} - ${bankName}` : bankNameFromAPI || 'N/A'}
                                         </div>
@@ -610,7 +611,7 @@ export function BenefitDetails({ benefit }: BenefitDetailsProps) {
                                       const bankName = getBankName(mappedCode);
                                       return (
                                         <>
-                                          <div className={`w-2 h-2 rounded-full ${getBankColor(mappedCode)}`}></div>
+                                          <BankIcon bankCode={mappedCode} className="w-6 h-6" />
                                           <div className="max-w-[160px] break-words" title={`${mappedCode} - ${bankName}`}>
                                             {mappedCode} - {bankName}
                                           </div>
@@ -622,7 +623,7 @@ export function BenefitDetails({ benefit }: BenefitDetailsProps) {
                                   // Fallback para nome da API apenas
                                   return (
                                     <>
-                                      <div className="w-2 h-2 rounded-full bg-gray-400"></div>
+                                      <BankIcon bankCode="000" className="w-6 h-6" />
                                       <div className="max-w-[160px] break-words" title={bankNameFromAPI}>
                                         {bankNameFromAPI || 'N/A'}
                                       </div>
