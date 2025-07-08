@@ -50,6 +50,72 @@ export function calculateMarginPercentage(available: number, total: number): num
 }
 
 // Mapeamento de códigos de espécie para nomes de benefícios
+// Mapeamento de códigos de banco para nomes (principais bancos brasileiros)
+export function getBankName(code: string): string {
+  const bankMap: { [key: string]: string } = {
+    '001': 'Banco do Brasil',
+    '003': 'Banco da Amazônia',
+    '004': 'Banco do Nordeste',
+    '021': 'Banco do Estado do Espírito Santo',
+    '025': 'Banco Alfa',
+    '033': 'Banco Santander',
+    '036': 'Banco Bradesco BBI',
+    '037': 'Banco do Estado do Pará',
+    '041': 'Banco do Estado do Rio Grande do Sul',
+    '047': 'Banco do Estado de Sergipe',
+    '070': 'Banco de Brasília',
+    '077': 'Banco Inter',
+    '104': 'Caixa Econômica Federal',
+    '136': 'Banco Unicred',
+    '197': 'Stone Pagamentos',
+    '208': 'Banco BTG Pactual',
+    '212': 'Banco Original',
+    '237': 'Banco Bradesco',
+    '260': 'Nubank',
+    '290': 'Banco PagSeguro',
+    '318': 'Banco BMG',
+    '323': 'Banco Mercado Pago',
+    '336': 'Banco C6',
+    '341': 'Itaú Unibanco',
+    '380': 'PicPay',
+    '399': 'HSBC Bank Brasil',
+    '422': 'Banco Safra',
+    '604': 'Banco Industrial do Brasil',
+    '623': 'Banco Panamericano',
+    '633': 'Banco Rendimento',
+    '637': 'Banco Sofisa',
+    '653': 'Banco Indusval',
+    '655': 'Banco Votorantim',
+    '707': 'Banco Daycoval',
+    '745': 'Banco Citibank',
+    '748': 'Banco Cooperativo Sicredi',
+    '756': 'Banco Cooperativo do Brasil',
+  };
+
+  return bankMap[code] || `Banco ${code}`;
+}
+
+// Função para obter cor do banco baseado no código
+export function getBankColor(code: string): string {
+  const colorMap: { [key: string]: string } = {
+    '001': 'bg-yellow-500', // Banco do Brasil
+    '033': 'bg-red-600', // Santander
+    '104': 'bg-blue-600', // Caixa
+    '237': 'bg-red-700', // Bradesco
+    '341': 'bg-orange-500', // Itaú
+    '260': 'bg-purple-600', // Nubank
+    '336': 'bg-yellow-400', // C6
+    '290': 'bg-green-600', // PagSeguro
+    '323': 'bg-blue-500', // Mercado Pago
+    '077': 'bg-orange-600', // Inter
+    '380': 'bg-green-500', // PicPay
+    '208': 'bg-black', // BTG
+    '422': 'bg-green-700', // Safra
+  };
+
+  return colorMap[code] || 'bg-gray-500';
+}
+
 export function getBenefitSpeciesName(code: string): string {
   const speciesMap: { [key: string]: string } = {
     '01': 'Pensão por Morte de Trabalhador Rural',

@@ -31,7 +31,7 @@ import {
   TableRow 
 } from "@/components/ui/table";
 import { Benefit } from "@shared/schema";
-import { formatCurrency, formatDate, formatCPF, formatBankAccount, getBenefitSpeciesName } from "@/lib/utils";
+import { formatCurrency, formatDate, formatCPF, formatBankAccount, getBenefitSpeciesName, getBankName, getBankColor } from "@/lib/utils";
 
 interface BenefitDetailsProps {
   benefit: Benefit;
@@ -582,8 +582,11 @@ export function BenefitDetails({ benefit }: BenefitDetailsProps) {
                         {Emprestimos.map((emprestimo, index) => (
                           <TableRow key={index} className="hover:bg-muted/30 border-b">
                             <TableCell className="font-medium text-foreground bg-background">
-                              <div className="truncate max-w-[120px]" title={emprestimo.NomeBanco}>
-                                {emprestimo.NomeBanco || 'N/A'}
+                              <div className="flex items-center gap-2">
+                                <div className={`w-2 h-2 rounded-full ${getBankColor(emprestimo.CodigoBanco || '000')}`}></div>
+                                <div className="truncate max-w-[100px]" title={`${emprestimo.CodigoBanco || 'N/A'} - ${getBankName(emprestimo.CodigoBanco || '000')}`}>
+                                  {emprestimo.CodigoBanco ? `${emprestimo.CodigoBanco} - ${getBankName(emprestimo.CodigoBanco)}` : (emprestimo.NomeBanco || 'N/A')}
+                                </div>
                               </div>
                             </TableCell>
                             <TableCell className="font-mono text-sm text-foreground bg-background">
@@ -799,10 +802,17 @@ export function BenefitDetails({ benefit }: BenefitDetailsProps) {
                     <University className="h-4 w-4" />
                     Dados Bancários
                   </h4>
-                  <div className="space-y-2">
-                    <div className="flex justify-between">
+                  <div className="space-y-3">
+                    <div className="flex justify-between items-center">
                       <span className="text-muted-foreground">Banco:</span>
-                      <span className="font-medium text-foreground">{DadosBancarios.Banco}</span>
+                      <div className="flex items-center gap-2">
+                        <div className={`w-3 h-3 rounded-full ${getBankColor(DadosBancarios.Banco)}`}></div>
+                        <div className="text-right">
+                          <span className="font-medium text-foreground block">
+                            {DadosBancarios.Banco} - {getBankName(DadosBancarios.Banco)}
+                          </span>
+                        </div>
+                      </div>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">Agência:</span>
