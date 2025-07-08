@@ -596,7 +596,7 @@ export function BenefitDetails({ benefit }: BenefitDetailsProps) {
                                     
                                     return (
                                       <>
-                                        <BankIcon bankCode={normalizedCode} className="w-6 h-6" />
+                                        <BankIcon bankCode={normalizedCode} className="w-4 h-4" />
                                         <div className="max-w-[160px] break-words" title={`${displayCode} - ${bankName}`}>
                                           {bankName !== 'Banco ' + normalizedCode ? `${displayCode} - ${bankName}` : bankNameFromAPI || 'N/A'}
                                         </div>
@@ -611,7 +611,7 @@ export function BenefitDetails({ benefit }: BenefitDetailsProps) {
                                       const bankName = getBankName(mappedCode);
                                       return (
                                         <>
-                                          <BankIcon bankCode={mappedCode} className="w-6 h-6" />
+                                          <BankIcon bankCode={mappedCode} className="w-4 h-4" />
                                           <div className="max-w-[160px] break-words" title={`${mappedCode} - ${bankName}`}>
                                             {mappedCode} - {bankName}
                                           </div>
@@ -623,7 +623,7 @@ export function BenefitDetails({ benefit }: BenefitDetailsProps) {
                                   // Fallback para nome da API apenas
                                   return (
                                     <>
-                                      <BankIcon bankCode="000" className="w-6 h-6" />
+                                      <BankIcon bankCode="000" className="w-4 h-4" />
                                       <div className="max-w-[160px] break-words" title={bankNameFromAPI}>
                                         {bankNameFromAPI || 'N/A'}
                                       </div>
