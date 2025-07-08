@@ -62,6 +62,7 @@ export const bankingDataSchema = z.object({
 export const loanSchema = z.object({
   Banco: z.string().optional(),
   NomeBanco: z.string().optional(),
+  CodigoBanco: z.string().optional(),
   ValorParcela: z.number().default(0),
   Quitacao: z.number().default(0),
   Prazo: z.string().optional(),

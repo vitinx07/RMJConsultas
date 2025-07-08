@@ -31,7 +31,7 @@ import {
   TableRow 
 } from "@/components/ui/table";
 import { Benefit } from "@shared/schema";
-import { formatCurrency, formatDate, formatCPF, formatBankAccount, getBenefitSpeciesName, getBankName, getBankColor } from "@/lib/utils";
+import { formatCurrency, formatDate, formatCPF, formatBankAccount, getBenefitSpeciesName, getBankName, getBankColor, getBankCodeFromName } from "@/lib/utils";
 
 interface BenefitDetailsProps {
   benefit: Benefit;
@@ -583,10 +583,17 @@ export function BenefitDetails({ benefit }: BenefitDetailsProps) {
                           <TableRow key={index} className="hover:bg-muted/30 border-b">
                             <TableCell className="font-medium text-foreground bg-background">
                               <div className="flex items-center gap-2">
-                                <div className={`w-2 h-2 rounded-full ${getBankColor(emprestimo.CodigoBanco || '000')}`}></div>
-                                <div className="truncate max-w-[100px]" title={`${emprestimo.CodigoBanco || 'N/A'} - ${getBankName(emprestimo.CodigoBanco || '000')}`}>
-                                  {emprestimo.CodigoBanco ? `${emprestimo.CodigoBanco} - ${getBankName(emprestimo.CodigoBanco)}` : (emprestimo.NomeBanco || 'N/A')}
-                                </div>
+                                {(() => {
+                                  const bankCode = emprestimo.Banco || emprestimo.CodigoBanco || getBankCodeFromName(emprestimo.NomeBanco || '');
+                                  return (
+                                    <>
+                                      <div className={`w-2 h-2 rounded-full ${getBankColor(bankCode)}`}></div>
+                                      <div className="truncate max-w-[100px]" title={`${bankCode} - ${getBankName(bankCode)}`}>
+                                        {bankCode !== '000' ? `${bankCode} - ${getBankName(bankCode)}` : emprestimo.NomeBanco || 'N/A'}
+                                      </div>
+                                    </>
+                                  );
+                                })()}
                               </div>
                             </TableCell>
                             <TableCell className="font-mono text-sm text-foreground bg-background">

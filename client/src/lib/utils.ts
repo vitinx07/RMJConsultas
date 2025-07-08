@@ -116,6 +116,41 @@ export function getBankColor(code: string): string {
   return colorMap[code] || 'bg-gray-500';
 }
 
+// Função para obter código do banco baseado no nome
+export function getBankCodeFromName(bankName: string): string {
+  const nameToCodeMap: { [key: string]: string } = {
+    'Banco do Brasil': '001',
+    'Santander': '033',
+    'Caixa Econômica Federal': '104',
+    'Bradesco': '237',
+    'Itaú Unibanco': '341',
+    'Itau Unibanco': '341',
+    'Nubank': '260',
+    'Banco C6': '336',
+    'PagSeguro': '290',
+    'Mercado Pago': '323',
+    'Banco Inter': '077',
+    'PicPay': '380',
+    'BTG Pactual': '208',
+    'Safra': '422',
+  };
+  
+  // Busca exata primeiro
+  if (nameToCodeMap[bankName]) {
+    return nameToCodeMap[bankName];
+  }
+  
+  // Busca parcial (case-insensitive)
+  const lowerBankName = bankName.toLowerCase();
+  for (const [name, code] of Object.entries(nameToCodeMap)) {
+    if (lowerBankName.includes(name.toLowerCase()) || name.toLowerCase().includes(lowerBankName)) {
+      return code;
+    }
+  }
+  
+  return '000'; // Código padrão para bancos não identificados
+}
+
 export function getBenefitSpeciesName(code: string): string {
   const speciesMap: { [key: string]: string } = {
     '01': 'Pensão por Morte de Trabalhador Rural',
