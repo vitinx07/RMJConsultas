@@ -849,7 +849,7 @@ export function BenefitDetails({ benefit }: BenefitDetailsProps) {
                     <div className="flex justify-between items-center">
                       <span className="text-muted-foreground">Banco:</span>
                       <div className="flex items-center gap-2">
-                        <div className={`w-3 h-3 rounded-full ${getBankColor(DadosBancarios.Banco)}`}></div>
+                        <BankIcon bankCode={DadosBancarios.Banco} className="w-5 h-5" />
                         <div className="text-right">
                           <span className="font-medium text-foreground block">
                             {DadosBancarios.Banco} - {getBankName(DadosBancarios.Banco)}
