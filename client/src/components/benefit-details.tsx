@@ -584,12 +584,17 @@ export function BenefitDetails({ benefit }: BenefitDetailsProps) {
                             <TableCell className="font-medium text-foreground bg-background">
                               <div className="flex items-center gap-2">
                                 {(() => {
-                                  const bankCode = emprestimo.Banco || emprestimo.CodigoBanco || getBankCodeFromName(emprestimo.NomeBanco || '');
+                                  const originalBankCode = emprestimo.Banco || emprestimo.CodigoBanco || '';
+                                  const bankNameFromAPI = emprestimo.NomeBanco || '';
+                                  const normalizedCode = originalBankCode.padStart(3, '0');
+                                  const bankName = getBankName(normalizedCode);
+                                  const displayCode = originalBankCode; // Mantém o código original para display
+                                  
                                   return (
                                     <>
-                                      <div className={`w-2 h-2 rounded-full ${getBankColor(bankCode)}`}></div>
-                                      <div className="max-w-[160px] break-words" title={`${bankCode} - ${getBankName(bankCode)}`}>
-                                        {bankCode !== '000' ? `${bankCode} - ${getBankName(bankCode)}` : emprestimo.NomeBanco || 'N/A'}
+                                      <div className={`w-2 h-2 rounded-full ${getBankColor(normalizedCode)}`}></div>
+                                      <div className="max-w-[160px] break-words" title={`${displayCode} - ${bankName}`}>
+                                        {bankName !== 'Banco ' + normalizedCode ? `${displayCode} - ${bankName}` : bankNameFromAPI || 'N/A'}
                                       </div>
                                     </>
                                   );
