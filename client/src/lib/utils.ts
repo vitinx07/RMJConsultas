@@ -80,6 +80,10 @@ export function getBankName(code: string): string {
     '380': 'PicPay',
     '399': 'HSBC Bank Brasil',
     '422': 'Banco Safra',
+    '925': 'Banco 925',
+    '329': 'Banco 329',
+    '012': 'Banco 12',
+    '935': 'Banco 935',
     '604': 'Banco Industrial do Brasil',
     '623': 'Banco Panamericano',
     '633': 'Banco Rendimento',
@@ -120,7 +124,8 @@ export function getBankColor(code: string): string {
 export function getBankCodeFromName(bankName: string): string {
   const nameToCodeMap: { [key: string]: string } = {
     'Banco do Brasil': '001',
-    'Santander': '033',
+    'Santander': '033', 
+    'Banco Santander': '033',
     'Caixa Econômica Federal': '104',
     'Bradesco': '237',
     'Itaú Unibanco': '341',
@@ -133,6 +138,16 @@ export function getBankCodeFromName(bankName: string): string {
     'PicPay': '380',
     'BTG Pactual': '208',
     'Safra': '422',
+    'Banco 925': '925',
+    'Banco 329': '329',
+    'Banco 33': '033',
+    'Banco 12': '012',
+    'Banco 935': '935',
+    '925': '925',
+    '329': '329',
+    '33': '033',
+    '12': '012',
+    '935': '935',
   };
   
   // Busca exata primeiro
@@ -146,6 +161,11 @@ export function getBankCodeFromName(bankName: string): string {
     if (lowerBankName.includes(name.toLowerCase()) || name.toLowerCase().includes(lowerBankName)) {
       return code;
     }
+  }
+  
+  // Se o nome do banco já é um número, retorna ele mesmo
+  if (/^\d+$/.test(bankName)) {
+    return bankName;
   }
   
   return '000'; // Código padrão para bancos não identificados
