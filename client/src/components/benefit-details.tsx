@@ -567,7 +567,7 @@ export function BenefitDetails({ benefit }: BenefitDetailsProps) {
                     <Table className="min-w-full">
                       <TableHeader>
                         <TableRow className="bg-muted/50 border-b">
-                          <TableHead className="font-semibold text-foreground min-w-[120px] h-12">Banco</TableHead>
+                          <TableHead className="font-semibold text-foreground min-w-[180px] h-12">Banco</TableHead>
                           <TableHead className="font-semibold text-foreground min-w-[180px] h-12">Contrato</TableHead>
                           <TableHead className="font-semibold text-foreground min-w-[120px] h-12">Valor Parcela</TableHead>
                           <TableHead className="font-semibold text-foreground min-w-[120px] h-12">Saldo Devedor</TableHead>
@@ -588,7 +588,7 @@ export function BenefitDetails({ benefit }: BenefitDetailsProps) {
                                   return (
                                     <>
                                       <div className={`w-2 h-2 rounded-full ${getBankColor(bankCode)}`}></div>
-                                      <div className="truncate max-w-[100px]" title={`${bankCode} - ${getBankName(bankCode)}`}>
+                                      <div className="max-w-[160px] break-words" title={`${bankCode} - ${getBankName(bankCode)}`}>
                                         {bankCode !== '000' ? `${bankCode} - ${getBankName(bankCode)}` : emprestimo.NomeBanco || 'N/A'}
                                       </div>
                                     </>
