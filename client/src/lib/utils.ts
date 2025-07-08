@@ -147,6 +147,8 @@ export function getBankCodeFromName(bankName: string): string {
     'Inbursa': '012',
     'Banco Crefisa': '935',
     'Crefisa': '935',
+    'ZEMA CFI': '935',
+    'Zema': '935',
     'Banco Daycoval': '707',
     'Daycoval': '707',
     'Banco Ficsa': '626',

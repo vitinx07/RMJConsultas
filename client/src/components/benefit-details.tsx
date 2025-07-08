@@ -586,15 +586,45 @@ export function BenefitDetails({ benefit }: BenefitDetailsProps) {
                                 {(() => {
                                   const originalBankCode = emprestimo.Banco || emprestimo.CodigoBanco || '';
                                   const bankNameFromAPI = emprestimo.NomeBanco || '';
-                                  const normalizedCode = originalBankCode.padStart(3, '0');
-                                  const bankName = getBankName(normalizedCode);
-                                  const displayCode = originalBankCode; // Mantém o código original para display
                                   
+                                  // Se tem código de banco, usa o mapeamento
+                                  if (originalBankCode) {
+                                    const normalizedCode = originalBankCode.padStart(3, '0');
+                                    const bankName = getBankName(normalizedCode);
+                                    const displayCode = originalBankCode;
+                                    
+                                    return (
+                                      <>
+                                        <div className={`w-2 h-2 rounded-full ${getBankColor(normalizedCode)}`}></div>
+                                        <div className="max-w-[160px] break-words" title={`${displayCode} - ${bankName}`}>
+                                          {bankName !== 'Banco ' + normalizedCode ? `${displayCode} - ${bankName}` : bankNameFromAPI || 'N/A'}
+                                        </div>
+                                      </>
+                                    );
+                                  }
+                                  
+                                  // Se não tem código, tenta buscar código pelo nome
+                                  if (bankNameFromAPI) {
+                                    const mappedCode = getBankCodeFromName(bankNameFromAPI);
+                                    if (mappedCode !== '000') {
+                                      const bankName = getBankName(mappedCode);
+                                      return (
+                                        <>
+                                          <div className={`w-2 h-2 rounded-full ${getBankColor(mappedCode)}`}></div>
+                                          <div className="max-w-[160px] break-words" title={`${mappedCode} - ${bankName}`}>
+                                            {mappedCode} - {bankName}
+                                          </div>
+                                        </>
+                                      );
+                                    }
+                                  }
+                                  
+                                  // Fallback para nome da API apenas
                                   return (
                                     <>
-                                      <div className={`w-2 h-2 rounded-full ${getBankColor(normalizedCode)}`}></div>
-                                      <div className="max-w-[160px] break-words" title={`${displayCode} - ${bankName}`}>
-                                        {bankName !== 'Banco ' + normalizedCode ? `${displayCode} - ${bankName}` : bankNameFromAPI || 'N/A'}
+                                      <div className="w-2 h-2 rounded-full bg-gray-400"></div>
+                                      <div className="max-w-[160px] break-words" title={bankNameFromAPI}>
+                                        {bankNameFromAPI || 'N/A'}
                                       </div>
                                     </>
                                   );
