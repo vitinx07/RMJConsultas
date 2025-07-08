@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Eye, EyeOff, Lock, User } from "lucide-react";
+import logoPath from "@assets/rmj_1751973121690.jpeg";
 import { useToast } from "@/hooks/use-toast";
 import type { LoginData } from "@shared/schema";
 
@@ -48,12 +49,19 @@ export default function Login() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 p-4">
       <Card className="w-full max-w-md">
-        <CardHeader className="space-y-1">
+        <CardHeader className="space-y-4">
+          <div className="flex justify-center">
+            <img 
+              src={logoPath} 
+              alt="RMJ Consultas Logo" 
+              className="w-20 h-20 object-cover rounded-full border-2 border-primary/20"
+            />
+          </div>
           <CardTitle className="text-2xl font-bold text-center">
-            Sistema de Benefícios
+            RMJ Consultas
           </CardTitle>
           <CardDescription className="text-center">
-            Faça login para acessar o sistema
+            Sistema de Benefícios INSS
           </CardDescription>
         </CardHeader>
         <CardContent>

@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Link } from "wouter";
 import { useAuth } from "@/hooks/useAuth";
 import { University, AlertCircle, Loader2, LogOut, Users, User, Shield, ShieldCheck } from "lucide-react";
+import logoPath from "@assets/rmj_1751973121690.jpeg";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -144,7 +145,11 @@ export default function Home() {
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
-              <University className="h-8 w-8" />
+              <img 
+                src={logoPath} 
+                alt="RMJ Logo" 
+                className="h-10 w-10 object-cover rounded-full border-2 border-primary-foreground/20"
+              />
               <div>
                 <h1 className="text-2xl font-bold">RMJ CONSULTAS</h1>
                 <p className="text-sm opacity-90">Consulta de Benefícios INSS</p>
