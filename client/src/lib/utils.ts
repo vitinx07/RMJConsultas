@@ -85,7 +85,6 @@ export function getBankName(code: string): string {
     '329': 'Banco QI',
     '012': 'Banco Inbursa',
     '935': 'Banco Crefisa',
-
     '604': 'Banco Industrial do Brasil',
     '623': 'Banco Panamericano',
     '633': 'Banco Rendimento',
@@ -155,6 +154,7 @@ export function getBankCodeFromName(bankName: string): string {
     '925': '925',
     '329': '329',
     '33': '033',
+    '033': '033',
     '12': '012',
     '935': '935',
   };
@@ -172,9 +172,9 @@ export function getBankCodeFromName(bankName: string): string {
     }
   }
   
-  // Se o nome do banco já é um número, retorna ele mesmo
+  // Se o nome do banco já é um número, normaliza com zeros à esquerda
   if (/^\d+$/.test(bankName)) {
-    return bankName;
+    return bankName.padStart(3, '0');
   }
   
   return '000'; // Código padrão para bancos não identificados
