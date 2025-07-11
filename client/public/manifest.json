@@ -1,0 +1,18 @@
+{
+  "name": "RMJ Consultas - Consulta de Benefícios INSS",
+  "short_name": "RMJ Consultas",
+  "description": "Sistema profissional para consulta de benefícios INSS via API CORBAN",
+  "icons": [
+    {
+      "src": "/attached_assets/image_1752238343149.png",
+      "sizes": "any",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#2563eb",
+  "orientation": "portrait-primary"
+}
