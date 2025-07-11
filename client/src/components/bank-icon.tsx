@@ -3,36 +3,62 @@ interface BankIconProps {
   className?: string;
 }
 
-// URLs dos SVGs dos bancos (usando URLs públicas)
-
 export function BankIcon({ bankCode, className = "w-6 h-6" }: BankIconProps) {
   const normalizedCode = bankCode.padStart(3, '0');
   
-  // URLs dos SVGs dos bancos (carregamento dinâmico)
-  const getBankIconUrl = (code: string) => `/src/assets/bank-icons/${code}.svg`;
-  
-  // Lista de bancos que têm SVG disponível
-  const availableBankIcons = ['001', '033', '104', '237', '341', '626', '935', '041'];
-  
-  // Cores e iniciais para fallback
-  const bankData: { [key: string]: { color: string; initials: string; textColor?: string } } = {
-    '001': { color: '#FED100', initials: 'BB', textColor: '#003875' },      // Banco do Brasil - Amarelo com texto azul
-    '033': { color: '#E60012', initials: 'S', textColor: '#FFFFFF' },       // Santander - Vermelho
-    '104': { color: '#0066CC', initials: 'CEF', textColor: '#FFFFFF' },     // Caixa - Azul
-    '237': { color: '#CC092F', initials: 'B', textColor: '#FFFFFF' },       // Bradesco - Vermelho escuro
-    '341': { color: '#FF6000', initials: 'I', textColor: '#FFFFFF' },       // Itaú - Laranja
-    '935': { color: '#4F46E5', initials: 'C', textColor: '#FFFFFF' },       // Crefisa - Azul índigo
-    '707': { color: '#1B365C', initials: 'D', textColor: '#FFFFFF' },       // Daycoval - Azul marinho
-    '626': { color: '#22C55E', initials: 'F', textColor: '#FFFFFF' },       // Ficsa - Verde
-    '012': { color: '#7C3AED', initials: 'I', textColor: '#FFFFFF' },       // Inbursa - Roxo
-    '925': { color: '#065F46', initials: 'BNDES', textColor: '#FFFFFF' },   // BNDES - Verde escuro
-    '329': { color: '#06B6D4', initials: 'QI', textColor: '#FFFFFF' },      // Banco 329 - Ciano
-    '041': { color: '#1D4ED8', initials: 'BRS', textColor: '#FFFFFF' },     // Banrisul - Azul
-    'ZEMA': { color: '#F59E0B', initials: 'Z', textColor: '#FFFFFF' },      // ZEMA CFI - Amarelo âmbar
+  // Mapeamento de códigos de banco para classes CSS dos ícones
+  const bankIconClasses: { [key: string]: string } = {
+    '001': 'ibb-banco-brasil',      // Banco do Brasil
+    '033': 'ibb-santander',         // Santander
+    '104': 'ibb-caixa',             // Caixa Econômica Federal
+    '237': 'ibb-bradesco',          // Bradesco
+    '341': 'ibb-itau',              // Itaú
+    '041': 'ibb-banrisul',          // Banrisul
+    '748': 'ibb-sicredi',           // Sicredi
+    '756': 'ibb-sicoob',            // Sicoob
+    '422': 'ibb-safra',             // Safra
+    '623': 'ibb-original',          // Original
+    '260': 'ibb-nubank',            // Nubank
+    '077': 'ibb-inter',             // Inter
+    '399': 'ibb-hsbc',              // HSBC
+    '745': 'ibb-citi-bank',         // Citibank
+    '021': 'ibb-banestes',          // Banestes
+    '004': 'ibb-banco-nordeste',    // Banco do Nordeste
+    '070': 'ibb-banco-brasilia',    // Banco de Brasília
+    '003': 'ibb-banco-amazonia',    // Banco da Amazônia
   };
   
-  const bank = bankData[normalizedCode] || { color: '#6B7280', initials: 'B', textColor: '#FFFFFF' };
-  const hasIcon = availableBankIcons.includes(normalizedCode);
+  // Cores de fallback para bancos sem ícone da fonte
+  const bankColors: { [key: string]: string } = {
+    '001': '#FED100',     // Banco do Brasil
+    '033': '#E60012',     // Santander
+    '104': '#0066CC',     // Caixa
+    '237': '#CC092F',     // Bradesco
+    '341': '#FF6000',     // Itaú
+    '041': '#1D4ED8',     // Banrisul
+    '748': '#00A651',     // Sicredi
+    '756': '#00A651',     // Sicoob
+    '422': '#FF6B35',     // Safra
+    '623': '#FF6B35',     // Original
+    '260': '#8A05BE',     // Nubank
+    '077': '#FF7A00',     // Inter
+    '399': '#DB0011',     // HSBC
+    '745': '#1976D2',     // Citibank
+    '021': '#0066CC',     // Banestes
+    '004': '#0066CC',     // Banco do Nordeste
+    '070': '#0066CC',     // Banco de Brasília
+    '003': '#0066CC',     // Banco da Amazônia
+    '935': '#4F46E5',     // Crefisa
+    '707': '#1B365C',     // Daycoval
+    '626': '#22C55E',     // Ficsa
+    '012': '#7C3AED',     // Inbursa
+    '925': '#065F46',     // BNDES
+    '329': '#06B6D4',     // Banco 329
+    'ZEMA': '#F59E0B',    // ZEMA CFI
+  };
+  
+  const iconClass = bankIconClasses[normalizedCode];
+  const fallbackColor = bankColors[normalizedCode] || '#6B7280';
   
   // Detecta se é um ícone pequeno (para tabela) ou maior (para outros contextos)
   const isSmallIcon = className.includes('w-4') || className.includes('h-4');
@@ -40,44 +66,29 @@ export function BankIcon({ bankCode, className = "w-6 h-6" }: BankIconProps) {
   // Para ícones pequenos na tabela, sempre usar pontos coloridos (mais limpo)
   if (isSmallIcon) {
     return (
-      <div className={`rounded-full ${className}`} style={{ backgroundColor: bank.color }}>
+      <div className={`rounded-full ${className}`} style={{ backgroundColor: fallbackColor }}>
       </div>
     );
   }
   
-  // Para ícones maiores, tentar usar SVG se disponível, senão fallback para círculo com iniciais
-  if (hasIcon) {
-    const iconUrl = getBankIconUrl(normalizedCode);
+  // Para ícones maiores, usar o ícone da fonte se disponível
+  if (iconClass) {
     return (
       <div className={`${className} flex items-center justify-center`}>
-        <img 
-          src={iconUrl} 
-          alt={`Logo banco ${normalizedCode}`} 
-          className={`${className} object-contain`}
-          onError={(e) => {
-            // Fallback para círculo com iniciais em caso de erro
-            const target = e.target as HTMLImageElement;
-            target.style.display = 'none';
-            if (target.parentElement) {
-              const fallbackDiv = document.createElement('div');
-              fallbackDiv.className = `rounded-full flex items-center justify-center ${className}`;
-              fallbackDiv.style.backgroundColor = bank.color;
-              fallbackDiv.innerHTML = `<span class="font-bold" style="color: ${bank.textColor}; font-size: 8px">${bank.initials}</span>`;
-              target.parentElement.appendChild(fallbackDiv);
-            }
-          }}
-        />
+        <span 
+          className={`${iconClass} text-lg`} 
+          style={{ color: fallbackColor }}
+          title={`Banco ${normalizedCode}`}
+        ></span>
       </div>
     );
   }
   
-  // Fallback padrão: círculo com iniciais
-  const fontSize = bank.initials.length > 2 ? '6px' : '8px';
-  
+  // Fallback: círculo colorido com inicial
   return (
-    <div className={`rounded-full flex items-center justify-center ${className}`} style={{ backgroundColor: bank.color }}>
-      <span className="font-bold" style={{ fontSize, color: bank.textColor || '#FFFFFF' }}>
-        {bank.initials}
+    <div className={`rounded-full flex items-center justify-center ${className}`} style={{ backgroundColor: fallbackColor }}>
+      <span className="font-bold text-white text-xs">
+        B
       </span>
     </div>
   );
