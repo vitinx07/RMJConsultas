@@ -63,23 +63,23 @@ export function BankIcon({ bankCode, className = "w-6 h-6" }: BankIconProps) {
   // Detecta se é um ícone pequeno (para tabela) ou maior (para outros contextos)
   const isSmallIcon = className.includes('w-4') || className.includes('h-4');
   
-  // Para ícones pequenos na tabela, sempre usar pontos coloridos (mais limpo)
-  if (isSmallIcon) {
-    return (
-      <div className={`rounded-full ${className}`} style={{ backgroundColor: fallbackColor }}>
-      </div>
-    );
-  }
-  
-  // Para ícones maiores, usar o ícone da fonte se disponível
+  // PRIORIDADE: Sempre tentar mostrar o ícone real primeiro, independente do tamanho
   if (iconClass) {
     return (
       <div className={`${className} flex items-center justify-center`}>
         <span 
-          className={`${iconClass} text-lg`} 
+          className={`${iconClass} ${isSmallIcon ? 'text-sm' : 'text-lg'}`} 
           style={{ color: fallbackColor }}
           title={`Banco ${normalizedCode}`}
         ></span>
+      </div>
+    );
+  }
+  
+  // FALLBACK: Para ícones pequenos na tabela, usar pontos coloridos só se não tiver ícone
+  if (isSmallIcon) {
+    return (
+      <div className={`rounded-full ${className}`} style={{ backgroundColor: fallbackColor }}>
       </div>
     );
   }
