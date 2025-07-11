@@ -260,7 +260,7 @@ export default function Home() {
       </main>
 
       {/* Footer */}
-      <footer className="bg-gray-800 text-white mt-16">
+      <footer className="bg-muted/50 dark:bg-muted/20 text-muted-foreground mt-16">
         <div className="container mx-auto px-4 py-8">
           <div className="text-center">
             <p className="text-sm opacity-75">
