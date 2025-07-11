@@ -14,12 +14,34 @@ export function formatCurrency(value: number): string {
 
 export function formatDate(dateString: string): string {
   if (!dateString) return 'N/A';
-  try {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('pt-BR');
-  } catch {
-    return dateString;
+
+  const date = new Date(dateString);
+  return date.toLocaleDateString('pt-BR');
+}
+
+export function calculateAge(dateString: string): number {
+  if (!dateString) return 0;
+
+  const birthDate = new Date(dateString);
+  const today = new Date();
+
+  let age = today.getFullYear() - birthDate.getFullYear();
+  const monthDiff = today.getMonth() - birthDate.getMonth();
+
+  if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+    age--;
   }
+
+  return age;
+}
+
+export function formatDateWithAge(dateString: string): string {
+  if (!dateString) return 'N/A';
+
+  const formattedDate = formatDate(dateString);
+  const age = calculateAge(dateString);
+
+  return `${formattedDate} - ${age} anos`;
 }
 
 export function formatCPF(cpf: string): string {
@@ -106,13 +128,13 @@ export function getBankIcon(code: string): string {
   const availableIcons = [
     '001', '033', '104', '237', '341', '935', '707', '626', '012', '925'
   ];
-  
+
   const normalizedCode = code.padStart(3, '0');
-  
+
   if (availableIcons.includes(normalizedCode)) {
     return `@assets/bank-icons/${normalizedCode}.svg`;
   }
-  
+
   return '@assets/bank-icons/default.svg';
 }
 
@@ -175,12 +197,12 @@ export function getBankCodeFromName(bankName: string): string {
     '12': '012',
     '935': '935',
   };
-  
+
   // Busca exata primeiro
   if (nameToCodeMap[bankName]) {
     return nameToCodeMap[bankName];
   }
-  
+
   // Busca parcial (case-insensitive)
   const lowerBankName = bankName.toLowerCase();
   for (const [name, code] of Object.entries(nameToCodeMap)) {
@@ -188,12 +210,12 @@ export function getBankCodeFromName(bankName: string): string {
       return code;
     }
   }
-  
+
   // Se o nome do banco já é um número, normaliza com zeros à esquerda
   if (/^\d+$/.test(bankName)) {
     return bankName.padStart(3, '0');
   }
-  
+
   return '000'; // Código padrão para bancos não identificados
 }
 

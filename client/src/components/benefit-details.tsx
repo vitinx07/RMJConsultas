@@ -31,7 +31,7 @@ import {
   TableRow 
 } from "@/components/ui/table";
 import { Benefit } from "@shared/schema";
-import { formatCurrency, formatDate, formatCPF, formatBankAccount, getBenefitSpeciesName, getBankName, getBankCodeFromName } from "@/lib/utils";
+import { formatCurrency, formatDate, formatDateWithAge, formatCPF, formatBankAccount, getBenefitSpeciesName, getBankName, getBankCodeFromName } from "@/lib/utils";
 import { BankIcon } from "@/components/bank-icon";
 
 interface BenefitDetailsProps {
@@ -103,7 +103,7 @@ export function BenefitDetails({ benefit }: BenefitDetailsProps) {
           <div class="personal-info">
             <div class="info-item"><strong>Nome:</strong> ${Beneficiario.Nome}</div>
             <div class="info-item"><strong>CPF:</strong> ${formatCPF(Beneficiario.CPF)}</div>
-            <div class="info-item"><strong>Data de Nascimento:</strong> ${formatDate(Beneficiario.DataNascimento)}</div>
+            <div class="info-item"><strong>Data de Nascimento:</strong> ${formatDateWithAge(Beneficiario.DataNascimento)}</div>
             <div class="info-item"><strong>Sexo:</strong> ${Beneficiario.Sexo === 'M' ? 'Masculino' : Beneficiario.Sexo === 'F' ? 'Feminino' : Beneficiario.Sexo || 'N/A'}</div>
             <div class="info-item"><strong>RG:</strong> ${Beneficiario.Rg || 'N/A'}</div>
             <div class="info-item"><strong>DIB:</strong> ${formatDate(Beneficiario.DIB)}</div>
@@ -316,7 +316,7 @@ export function BenefitDetails({ benefit }: BenefitDetailsProps) {
                   <Calendar className="h-5 w-5 text-muted-foreground" />
                   <div>
                     <p className="text-sm text-muted-foreground">Data de Nascimento</p>
-                    <p className="font-semibold">{formatDate(Beneficiario.DataNascimento)}</p>
+                    <p className="font-semibold">{formatDateWithAge(Beneficiario.DataNascimento)}</p>
                   </div>
                 </div>
                 
