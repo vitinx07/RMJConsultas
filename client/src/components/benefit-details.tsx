@@ -372,7 +372,7 @@ export function BenefitDetails({ benefit }: BenefitDetailsProps) {
                   <MapPin className="h-5 w-5 text-muted-foreground" />
                   <div>
                     <p className="text-sm text-muted-foreground">Cidade/UF</p>
-                    <p className="font-semibold">{Beneficiario.Cidade} - {Beneficiario.UF}</p>
+                    <p className="font-semibold">{Beneficiario.Cidade}  {Beneficiario.UF}</p>
                   </div>
                 </div>
                 

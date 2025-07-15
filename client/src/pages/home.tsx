@@ -4,6 +4,7 @@ import { Link } from "wouter";
 import { useAuth } from "@/hooks/useAuth";
 import { University, AlertCircle, Loader2, LogOut, Users, User, Shield, ShieldCheck } from "lucide-react";
 import logoPath from "@assets/rmj_1751973121690.jpeg";
+import { ThemeToggle } from "@/components/theme-toggle";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -11,6 +12,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { BenefitSearch } from "@/components/benefit-search";
 import { BenefitCard } from "@/components/benefit-card";
 import { BenefitDetails } from "@/components/benefit-details";
+import { ErrorDisplay } from "@/components/error-display";
 import { searchBenefits, getBenefitDetails, ApiError } from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
 import { Benefit } from "@shared/schema";
@@ -89,54 +91,7 @@ export default function Home() {
     setSelectedBenefit(benefitNumber);
   };
 
-  // Handle errors with useEffect to avoid render loops
-  useEffect(() => {
-    if (searchError) {
-      if (searchError instanceof ApiError) {
-        toast({
-          title: "Erro na API",
-          description: searchError.message,
-          variant: "destructive",
-        });
-      } else if (searchError instanceof Error) {
-        toast({
-          title: "Erro",
-          description: searchError.message,
-          variant: "destructive",
-        });
-      } else {
-        toast({
-          title: "Erro",
-          description: "Ocorreu um erro inesperado. Tente novamente.",
-          variant: "destructive",
-        });
-      }
-    }
-  }, [searchError, toast]);
-
-  useEffect(() => {
-    if (detailsError) {
-      if (detailsError instanceof ApiError) {
-        toast({
-          title: "Erro na API",
-          description: detailsError.message,
-          variant: "destructive",
-        });
-      } else if (detailsError instanceof Error) {
-        toast({
-          title: "Erro",
-          description: detailsError.message,
-          variant: "destructive",
-        });
-      } else {
-        toast({
-          title: "Erro",
-          description: "Ocorreu um erro inesperado. Tente novamente.",
-          variant: "destructive",
-        });
-      }
-    }
-  }, [detailsError, toast]);
+  // Note: Error handling is now done directly in the UI components
 
   return (
     <div className="min-h-screen bg-background">
@@ -183,6 +138,8 @@ export default function Home() {
                     </Link>
                   )}
                   
+                  <ThemeToggle />
+                  
                   <Button 
                     variant="outline" 
                     size="sm" 
@@ -207,6 +164,16 @@ export default function Home() {
           isLoading={isSearching} 
         />
 
+        {/* Search Error Display */}
+        {searchError && (
+          <div className="mt-8">
+            <ErrorDisplay 
+              error={searchError} 
+              onRetry={() => refetch()} 
+            />
+          </div>
+        )}
+
         {/* Loading Indicator */}
         {isSearching && (
           <Card className="mt-8">
@@ -218,7 +185,7 @@ export default function Home() {
         )}
 
         {/* Success Message */}
-        {benefits && benefits.length > 0 && (
+        {benefits && benefits.length > 0 && !searchError && (
           <Alert className="mt-8">
             <AlertCircle className="h-4 w-4" />
             <AlertDescription>
@@ -245,6 +212,14 @@ export default function Home() {
         {/* Benefit Details */}
         {selectedBenefit && (
           <div className="mt-8">
+            {detailsError && (
+              <div className="mb-4">
+                <ErrorDisplay 
+                  error={detailsError} 
+                  onRetry={() => window.location.reload()} 
+                />
+              </div>
+            )}
             {isLoadingDetails ? (
               <Card>
                 <CardContent className="flex items-center justify-center py-8">
@@ -252,7 +227,7 @@ export default function Home() {
                   <span className="text-muted-foreground">Carregando detalhes do benefício...</span>
                 </CardContent>
               </Card>
-            ) : benefitDetails ? (
+            ) : benefitDetails && !detailsError ? (
               <BenefitDetails benefit={benefitDetails} />
             ) : null}
           </div>

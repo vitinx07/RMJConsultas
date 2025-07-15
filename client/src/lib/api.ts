@@ -1,7 +1,12 @@
 import { SearchRequest, Benefit } from "@shared/schema";
 
 export class ApiError extends Error {
-  constructor(public status: number, message: string) {
+  constructor(
+    public status: number, 
+    message: string, 
+    public title?: string, 
+    public details?: string
+  ) {
     super(message);
     this.name = 'ApiError';
   }
@@ -28,8 +33,18 @@ export async function searchByCPF(apiKey: string, cpf: string): Promise<Benefit[
   });
 
   if (!response.ok) {
-    const errorData = await response.json().catch(() => ({ error: 'Erro desconhecido' }));
-    throw new ApiError(response.status, errorData.error || 'Erro ao consultar CPF');
+    const errorData = await response.json().catch(() => ({ 
+      error: 'Erro desconhecido', 
+      title: 'Erro de Comunicação',
+      details: 'Falha na comunicação com o servidor'
+    }));
+    
+    throw new ApiError(
+      response.status, 
+      errorData.error || 'Erro ao consultar CPF',
+      errorData.title || 'Erro na Consulta',
+      errorData.details || 'Detalhes não disponíveis'
+    );
   }
 
   const data = await response.json();
@@ -51,8 +66,18 @@ export async function searchByBenefit(apiKey: string, benefitNumber: string): Pr
   });
 
   if (!response.ok) {
-    const errorData = await response.json().catch(() => ({ error: 'Erro desconhecido' }));
-    throw new ApiError(response.status, errorData.error || 'Erro ao consultar benefício');
+    const errorData = await response.json().catch(() => ({ 
+      error: 'Erro desconhecido', 
+      title: 'Erro de Comunicação',
+      details: 'Falha na comunicação com o servidor'
+    }));
+    
+    throw new ApiError(
+      response.status, 
+      errorData.error || 'Erro ao consultar benefício',
+      errorData.title || 'Erro na Consulta',
+      errorData.details || 'Detalhes não disponíveis'
+    );
   }
 
   const data = await response.json();

@@ -170,6 +170,78 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Helper function to get user-friendly error messages
+  const getErrorMessage = (status: number, errorText: string) => {
+    switch (status) {
+      case 400:
+        return {
+          title: "Dados Inválidos",
+          message: "Os dados informados são inválidos. Verifique se o CPF ou número do benefício estão corretos.",
+          details: errorText
+        };
+      case 401:
+        return {
+          title: "Acesso Negado",
+          message: "Chave de API inválida ou expirada. Entre em contato com o administrador.",
+          details: errorText
+        };
+      case 403:
+        return {
+          title: "Acesso Proibido",
+          message: "Sem permissão para acessar este recurso. Verifique suas credenciais.",
+          details: errorText
+        };
+      case 404:
+        return {
+          title: "Dados Não Encontrados",
+          message: "Nenhum benefício encontrado para os dados informados.",
+          details: errorText
+        };
+      case 422:
+        return {
+          title: "Formato Inválido",
+          message: "Os dados estão em formato incorreto. Verifique se o CPF tem 11 dígitos.",
+          details: errorText
+        };
+      case 429:
+        return {
+          title: "Muitas Tentativas",
+          message: "Limite de consultas excedido. Aguarde alguns minutos antes de tentar novamente.",
+          details: errorText
+        };
+      case 500:
+        return {
+          title: "Erro Interno do Servidor",
+          message: "Erro interno na API MULTI CORBAN. Tente novamente em alguns minutos.",
+          details: errorText
+        };
+      case 502:
+        return {
+          title: "Gateway Indisponível",
+          message: "O servidor da API MULTI CORBAN está temporariamente indisponível.",
+          details: errorText
+        };
+      case 503:
+        return {
+          title: "Serviço Indisponível",
+          message: "O sistema MULTI CORBAN está temporariamente em manutenção ou sobrecarregado.",
+          details: errorText
+        };
+      case 504:
+        return {
+          title: "Tempo Esgotado",
+          message: "A consulta demorou muito para responder. Tente novamente.",
+          details: errorText
+        };
+      default:
+        return {
+          title: "Erro Desconhecido",
+          message: `Erro inesperado (código ${status}). Entre em contato com o suporte.`,
+          details: errorText
+        };
+    }
+  };
+
   // Existing benefit API routes (require authentication)
   app.post("/api/multicorban/cpf", requireAuth, requireAnyRole, async (req, res) => {
     try {
@@ -192,9 +264,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const errorText = await response.text();
         console.error("Resposta de erro:", errorText);
         
+        const errorInfo = getErrorMessage(response.status, errorText);
+        
         return res.status(response.status).json({ 
-          error: `Erro na API MULTI CORBAN: ${response.status}`,
-          details: errorText || "Erro desconhecido da API"
+          error: errorInfo.message,
+          title: errorInfo.title,
+          details: errorInfo.details,
+          status: response.status
         });
       }
 
@@ -202,7 +278,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(data);
     } catch (error) {
       console.error("Erro na consulta por CPF:", error);
-      res.status(500).json({ error: "Erro ao consultar CPF" });
+      res.status(500).json({ 
+        error: "Erro de conectividade. Verifique sua conexão com a internet.",
+        title: "Erro de Conexão",
+        details: error instanceof Error ? error.message : "Erro desconhecido"
+      });
     }
   });
 
@@ -227,9 +307,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const errorText = await response.text();
         console.error("Resposta de erro offline:", errorText);
         
+        const errorInfo = getErrorMessage(response.status, errorText);
+        
         return res.status(response.status).json({ 
-          error: `Erro na API MULTI CORBAN: ${response.status}`,
-          details: errorText || "Erro desconhecido da API"
+          error: errorInfo.message,
+          title: errorInfo.title,
+          details: errorInfo.details,
+          status: response.status
         });
       }
 
@@ -237,7 +321,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(data);
     } catch (error) {
       console.error("Erro na consulta offline:", error);
-      res.status(500).json({ error: "Erro ao consultar benefício" });
+      res.status(500).json({ 
+        error: "Erro de conectividade. Verifique sua conexão com a internet.",
+        title: "Erro de Conexão",
+        details: error instanceof Error ? error.message : "Erro desconhecido"
+      });
     }
   });
 
