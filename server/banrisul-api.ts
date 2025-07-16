@@ -126,8 +126,12 @@ export class BanrisulApi {
     const token = await this.getToken();
     const contractsUrl = `${BEMPROMOTORA_API_BASE_URL}/contratos`;
     
+    // Formatar CPF corretamente
+    const cleanCpf = cpf.replace(/\D/g, '');
+    const formattedCpf = cleanCpf.padStart(11, '0');
+    
     try {
-      const response = await fetch(`${contractsUrl}?CpfCliente=${cpf}`, {
+      const response = await fetch(`${contractsUrl}?CpfCliente=${formattedCpf}`, {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${token}`
@@ -159,17 +163,25 @@ export class BanrisulApi {
     const token = await this.getToken();
     const url = `${BEMPROMOTORA_API_BASE_URL}/v2/refinanciamentos`;
     
-    // Formatar o payload corretamente
+    // Formatar o payload corretamente seguindo o exemplo funcional
+    const cleanCpf = payload.cpf.replace(/\D/g, '');
+    const formattedCpf = cleanCpf.padStart(11, '0'); // Garantir 11 dígitos
+    
     const formattedPayload = {
-      cpf: payload.cpf.replace(/\D/g, ''), // Remove formatação
+      cpf: formattedCpf,
       dataNascimento: payload.dataNascimento,
-      conveniada: payload.conveniada,
-      contratosRefinanciamento: payload.contratosRefinanciamento.map(contract => ({
-        contrato: contract.contrato.replace(/\D/g, ''), // Remove formatação
-        dataContrato: contract.dataContrato.substring(0, 10) // Formato YYYY-MM-DD
-      })),
+      conveniada: payload.conveniada.padStart(3, '0'), // Garantir 3 dígitos
+      contratosRefinanciamento: payload.contratosRefinanciamento.map(contract => {
+        // Formatar contrato: remover zeros à esquerda e usar apenas números
+        const contractNumber = contract.contrato.replace(/\D/g, '');
+        const formattedContract = contractNumber ? String(parseInt(contractNumber)).padStart(10, '0') : contractNumber;
+        
+        return {
+          contrato: formattedContract,
+          dataContrato: contract.dataContrato.substring(0, 10) // Formato YYYY-MM-DD
+        };
+      }),
       prestacao: payload.prestacao,
-      prazo: payload.prazo || "096",
       retornarSomenteOperacoesViaveis: payload.retornarSomenteOperacoesViaveis
     };
 
