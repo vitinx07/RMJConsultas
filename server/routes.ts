@@ -392,6 +392,53 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       console.log(`Simulando refinanciamento Banrisul para contrato: ${contrato}`);
       
+      // Primeiro, buscar contratos da Bem Promotora para obter a conveniada correta
+      try {
+        const contracts = await banrisulApi.getContracts(cpf);
+        console.log('Contratos encontrados na Bem Promotora:', contracts?.length || 0);
+        
+        if (contracts && contracts.length > 0) {
+          const matchingContract = contracts.find(c => 
+            c.contrato === contrato || 
+            String(parseInt(c.contrato)).padStart(10, '0') === contrato.replace(/\D/g, '').padStart(10, '0')
+          );
+          
+          if (matchingContract) {
+            console.log('Contrato encontrado na Bem Promotora:', matchingContract);
+            console.log('Conveniada original:', matchingContract.conveniada);
+            
+            // Usar a conveniada do contrato encontrado
+            const simulationPayload = {
+              cpf,
+              dataNascimento,
+              conveniada: matchingContract.conveniada,
+              contratosRefinanciamento: [{
+                contrato,
+                dataContrato
+              }],
+              prestacao: parseFloat(prestacao),
+              prazo: prazo || "096",
+              retornarSomenteOperacoesViaveis: true
+            };
+            
+            const result = await banrisulApi.simulateRefinancing(simulationPayload);
+            
+            if (!result.retorno || result.retorno.length === 0) {
+              return res.status(404).json({
+                error: "Nenhuma simulação viável encontrada",
+                title: "Simulação Indisponível",
+                details: result.erro || "Não foi possível encontrar opções de refinanciamento para os dados fornecidos"
+              });
+            }
+            
+            return res.json(result.retorno);
+          }
+        }
+      } catch (contractError) {
+        console.log('Erro ao buscar contratos, usando conveniada fornecida:', contractError);
+      }
+      
+      // Se não encontrar o contrato, usar a conveniada fornecida
       const simulationPayload = {
         cpf,
         dataNascimento,
@@ -401,7 +448,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           dataContrato
         }],
         prestacao: parseFloat(prestacao),
-        prazo: prazo || "096", // Padrão 96 meses
+        prazo: prazo || "096",
         retornarSomenteOperacoesViaveis: true
       };
       

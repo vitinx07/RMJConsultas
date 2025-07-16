@@ -167,10 +167,20 @@ export class BanrisulApi {
     const cleanCpf = payload.cpf.replace(/\D/g, '');
     const formattedCpf = cleanCpf.padStart(11, '0'); // Garantir 11 dígitos
     
+    // Verificar se conveniada precisa ser formatada de forma diferente
+    // Baseado no código Python original, vamos tentar diferentes formatações
+    let formattedConveniada = payload.conveniada;
+    
+    // Tentar primeiro sem formatação
+    if (formattedConveniada === "041") {
+      // Talvez precise ser um código mais longo ou diferente
+      formattedConveniada = "041"; // Manter como está primeiro
+    }
+    
     const formattedPayload = {
       cpf: formattedCpf,
       dataNascimento: payload.dataNascimento,
-      conveniada: payload.conveniada.padStart(3, '0'), // Garantir 3 dígitos
+      conveniada: formattedConveniada, // Sem padding, apenas números
       contratosRefinanciamento: payload.contratosRefinanciamento.map(contract => {
         // Formatar contrato: remover zeros à esquerda e usar apenas números
         const contractNumber = contract.contrato.replace(/\D/g, '');
