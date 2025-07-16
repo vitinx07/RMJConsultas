@@ -405,7 +405,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           
           if (matchingContract) {
             console.log('Contrato encontrado na Bem Promotora:', matchingContract);
-            console.log('Conveniada original:', matchingContract.conveniada);
+            console.log('Conveniada código:', matchingContract.conveniada);
+            console.log('Conveniada descrição:', matchingContract.conveniadaDescricao);
             
             // Usar a conveniada do contrato encontrado
             const simulationPayload = {

@@ -11,6 +11,7 @@ export interface BanrisulContract {
   pmtOriginal: number;
   refinanciavel: boolean;
   conveniada: string;
+  conveniadaDescricao: string;
   matricula: string;
 }
 
@@ -167,15 +168,8 @@ export class BanrisulApi {
     const cleanCpf = payload.cpf.replace(/\D/g, '');
     const formattedCpf = cleanCpf.padStart(11, '0'); // Garantir 11 dígitos
     
-    // Verificar se conveniada precisa ser formatada de forma diferente
-    // Baseado no código Python original, vamos tentar diferentes formatações
-    let formattedConveniada = payload.conveniada;
-    
-    // Tentar primeiro sem formatação
-    if (formattedConveniada === "041") {
-      // Talvez precise ser um código mais longo ou diferente
-      formattedConveniada = "041"; // Manter como está primeiro
-    }
+    // Formatar conveniada corretamente - deve ter 6 dígitos baseado no exemplo
+    const formattedConveniada = payload.conveniada.padStart(6, '0');
     
     const formattedPayload = {
       cpf: formattedCpf,
