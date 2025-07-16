@@ -286,10 +286,13 @@ export function BanrisulSimulation({
                     <Label className="text-sm font-medium text-muted-foreground">Nova Parcela</Label>
                     <p className="text-lg font-bold">
                       {Math.abs(parseFloat(customParcela) - valorParcela) < 0.01 
-                        ? "Manteve a mesma parcela"
+                        ? formatCurrency(valorParcela)
                         : formatCurrency(parseFloat(customParcela))
                       }
                     </p>
+                    {Math.abs(parseFloat(customParcela) - valorParcela) < 0.01 && (
+                      <p className="text-sm text-muted-foreground">Manteve a mesma parcela</p>
+                    )}
                   </div>
                 </div>
                 
@@ -365,10 +368,15 @@ export function BanrisulSimulation({
                               {option.taxaMes ? `${parseFloat(option.taxaMes).toFixed(2)}%` : 'N/A'}
                             </TableCell>
                             <TableCell className="text-right">
-                              {Math.abs(parseFloat(customParcela) - valorParcela) < 0.01 
-                                ? "Manteve a mesma parcela"
-                                : formatCurrency(parseFloat(customParcela))
-                              }
+                              <div>
+                                {Math.abs(parseFloat(customParcela) - valorParcela) < 0.01 
+                                  ? formatCurrency(valorParcela)
+                                  : formatCurrency(parseFloat(customParcela))
+                                }
+                                {Math.abs(parseFloat(customParcela) - valorParcela) < 0.01 && (
+                                  <div className="text-xs text-muted-foreground">Manteve a mesma</div>
+                                )}
+                              </div>
                             </TableCell>
                             <TableCell className="text-center">
                               <Button
