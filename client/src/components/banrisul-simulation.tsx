@@ -136,8 +136,8 @@ export function BanrisulSimulation({
     }
   };
 
-  // Prazos disponíveis no Banrisul
-  const banrisulPrazos = ["096", "090", "084", "093", "087", "082", "081", "080", "078", "075", "072", "069", "066", "060", "054", "048"];
+  // Prazos disponíveis no Banrisul (apenas 3 prazos conforme regra interna)
+  const banrisulPrazos = ["096", "090", "084"];
   
   const prazoOptions = allOptions.length > 0 
     ? Array.from(new Set(allOptions.map(option => option.prazo)))
@@ -277,17 +277,17 @@ export function BanrisulSimulation({
                     <p className="text-lg font-bold">{simulationResult.prazo} meses</p>
                   </div>
                   <div className="text-center">
-                    <Label className="text-sm font-medium text-muted-foreground">Taxa</Label>
-                    <p className="text-lg font-bold">{simulationResult.taxa ? `${simulationResult.taxa}%` : 'N/A'}</p>
+                    <Label className="text-sm font-medium text-muted-foreground">Taxa ao Mês</Label>
+                    <p className="text-lg font-bold">
+                      {simulationResult.taxaMes ? `${parseFloat(simulationResult.taxaMes).toFixed(2)}%` : 'N/A'}
+                    </p>
                   </div>
                   <div className="text-center">
                     <Label className="text-sm font-medium text-muted-foreground">Nova Parcela</Label>
                     <p className="text-lg font-bold">
-                      {simulationResult.valorParcela && !isNaN(simulationResult.valorParcela) 
-                        ? (Math.abs(simulationResult.valorParcela - valorParcela) < 0.01 
-                           ? "Manteve a mesma parcela"
-                           : formatCurrency(simulationResult.valorParcela))
-                        : "N/A"
+                      {Math.abs(parseFloat(customParcela) - valorParcela) < 0.01 
+                        ? "Manteve a mesma parcela"
+                        : formatCurrency(parseFloat(customParcela))
                       }
                     </p>
                   </div>
@@ -347,7 +347,7 @@ export function BanrisulSimulation({
                       <TableRow>
                         <TableHead className="text-left">Plano (Tabela)</TableHead>
                         <TableHead className="text-right">Valor Liberado</TableHead>
-                        <TableHead className="text-right">Taxa</TableHead>
+                        <TableHead className="text-right">Taxa ao Mês</TableHead>
                         <TableHead className="text-right">Nova Parcela</TableHead>
                         <TableHead className="text-center">Selecionar</TableHead>
                       </TableRow>
@@ -361,13 +361,13 @@ export function BanrisulSimulation({
                             <TableCell className="text-right font-bold text-green-600">
                               {formatCurrency(option.valorAF)}
                             </TableCell>
-                            <TableCell className="text-right">{option.taxa ? `${option.taxa}%` : 'N/A'}</TableCell>
                             <TableCell className="text-right">
-                              {option.valorParcela && !isNaN(option.valorParcela)
-                                ? (Math.abs(option.valorParcela - valorParcela) < 0.01 
-                                   ? "Manteve a mesma parcela" 
-                                   : formatCurrency(option.valorParcela))
-                                : "N/A"
+                              {option.taxaMes ? `${parseFloat(option.taxaMes).toFixed(2)}%` : 'N/A'}
+                            </TableCell>
+                            <TableCell className="text-right">
+                              {Math.abs(parseFloat(customParcela) - valorParcela) < 0.01 
+                                ? "Manteve a mesma parcela"
+                                : formatCurrency(parseFloat(customParcela))
                               }
                             </TableCell>
                             <TableCell className="text-center">
