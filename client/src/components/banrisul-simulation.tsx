@@ -86,7 +86,12 @@ export function BanrisulSimulation({
       return data;
     },
     onSuccess: (data) => {
+      console.log('Dados recebidos da API:', data);
       if (data && data.length > 0) {
+        // Debug: mostrar estrutura dos dados
+        console.log('Primeira opção:', data[0]);
+        console.log('Campos disponíveis:', Object.keys(data[0]));
+        
         setAllOptions(data);
         setSimulationResult(data.find(option => option.prazo === prazo) || data[0]);
         toast({
@@ -273,11 +278,18 @@ export function BanrisulSimulation({
                   </div>
                   <div className="text-center">
                     <Label className="text-sm font-medium text-muted-foreground">Taxa</Label>
-                    <p className="text-lg font-bold">{simulationResult.taxa}%</p>
+                    <p className="text-lg font-bold">{simulationResult.taxa ? `${simulationResult.taxa}%` : 'N/A'}</p>
                   </div>
                   <div className="text-center">
                     <Label className="text-sm font-medium text-muted-foreground">Nova Parcela</Label>
-                    <p className="text-lg font-bold">{formatCurrency(simulationResult.valorParcela)}</p>
+                    <p className="text-lg font-bold">
+                      {simulationResult.valorParcela && !isNaN(simulationResult.valorParcela) 
+                        ? (Math.abs(simulationResult.valorParcela - valorParcela) < 0.01 
+                           ? "Manteve a mesma parcela"
+                           : formatCurrency(simulationResult.valorParcela))
+                        : "N/A"
+                      }
+                    </p>
                   </div>
                 </div>
                 
@@ -349,11 +361,13 @@ export function BanrisulSimulation({
                             <TableCell className="text-right font-bold text-green-600">
                               {formatCurrency(option.valorAF)}
                             </TableCell>
-                            <TableCell className="text-right">{option.taxa}%</TableCell>
+                            <TableCell className="text-right">{option.taxa ? `${option.taxa}%` : 'N/A'}</TableCell>
                             <TableCell className="text-right">
-                              {Math.abs(option.valorParcela - valorParcela) < 0.01 
-                                ? "Manteve a mesma parcela" 
-                                : formatCurrency(option.valorParcela)
+                              {option.valorParcela && !isNaN(option.valorParcela)
+                                ? (Math.abs(option.valorParcela - valorParcela) < 0.01 
+                                   ? "Manteve a mesma parcela" 
+                                   : formatCurrency(option.valorParcela))
+                                : "N/A"
                               }
                             </TableCell>
                             <TableCell className="text-center">
