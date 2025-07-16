@@ -132,10 +132,12 @@ export function BanrisulSimulation({
   };
 
   const prazoOptions = allOptions.length > 0 
-    ? allOptions.map(option => ({
-        value: option.prazo,
-        label: `${option.prazo} meses`
-      }))
+    ? Array.from(new Set(allOptions.map(option => option.prazo)))
+        .sort()
+        .map(prazo => ({
+          value: prazo,
+          label: `${prazo} meses`
+        }))
     : [
         { value: "024", label: "24 meses" },
         { value: "036", label: "36 meses" },
@@ -316,6 +318,64 @@ export function BanrisulSimulation({
                     </div>
                   </div>
                 )}
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Tabela de Todas as Opções */}
+          {allOptions.length > 0 && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg text-green-600">
+                  Todas as Opções Disponíveis ({allOptions.length} opções)
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="max-h-96 overflow-y-auto border rounded-lg">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead className="text-left">Plano (Tabela)</TableHead>
+                        <TableHead className="text-center">Prazo</TableHead>
+                        <TableHead className="text-right">Valor Liberado</TableHead>
+                        <TableHead className="text-right">Taxa</TableHead>
+                        <TableHead className="text-center">Selecionar</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {allOptions
+                        .sort((a, b) => parseInt(a.prazo) - parseInt(b.prazo))
+                        .map((option, index) => (
+                          <TableRow key={`${option.prazo}-${option.descricaoPlano}-${index}`} className="hover:bg-muted/50">
+                            <TableCell className="font-medium">{option.descricaoPlano}</TableCell>
+                            <TableCell className="text-center">{option.prazo} meses</TableCell>
+                            <TableCell className="text-right font-bold text-green-600">
+                              {formatCurrency(option.valorAF)}
+                            </TableCell>
+                            <TableCell className="text-right">{option.taxa}%</TableCell>
+                            <TableCell className="text-center">
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => {
+                                  setPrazo(option.prazo);
+                                  setSimulationResult(option);
+                                }}
+                                className={`text-xs ${
+                                  simulationResult?.prazo === option.prazo && 
+                                  simulationResult?.descricaoPlano === option.descricaoPlano
+                                    ? 'bg-green-100 text-green-700 border-green-300'
+                                    : ''
+                                }`}
+                              >
+                                Selecionar
+                              </Button>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                    </TableBody>
+                  </Table>
+                </div>
               </CardContent>
             </Card>
           )}

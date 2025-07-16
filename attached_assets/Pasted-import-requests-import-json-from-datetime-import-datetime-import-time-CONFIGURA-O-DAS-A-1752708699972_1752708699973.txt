@@ -1,0 +1,193 @@
+import requests
+import json
+from datetime import datetime
+import time
+
+# --- CONFIGURAÇÃO DAS APIS ---
+BEMPROMOTORA_API_BASE_URL = "https://api.techbem.com.br/integracao-corban"
+MULTICORBAN_API_URL = "https://api.multicorban.com/offline"
+
+# ==============================================================================
+# FUNÇÕES AUXILIARES
+# ==============================================================================
+
+def format_currency(value):
+    """Formata um valor para o padrão de moeda brasileiro."""
+    try:
+        return f"R$ {float(value):,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
+    except (ValueError, TypeError):
+        return "R$ N/A"
+
+def print_header(title, character="="):
+    """Cria um cabeçalho formatado para as seções do programa."""
+    print("\n" + character*60)
+    print(f"  {title.upper()}")
+    print(character*60)
+
+# ==============================================================================
+# FUNÇÕES DE API
+# ==============================================================================
+
+def get_bempromotora_token(username, password):
+    """Autentica na API da Bem Promotora."""
+    auth_url = f"{BEMPROMOTORA_API_BASE_URL}/Autenticacao/Autenticar"
+    payload = {"usuario": username, "senha": password}
+    try:
+        print(f"Autenticando na Bem Promotora...")
+        response = requests.post(auth_url, headers={"Content-Type": "application/json"}, json=payload, timeout=30)
+        response.raise_for_status()
+        token_data = response.json()
+        if token_data.get("retorno") and token_data["retorno"].get("jwtToken"):
+            print("✅ Autenticação bem-sucedida!")
+            return token_data["retorno"]["jwtToken"]
+        return None
+    except Exception as err:
+        print(f"❗ Falha na autenticação: {err}"); return None
+
+def get_bempromotora_contracts(token, cpf):
+    """Busca os contratos de um cliente na API da Bem Promotora."""
+    contracts_url = f"{BEMPROMOTORA_API_BASE_URL}/contratos"
+    headers = {"Authorization": f"Bearer {token}"}
+    params = {'CpfCliente': cpf}
+    try:
+        print(f"\nBuscando contratos na Bem Promotora para o CPF: {cpf}...")
+        response = requests.get(contracts_url, headers=headers, params=params, timeout=30)
+        response.raise_for_status()
+        print("✅ Busca de contratos na Bem Promotora finalizada.")
+        return response.json().get('retorno')
+    except Exception as err:
+        print(f"❗ Ocorreu um erro ao buscar os contratos na Bem Promotora: {err}"); return None
+
+def get_multicorban_data(api_key, beneficio):
+    """Realiza a consulta completa na API Multi Corban."""
+    headers = {'Authorization': api_key, 'Content-Type': 'application/json'}
+    payload = {"beneficio": beneficio}
+    print(f"\nBuscando dados cadastrais para o benefício: {beneficio}...")
+    try:
+        response = requests.post(MULTICORBAN_API_URL, headers=headers, data=json.dumps(payload), timeout=60)
+        response.raise_for_status()
+        print("✅ Consulta de dados cadastrais realizada com sucesso!")
+        return response.json()
+    except requests.exceptions.HTTPError as http_err:
+        print(f"❗ ERRO NA CONSULTA CADASTRAL: {http_err.response.status_code}\n{http_err.response.text}")
+        return None
+    except Exception as e:
+        print(f"❗ Ocorreu um erro de conexão ao consultar dados cadastrais: {e}"); return None
+
+def simulate_refinancing(token, payload):
+    """Chama o endpoint de refinanciamento para simulação."""
+    url = f"{BEMPROMOTORA_API_BASE_URL}/v2/refinanciamentos"
+    headers = {"Authorization": f"Bearer {token}", "Content-Type": "application/json"}
+    try:
+        print("\n--- SIMULANDO TODAS AS OPORTUNIDADES ---")
+        response = requests.post(url, headers=headers, json=payload, timeout=60)
+        response.raise_for_status()
+        print(f"✅ Requisição para simulação enviada com sucesso!")
+        return response.json()
+    except requests.exceptions.HTTPError as http_err:
+        print(f"❗ ERRO HTTP AO SIMULAR: {http_err.response.status_code}")
+        print("Resposta do Servidor:", http_err.response.text)
+        return None
+    except Exception as err:
+        print(f"❗ Ocorreu um erro inesperado na simulação: {err}"); return None
+
+# ==============================================================================
+# FLUXO PRINCIPAL DE SIMULAÇÃO INTERATIVA
+# ==============================================================================
+
+def main():
+    multicorban_api_key = "379825096e2347b3064194022ea59b03"
+    bempromotora_username = "7048WS"
+    bempromotora_password = "WH63C]M)hUs%"
+    
+    print_header("Simulador Completo de Refinanciamento", "*")
+
+    # --- PASSO 1: CONSULTAS INTEGRADAS ---
+    cpf_cliente = input("Digite o CPF do cliente para iniciar: ")
+    access_token = get_bempromotora_token(bempromotora_username, bempromotora_password)
+    if not access_token: return
+
+    banrisul_contracts = get_bempromotora_contracts(access_token, cpf_cliente)
+    if not banrisul_contracts:
+        print("\nNenhum contrato encontrado na Bem Promotora para este CPF."); return
+
+    refinanciable_contracts = [c for c in banrisul_contracts if c.get('refinanciavel')]
+    if not refinanciable_contracts:
+        print("\nNenhum contrato elegível para refinanciamento foi encontrado."); return
+    
+    # --- PASSO 2: ESCOLHA DO CONTRATO ---
+    print_header("Contratos Refinanciáveis Encontrados")
+    for i, contract in enumerate(refinanciable_contracts):
+        print(f"  [{i+1}] Contrato: ...{contract.get('contratoCodigo', 'N/A')[-4:]} | Parcela Atual: {format_currency(contract.get('pmtOriginal'))}")
+
+    chosen_contract_data = None
+    if len(refinanciable_contracts) > 1:
+        while True:
+            try:
+                choice = input(f"\nDigite o NÚMERO do contrato que deseja simular (1 a {len(refinanciable_contracts)}): ")
+                choice_index = int(choice) - 1
+                if 0 <= choice_index < len(refinanciable_contracts):
+                    chosen_contract_data = refinanciable_contracts[choice_index]
+                    break
+                else: print("Opção inválida.")
+            except (ValueError, IndexError):
+                print("Entrada inválida. Digite apenas o número de uma das opções.")
+    else:
+        chosen_contract_data = refinanciable_contracts[0]
+
+    # --- PASSO 3: COLETA DE DADOS ---
+    print_header("Parâmetros da Simulação")
+    parcela_atual = chosen_contract_data.get('pmtOriginal', 0)
+    parcela_str = input(f"Digite o valor da parcela (ou Enter para usar a atual: {format_currency(parcela_atual)}): ")
+    parcela_desejada = float(parcela_str.replace(',', '.')) if parcela_str else parcela_atual
+
+    # --- PASSO 4: EXECUÇÃO DA SIMULAÇÃO ---
+    matricula_cliente = chosen_contract_data.get('matricula')
+    full_client_data = get_multicorban_data(multicorban_api_key, matricula_cliente)
+    if not full_client_data: return
+    
+    unmasked_contract_full = ""
+    for mc_loan in full_client_data.get('Emprestimos', []):
+        if abs(parcela_atual - mc_loan.get('ValorParcela', -1)) < 0.01:
+            unmasked_contract_full = str(int(mc_loan.get('Contrato', '').strip())).zfill(10)
+            break
+            
+    if not unmasked_contract_full:
+        print("Não foi possível mapear o contrato para obter o número completo."); return
+
+    beneficiario_data = full_client_data.get('Beneficiario', {})
+    
+    # Payload não inclui o prazo para que a API retorne todas as opções
+    simulation_payload = {
+        "cpf": cpf_cliente,
+        "dataNascimento": beneficiario_data.get('DataNascimento'),
+        "conveniada": chosen_contract_data.get('conveniada'),
+        "contratosRefinanciamento": [{"contrato": unmasked_contract_full, "dataContrato": chosen_contract_data.get('dataContrato')}],
+        "prestacao": parcela_desejada,
+        "retornarSomenteOperacoesViaveis": True
+    }
+    
+    simulation_result = simulate_refinancing(access_token, simulation_payload)
+    if not (simulation_result and simulation_result.get('retorno')):
+        print("\nNão foi possível obter um resultado viável da simulação com os parâmetros informados."); return
+    
+    # --- AJUSTE APLICADO AQUI: Mostra todos os resultados encontrados ---
+    print_header(f"✨ TODAS AS OPORTUNIDADES ENCONTRADAS PARA A PARCELA DE {format_currency(parcela_desejada)} ✨", "*")
+    
+    # Organiza os resultados por prazo para melhor visualização
+    sorted_results = sorted(simulation_result['retorno'], key=lambda x: x.get('prazo', ''))
+
+    if not sorted_results:
+        print("Nenhuma opção de simulação foi retornada pela API.")
+    else:
+        for option in sorted_results:
+            print(f"  ----------------------------------------------------------")
+            print(f"  Plano (Tabela)..........: {option.get('descricaoPlano', 'N/A')}")
+            print(f"  Novo Prazo..............: {option.get('prazo')} meses")
+            print(f"  Valor Liberado (Troco)..: {format_currency(option.get('valorAF'))}")
+
+    print("============================================================")
+    print("\nAnálise finalizada.")
+
+if __name__ == "__main__":
+    main()
