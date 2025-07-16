@@ -671,7 +671,7 @@ export function BenefitDetails({ benefit }: BenefitDetailsProps) {
                                 if (originalBankCode === '041' || originalBankCode === '41') {
                                   return (
                                     <BanrisulSimulation
-                                      cpf={formatCPF(Beneficiario.CPF)}
+                                      cpf={Beneficiario.CPF}
                                       dataNascimento={Beneficiario.DataNascimento}
                                       contrato={emprestimo.Contrato}
                                       dataContrato={emprestimo.DataAverbacao || new Date().toISOString()}
@@ -689,7 +689,7 @@ export function BenefitDetails({ benefit }: BenefitDetailsProps) {
                                 )) {
                                   return (
                                     <BanrisulSimulation
-                                      cpf={formatCPF(Beneficiario.CPF)}
+                                      cpf={Beneficiario.CPF}
                                       dataNascimento={Beneficiario.DataNascimento}
                                       contrato={emprestimo.Contrato}
                                       dataContrato={emprestimo.DataAverbacao || new Date().toISOString()}
