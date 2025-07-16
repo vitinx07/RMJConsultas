@@ -378,8 +378,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         conveniada, 
         contrato, 
         dataContrato, 
-        prestacao, 
-        prazo 
+        prestacao 
       } = req.body;
       
       if (!cpf || !dataNascimento || !conveniada || !contrato || !dataContrato || !prestacao) {
@@ -418,7 +417,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 dataContrato
               }],
               prestacao: parseFloat(prestacao),
-              prazo: prazo || "096",
               retornarSomenteOperacoesViaveis: true
             };
             
@@ -449,7 +447,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
           dataContrato
         }],
         prestacao: parseFloat(prestacao),
-        prazo: prazo || "096",
         retornarSomenteOperacoesViaveis: true
       };
       

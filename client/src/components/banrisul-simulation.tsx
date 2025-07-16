@@ -52,6 +52,7 @@ export function BanrisulSimulation({
   const [customParcela, setCustomParcela] = useState(valorParcela.toString());
   const [prazo, setPrazo] = useState("096");
   const [simulationResult, setSimulationResult] = useState<SimulationResult | null>(null);
+  const [allOptions, setAllOptions] = useState<SimulationResult[]>([]);
   const { toast } = useToast();
 
   const simulationMutation = useMutation({
@@ -62,7 +63,6 @@ export function BanrisulSimulation({
       contrato: string;
       dataContrato: string;
       prestacao: number;
-      prazo: string;
     }) => {
       const response = await fetch('/api/banrisul/simulate', {
         method: 'POST',
@@ -87,10 +87,11 @@ export function BanrisulSimulation({
     },
     onSuccess: (data) => {
       if (data && data.length > 0) {
-        setSimulationResult(data[0]);
+        setAllOptions(data);
+        setSimulationResult(data.find(option => option.prazo === prazo) || data[0]);
         toast({
           title: "Simulação Concluída",
-          description: "A simulação foi realizada com sucesso!",
+          description: `${data.length} opção(ões) de refinanciamento encontrada(s)!`,
         });
       } else {
         toast({
@@ -117,19 +118,33 @@ export function BanrisulSimulation({
       contrato,
       dataContrato,
       prestacao: parseFloat(customParcela),
-      prazo,
     });
   };
 
-  const prazoOptions = [
-    { value: "024", label: "24 meses" },
-    { value: "036", label: "36 meses" },
-    { value: "048", label: "48 meses" },
-    { value: "060", label: "60 meses" },
-    { value: "072", label: "72 meses" },
-    { value: "084", label: "84 meses" },
-    { value: "096", label: "96 meses" },
-  ];
+  const handlePrazoChange = (newPrazo: string) => {
+    setPrazo(newPrazo);
+    if (allOptions.length > 0) {
+      const selectedOption = allOptions.find(option => option.prazo === newPrazo);
+      if (selectedOption) {
+        setSimulationResult(selectedOption);
+      }
+    }
+  };
+
+  const prazoOptions = allOptions.length > 0 
+    ? allOptions.map(option => ({
+        value: option.prazo,
+        label: `${option.prazo} meses`
+      }))
+    : [
+        { value: "024", label: "24 meses" },
+        { value: "036", label: "36 meses" },
+        { value: "048", label: "48 meses" },
+        { value: "060", label: "60 meses" },
+        { value: "072", label: "72 meses" },
+        { value: "084", label: "84 meses" },
+        { value: "096", label: "96 meses" },
+      ];
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
@@ -194,8 +209,8 @@ export function BanrisulSimulation({
                   />
                 </div>
                 <div>
-                  <Label htmlFor="prazo">Prazo</Label>
-                  <Select value={prazo} onValueChange={setPrazo}>
+                  <Label htmlFor="prazo">Prazo{allOptions.length > 0 && ` (${allOptions.length} opções disponíveis)`}</Label>
+                  <Select value={prazo} onValueChange={handlePrazoChange}>
                     <SelectTrigger>
                       <SelectValue placeholder="Selecione o prazo" />
                     </SelectTrigger>
