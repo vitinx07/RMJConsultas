@@ -6,6 +6,7 @@ import connectPg from "connect-pg-simple";
 import { storage } from "./storage";
 import { requireAuth, requireAdmin, requireManagerOrAdmin, requireAnyRole } from "./auth";
 import { loginSchema, createUserSchema, updateUserSchema } from "@shared/schema";
+import { banrisulApi, BanrisulApiError } from "./banrisul-api";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Configure session store
@@ -324,6 +325,112 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ 
         error: "Erro de conectividade. Verifique sua conexão com a internet.",
         title: "Erro de Conexão",
+        details: error instanceof Error ? error.message : "Erro desconhecido"
+      });
+    }
+  });
+
+  // Banrisul API endpoints
+  app.post("/api/banrisul/contracts", requireAuth, requireAnyRole, async (req, res) => {
+    try {
+      const { cpf } = req.body;
+      
+      if (!cpf) {
+        return res.status(400).json({ 
+          error: "CPF é obrigatório",
+          title: "Dados Inválidos",
+          details: "O CPF do cliente deve ser fornecido"
+        });
+      }
+
+      console.log(`Buscando contratos Banrisul para CPF: ${cpf}`);
+      const contracts = await banrisulApi.getContracts(cpf);
+      
+      // Filtrar apenas contratos refinanciáveis
+      const refinanciableContracts = contracts.filter(contract => contract.refinanciavel);
+      
+      res.json(refinanciableContracts);
+    } catch (error) {
+      console.error("Erro ao buscar contratos Banrisul:", error);
+      
+      if (error instanceof BanrisulApiError) {
+        return res.status(error.statusCode).json({
+          error: error.message,
+          title: "Erro na API Banrisul",
+          details: error.apiResponse || "Erro na comunicação com o servidor Banrisul",
+          status: error.statusCode
+        });
+      }
+      
+      res.status(500).json({ 
+        error: "Erro interno do servidor",
+        title: "Erro de Servidor",
+        details: error instanceof Error ? error.message : "Erro desconhecido"
+      });
+    }
+  });
+
+  app.post("/api/banrisul/simulate", requireAuth, requireAnyRole, async (req, res) => {
+    try {
+      const { 
+        cpf, 
+        dataNascimento, 
+        conveniada, 
+        contrato, 
+        dataContrato, 
+        prestacao, 
+        prazo 
+      } = req.body;
+      
+      if (!cpf || !dataNascimento || !conveniada || !contrato || !dataContrato || !prestacao) {
+        return res.status(400).json({ 
+          error: "Todos os campos obrigatórios devem ser preenchidos",
+          title: "Dados Inválidos",
+          details: "CPF, data de nascimento, conveniada, contrato, data do contrato e prestação são obrigatórios"
+        });
+      }
+
+      console.log(`Simulando refinanciamento Banrisul para contrato: ${contrato}`);
+      
+      const simulationPayload = {
+        cpf,
+        dataNascimento,
+        conveniada,
+        contratosRefinanciamento: [{
+          contrato,
+          dataContrato
+        }],
+        prestacao: parseFloat(prestacao),
+        prazo: prazo || "096", // Padrão 96 meses
+        retornarSomenteOperacoesViaveis: true
+      };
+      
+      const result = await banrisulApi.simulateRefinancing(simulationPayload);
+      
+      if (!result.retorno || result.retorno.length === 0) {
+        return res.status(404).json({
+          error: "Nenhuma simulação viável encontrada",
+          title: "Simulação Indisponível",
+          details: result.erro || "Não foi possível encontrar opções de refinanciamento para os dados fornecidos"
+        });
+      }
+      
+      res.json(result.retorno);
+    } catch (error) {
+      console.error("Erro na simulação Banrisul:", error);
+      
+      if (error instanceof BanrisulApiError) {
+        return res.status(error.statusCode).json({
+          error: error.message,
+          title: "Erro na Simulação",
+          details: error.apiResponse || "Erro na comunicação com o servidor Banrisul",
+          status: error.statusCode
+        });
+      }
+      
+      res.status(500).json({ 
+        error: "Erro interno do servidor",
+        title: "Erro de Servidor",
         details: error instanceof Error ? error.message : "Erro desconhecido"
       });
     }

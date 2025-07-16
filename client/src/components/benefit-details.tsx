@@ -33,6 +33,7 @@ import {
 import { Benefit } from "@shared/schema";
 import { formatCurrency, formatDate, formatDateWithAge, formatCPF, formatBankAccount, getBenefitSpeciesName, getBankName, getBankCodeFromName } from "@/lib/utils";
 import { BankIcon } from "@/components/bank-icon";
+import { BanrisulSimulation } from "@/components/banrisul-simulation";
 
 interface BenefitDetailsProps {
   benefit: Benefit;
@@ -577,6 +578,7 @@ export function BenefitDetails({ benefit }: BenefitDetailsProps) {
                           <TableHead className="font-semibold text-foreground min-w-[100px] h-12">Parcelas Pagas</TableHead>
                           <TableHead className="font-semibold text-foreground min-w-[100px] h-12">Taxa (%)</TableHead>
                           <TableHead className="font-semibold text-foreground min-w-[120px] h-12">Averbação</TableHead>
+                          <TableHead className="font-semibold text-foreground min-w-[120px] h-12">Ações</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
@@ -658,6 +660,48 @@ export function BenefitDetails({ benefit }: BenefitDetailsProps) {
                             </TableCell>
                             <TableCell className="text-sm text-foreground bg-background">
                               {emprestimo.DataAverbacao ? formatDate(emprestimo.DataAverbacao) : 'N/A'}
+                            </TableCell>
+                            <TableCell className="text-center bg-background">
+                              {(() => {
+                                // Verificar se é banco Banrisul (código 041)
+                                const originalBankCode = emprestimo.Banco || emprestimo.CodigoBanco || '';
+                                const bankNameFromAPI = emprestimo.NomeBanco || '';
+                                
+                                // Verificar por código
+                                if (originalBankCode === '041' || originalBankCode === '41') {
+                                  return (
+                                    <BanrisulSimulation
+                                      cpf={formatCPF(Beneficiario.CPF)}
+                                      dataNascimento={Beneficiario.DataNascimento}
+                                      contrato={emprestimo.Contrato}
+                                      dataContrato={emprestimo.DataAverbacao || new Date().toISOString()}
+                                      valorParcela={emprestimo.ValorParcela}
+                                      conveniada="041"
+                                      className="w-full"
+                                    />
+                                  );
+                                }
+                                
+                                // Verificar por nome
+                                if (bankNameFromAPI && (
+                                  bankNameFromAPI.toLowerCase().includes('banrisul') || 
+                                  bankNameFromAPI.toLowerCase().includes('rio grande do sul')
+                                )) {
+                                  return (
+                                    <BanrisulSimulation
+                                      cpf={formatCPF(Beneficiario.CPF)}
+                                      dataNascimento={Beneficiario.DataNascimento}
+                                      contrato={emprestimo.Contrato}
+                                      dataContrato={emprestimo.DataAverbacao || new Date().toISOString()}
+                                      valorParcela={emprestimo.ValorParcela}
+                                      conveniada="041"
+                                      className="w-full"
+                                    />
+                                  );
+                                }
+                                
+                                return <span className="text-muted-foreground text-xs">N/A</span>;
+                              })()}
                             </TableCell>
                           </TableRow>
                         ))}
