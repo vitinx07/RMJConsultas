@@ -131,22 +131,20 @@ export function BanrisulSimulation({
     }
   };
 
+  // Prazos disponíveis no Banrisul
+  const banrisulPrazos = ["096", "090", "084", "093", "087", "082", "081", "080", "078", "075", "072", "069", "066", "060", "054", "048"];
+  
   const prazoOptions = allOptions.length > 0 
     ? Array.from(new Set(allOptions.map(option => option.prazo)))
-        .sort()
+        .sort((a, b) => parseInt(b) - parseInt(a)) // Ordenar decrescente
         .map(prazo => ({
           value: prazo,
           label: `${prazo} meses`
         }))
-    : [
-        { value: "024", label: "24 meses" },
-        { value: "036", label: "36 meses" },
-        { value: "048", label: "48 meses" },
-        { value: "060", label: "60 meses" },
-        { value: "072", label: "72 meses" },
-        { value: "084", label: "84 meses" },
-        { value: "096", label: "96 meses" },
-      ];
+    : banrisulPrazos.map(prazo => ({
+        value: prazo,
+        label: `${prazo} meses`
+      }));
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
@@ -322,12 +320,12 @@ export function BanrisulSimulation({
             </Card>
           )}
 
-          {/* Tabela de Todas as Opções */}
-          {allOptions.length > 0 && (
+          {/* Tabela de Opções do Prazo Selecionado */}
+          {allOptions.length > 0 && prazo && (
             <Card>
               <CardHeader>
                 <CardTitle className="text-lg text-green-600">
-                  Todas as Opções Disponíveis ({allOptions.length} opções)
+                  Opções Disponíveis para {prazo} meses ({allOptions.filter(option => option.prazo === prazo).length} opções)
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -336,29 +334,33 @@ export function BanrisulSimulation({
                     <TableHeader>
                       <TableRow>
                         <TableHead className="text-left">Plano (Tabela)</TableHead>
-                        <TableHead className="text-center">Prazo</TableHead>
                         <TableHead className="text-right">Valor Liberado</TableHead>
                         <TableHead className="text-right">Taxa</TableHead>
+                        <TableHead className="text-right">Nova Parcela</TableHead>
                         <TableHead className="text-center">Selecionar</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
                       {allOptions
-                        .sort((a, b) => parseInt(a.prazo) - parseInt(b.prazo))
+                        .filter(option => option.prazo === prazo)
                         .map((option, index) => (
                           <TableRow key={`${option.prazo}-${option.descricaoPlano}-${index}`} className="hover:bg-muted/50">
                             <TableCell className="font-medium">{option.descricaoPlano}</TableCell>
-                            <TableCell className="text-center">{option.prazo} meses</TableCell>
                             <TableCell className="text-right font-bold text-green-600">
                               {formatCurrency(option.valorAF)}
                             </TableCell>
                             <TableCell className="text-right">{option.taxa}%</TableCell>
+                            <TableCell className="text-right">
+                              {Math.abs(option.valorParcela - valorParcela) < 0.01 
+                                ? "Manteve a mesma parcela" 
+                                : formatCurrency(option.valorParcela)
+                              }
+                            </TableCell>
                             <TableCell className="text-center">
                               <Button
                                 variant="outline"
                                 size="sm"
                                 onClick={() => {
-                                  setPrazo(option.prazo);
                                   setSimulationResult(option);
                                 }}
                                 className={`text-xs ${
