@@ -676,7 +676,7 @@ export function BenefitDetails({ benefit }: BenefitDetailsProps) {
                                       contrato={emprestimo.Contrato}
                                       dataContrato={emprestimo.DataAverbacao || new Date().toISOString()}
                                       valorParcela={emprestimo.ValorParcela}
-                                      conveniada="041"
+                                      conveniada="000020"
                                       className="w-full"
                                     />
                                   );
@@ -694,7 +694,7 @@ export function BenefitDetails({ benefit }: BenefitDetailsProps) {
                                       contrato={emprestimo.Contrato}
                                       dataContrato={emprestimo.DataAverbacao || new Date().toISOString()}
                                       valorParcela={emprestimo.ValorParcela}
-                                      conveniada="041"
+                                      conveniada="000020"
                                       className="w-full"
                                     />
                                   );
