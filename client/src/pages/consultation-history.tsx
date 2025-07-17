@@ -61,7 +61,7 @@ export default function ConsultationHistory() {
     return (
       <div className="min-h-screen bg-background">
         <Navbar />
-        <div className="container mx-auto px-4 py-8">
+        <div className="container mx-auto px-4 py-8 pt-20">
           <div className="space-y-4">
             <div className="h-8 bg-muted rounded w-64 animate-pulse"></div>
             <div className="h-4 bg-muted rounded w-96 animate-pulse"></div>
@@ -76,7 +76,7 @@ export default function ConsultationHistory() {
     return (
       <div className="min-h-screen bg-background">
         <Navbar />
-        <div className="container mx-auto px-4 py-8">
+        <div className="container mx-auto px-4 py-8 pt-20">
           <Card className="border-red-200 bg-red-50 dark:bg-red-900/20">
             <CardContent className="pt-6">
               <div className="flex items-center gap-2 text-red-700 dark:text-red-400">
@@ -93,7 +93,7 @@ export default function ConsultationHistory() {
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
-      <div className="container mx-auto px-4 py-8">
+      <div className="container mx-auto px-4 py-8 pt-20">
       <div className="flex items-center justify-between mb-8">
         <div>
           <h1 className="text-3xl font-bold">Histórico de Consultas</h1>

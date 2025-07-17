@@ -273,7 +273,7 @@ export default function FavoriteClients() {
     return (
       <div className="min-h-screen bg-background">
         <Navbar />
-        <div className="container mx-auto px-4 py-8">
+        <div className="container mx-auto px-4 py-8 pt-20">
           <div className="space-y-4">
             <div className="h-8 bg-muted rounded w-64 animate-pulse"></div>
             <div className="h-4 bg-muted rounded w-96 animate-pulse"></div>
@@ -287,7 +287,7 @@ export default function FavoriteClients() {
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
-      <div className="container mx-auto px-4 py-8">
+      <div className="container mx-auto px-4 py-8 pt-20">
       <div className="flex items-center justify-between mb-8">
         <div>
           <h1 className="text-3xl font-bold">Clientes Favoritos</h1>
