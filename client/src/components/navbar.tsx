@@ -113,6 +113,11 @@ export function Navbar() {
                     </Button>
                   </Link>
                 )}
+                
+                {/* Theme Toggle integrated into navigation */}
+                <div className="mx-2">
+                  <ThemeToggle />
+                </div>
               </nav>
 
               {/* User Info and Actions */}
@@ -132,20 +137,16 @@ export function Navbar() {
                   </div>
                 </div>
                 
-                <div className="flex items-center space-x-2">
-                  <ThemeToggle />
-                  
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
-                    onClick={handleLogout}
-                    disabled={isLoggingOut}
-                    className="text-primary bg-primary-foreground hover:bg-primary-foreground/90 hidden md:flex transition-colors"
-                  >
-                    <LogOut className="h-4 w-4 mr-2" />
-                    {isLoggingOut ? "Saindo..." : "Sair"}
-                  </Button>
-                </div>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={handleLogout}
+                  disabled={isLoggingOut}
+                  className="text-primary bg-primary-foreground hover:bg-primary-foreground/90 hidden md:flex transition-colors"
+                >
+                  <LogOut className="h-4 w-4 mr-2" />
+                  {isLoggingOut ? "Saindo..." : "Sair"}
+                </Button>
               </div>
 
               {/* Mobile Menu Button */}
