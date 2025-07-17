@@ -9,6 +9,10 @@ import { useAuth } from "@/hooks/useAuth";
 import Home from "@/pages/home";
 import Login from "@/pages/login";
 import UserManagement from "@/pages/user-management";
+import Dashboard from "@/pages/dashboard";
+import ConsultationHistory from "@/pages/consultation-history";
+import FavoriteClients from "@/pages/favorite-clients";
+import Notifications from "@/pages/notifications";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -42,6 +46,10 @@ function Router() {
       <ThemeToggle />
       <Switch>
         <Route path="/" component={Home} />
+        <Route path="/dashboard" component={Dashboard} />
+        <Route path="/historico" component={ConsultationHistory} />
+        <Route path="/favoritos" component={FavoriteClients} />
+        <Route path="/notificacoes" component={Notifications} />
         <Route path="/usuarios" component={UserManagement} />
         <Route component={NotFound} />
       </Switch>

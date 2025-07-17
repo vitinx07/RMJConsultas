@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "wouter";
 import { useAuth } from "@/hooks/useAuth";
-import { University, AlertCircle, Loader2, LogOut, Users, User, Shield, ShieldCheck } from "lucide-react";
+import { University, AlertCircle, Loader2, LogOut, Users, User, Shield, ShieldCheck, BarChart3, History, Star, Bell, Menu, X } from "lucide-react";
 import logoPath from "@assets/rmj_1751973121690.jpeg";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Button } from "@/components/ui/button";
@@ -37,6 +37,7 @@ export default function Home() {
   } | null>(null);
   
   const [selectedBenefit, setSelectedBenefit] = useState<string | null>(null);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const { user, logout, isLoggingOut } = useAuth();
   const { toast } = useToast();
 
@@ -114,7 +115,64 @@ export default function Home() {
             <div className="flex items-center space-x-4">
               {user && (
                 <>
-                  <div className="text-right">
+                  {/* Desktop Navigation */}
+                  <nav className="hidden md:flex items-center space-x-2">
+                    <Link href="/">
+                      <Button variant="ghost" size="sm" className="text-primary-foreground hover:bg-primary-foreground/10">
+                        <University className="h-4 w-4 mr-2" />
+                        Consultas
+                      </Button>
+                    </Link>
+                    
+                    <Link href="/dashboard">
+                      <Button variant="ghost" size="sm" className="text-primary-foreground hover:bg-primary-foreground/10">
+                        <BarChart3 className="h-4 w-4 mr-2" />
+                        Dashboard
+                      </Button>
+                    </Link>
+                    
+                    <Link href="/historico">
+                      <Button variant="ghost" size="sm" className="text-primary-foreground hover:bg-primary-foreground/10">
+                        <History className="h-4 w-4 mr-2" />
+                        Histórico
+                      </Button>
+                    </Link>
+                    
+                    <Link href="/favoritos">
+                      <Button variant="ghost" size="sm" className="text-primary-foreground hover:bg-primary-foreground/10">
+                        <Star className="h-4 w-4 mr-2" />
+                        Favoritos
+                      </Button>
+                    </Link>
+                    
+                    <Link href="/notificacoes">
+                      <Button variant="ghost" size="sm" className="text-primary-foreground hover:bg-primary-foreground/10">
+                        <Bell className="h-4 w-4 mr-2" />
+                        Notificações
+                      </Button>
+                    </Link>
+                    
+                    {user.role === "administrator" && (
+                      <Link href="/usuarios">
+                        <Button variant="ghost" size="sm" className="text-primary-foreground hover:bg-primary-foreground/10">
+                          <Users className="h-4 w-4 mr-2" />
+                          Usuários
+                        </Button>
+                      </Link>
+                    )}
+                  </nav>
+
+                  {/* Mobile Menu Button */}
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    className="md:hidden text-primary-foreground hover:bg-primary-foreground/10"
+                    onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                  >
+                    {isMobileMenuOpen ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
+                  </Button>
+                  
+                  <div className="text-right hidden md:block">
                     <p className="font-semibold">
                       {user.firstName || user.username}
                     </p>
@@ -129,15 +187,6 @@ export default function Home() {
                     </div>
                   </div>
                   
-                  {user.role === "administrator" && (
-                    <Link href="/usuarios">
-                      <Button variant="outline" size="sm" className="text-primary bg-primary-foreground hover:bg-primary-foreground/90">
-                        <Users className="h-4 w-4 mr-2" />
-                        Usuários
-                      </Button>
-                    </Link>
-                  )}
-                  
                   <ThemeToggle />
                   
                   <Button 
@@ -145,7 +194,7 @@ export default function Home() {
                     size="sm" 
                     onClick={handleLogout}
                     disabled={isLoggingOut}
-                    className="text-primary bg-primary-foreground hover:bg-primary-foreground/90"
+                    className="text-primary bg-primary-foreground hover:bg-primary-foreground/90 hidden md:flex"
                   >
                     <LogOut className="h-4 w-4 mr-2" />
                     {isLoggingOut ? "Saindo..." : "Sair"}
@@ -155,6 +204,85 @@ export default function Home() {
             </div>
           </div>
         </div>
+        
+        {/* Mobile Navigation Menu */}
+        {isMobileMenuOpen && user && (
+          <div className="md:hidden border-t border-primary-foreground/20">
+            <div className="container mx-auto px-4 py-4">
+              <nav className="flex flex-col space-y-2">
+                <Link href="/" onClick={() => setIsMobileMenuOpen(false)}>
+                  <Button variant="ghost" size="sm" className="w-full justify-start text-primary-foreground hover:bg-primary-foreground/10">
+                    <University className="h-4 w-4 mr-2" />
+                    Consultas
+                  </Button>
+                </Link>
+                
+                <Link href="/dashboard" onClick={() => setIsMobileMenuOpen(false)}>
+                  <Button variant="ghost" size="sm" className="w-full justify-start text-primary-foreground hover:bg-primary-foreground/10">
+                    <BarChart3 className="h-4 w-4 mr-2" />
+                    Dashboard
+                  </Button>
+                </Link>
+                
+                <Link href="/historico" onClick={() => setIsMobileMenuOpen(false)}>
+                  <Button variant="ghost" size="sm" className="w-full justify-start text-primary-foreground hover:bg-primary-foreground/10">
+                    <History className="h-4 w-4 mr-2" />
+                    Histórico
+                  </Button>
+                </Link>
+                
+                <Link href="/favoritos" onClick={() => setIsMobileMenuOpen(false)}>
+                  <Button variant="ghost" size="sm" className="w-full justify-start text-primary-foreground hover:bg-primary-foreground/10">
+                    <Star className="h-4 w-4 mr-2" />
+                    Favoritos
+                  </Button>
+                </Link>
+                
+                <Link href="/notificacoes" onClick={() => setIsMobileMenuOpen(false)}>
+                  <Button variant="ghost" size="sm" className="w-full justify-start text-primary-foreground hover:bg-primary-foreground/10">
+                    <Bell className="h-4 w-4 mr-2" />
+                    Notificações
+                  </Button>
+                </Link>
+                
+                {user.role === "administrator" && (
+                  <Link href="/usuarios" onClick={() => setIsMobileMenuOpen(false)}>
+                    <Button variant="ghost" size="sm" className="w-full justify-start text-primary-foreground hover:bg-primary-foreground/10">
+                      <Users className="h-4 w-4 mr-2" />
+                      Usuários
+                    </Button>
+                  </Link>
+                )}
+                
+                <div className="pt-4 mt-4 border-t border-primary-foreground/20">
+                  <div className="text-sm mb-2">
+                    <p className="font-semibold">{user.firstName || user.username}</p>
+                    <div className="flex items-center space-x-1">
+                      {(() => {
+                        const RoleIcon = roleIcons[user.role as keyof typeof roleIcons] || User;
+                        return <RoleIcon className="h-3 w-3" />;
+                      })()}
+                      <span className="text-xs opacity-80">
+                        {roleLabels[user.role as keyof typeof roleLabels] || "Usuário"}
+                      </span>
+                    </div>
+                  </div>
+                  
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={handleLogout}
+                    disabled={isLoggingOut}
+                    className="w-full justify-start text-primary bg-primary-foreground hover:bg-primary-foreground/90"
+                  >
+                    <LogOut className="h-4 w-4 mr-2" />
+                    {isLoggingOut ? "Saindo..." : "Sair"}
+                  </Button>
+                </div>
+              </nav>
+            </div>
+          </div>
+        )}
       </header>
 
       {/* Main Content */}

@@ -5,7 +5,16 @@ import session from "express-session";
 import connectPg from "connect-pg-simple";
 import { storage } from "./storage";
 import { requireAuth, requireAdmin, requireManagerOrAdmin, requireAnyRole } from "./auth";
-import { loginSchema, createUserSchema, updateUserSchema } from "@shared/schema";
+import { 
+  loginSchema, 
+  createUserSchema, 
+  updateUserSchema,
+  createConsultationSchema,
+  createFavoriteClientSchema,
+  updateFavoriteClientSchema,
+  createNotificationSchema,
+  createBenefitMonitoringSchema
+} from "@shared/schema";
 import { banrisulApi, BanrisulApiError } from "./banrisul-api";
 
 export async function registerRoutes(app: Express): Promise<Server> {
@@ -478,6 +487,230 @@ export async function registerRoutes(app: Express): Promise<Server> {
         title: "Erro de Servidor",
         details: error instanceof Error ? error.message : "Erro desconhecido"
       });
+    }
+  });
+
+  // ============== NOVAS ROTAS PARA DASHBOARD E CRM ==============
+
+  // Dashboard metrics (admin/manager only)
+  app.get("/api/dashboard/stats", requireAuth, requireManagerOrAdmin, async (req, res) => {
+    try {
+      const stats = await storage.getDashboardStats();
+      res.json(stats);
+    } catch (error) {
+      console.error("Erro ao obter estatísticas do dashboard:", error);
+      res.status(500).json({ error: "Erro ao carregar estatísticas" });
+    }
+  });
+
+  // User-specific dashboard stats
+  app.get("/api/dashboard/user-stats", requireAuth, requireAnyRole, async (req, res) => {
+    try {
+      const userId = req.user!.id;
+      const stats = await storage.getDashboardStats(userId);
+      res.json(stats);
+    } catch (error) {
+      console.error("Erro ao obter estatísticas do usuário:", error);
+      res.status(500).json({ error: "Erro ao carregar estatísticas" });
+    }
+  });
+
+  // Consultation history
+  app.get("/api/consultations", requireAuth, requireAnyRole, async (req, res) => {
+    try {
+      const userId = req.user!.id;
+      const limit = parseInt(req.query.limit as string) || 50;
+      const consultations = await storage.getConsultationsByUser(userId, limit);
+      res.json(consultations);
+    } catch (error) {
+      console.error("Erro ao obter histórico de consultas:", error);
+      res.status(500).json({ error: "Erro ao carregar histórico" });
+    }
+  });
+
+  // Create consultation record
+  app.post("/api/consultations", requireAuth, requireAnyRole, async (req, res) => {
+    try {
+      const userId = req.user!.id;
+      const consultationData = createConsultationSchema.parse({
+        ...req.body,
+        userId
+      });
+      
+      const consultation = await storage.createConsultation(consultationData);
+      res.status(201).json(consultation);
+    } catch (error) {
+      console.error("Erro ao criar registro de consulta:", error);
+      res.status(400).json({ error: "Dados inválidos para registro de consulta" });
+    }
+  });
+
+  // Check for existing consultation
+  app.get("/api/consultations/check", requireAuth, requireAnyRole, async (req, res) => {
+    try {
+      const { cpf, benefitNumber } = req.query;
+      const userId = req.user!.id;
+      
+      let consultation;
+      if (cpf) {
+        consultation = await storage.getConsultationByCpf(cpf as string, userId);
+      } else if (benefitNumber) {
+        consultation = await storage.getConsultationByBenefit(benefitNumber as string, userId);
+      } else {
+        return res.status(400).json({ error: "CPF ou número do benefício é obrigatório" });
+      }
+      
+      res.json({ exists: !!consultation, consultation });
+    } catch (error) {
+      console.error("Erro ao verificar consulta existente:", error);
+      res.status(500).json({ error: "Erro ao verificar consulta" });
+    }
+  });
+
+  // Favorite clients management
+  app.get("/api/favorite-clients", requireAuth, requireAnyRole, async (req, res) => {
+    try {
+      const userId = req.user!.id;
+      const clients = await storage.getFavoriteClientsByUser(userId);
+      res.json(clients);
+    } catch (error) {
+      console.error("Erro ao obter clientes favoritos:", error);
+      res.status(500).json({ error: "Erro ao carregar clientes favoritos" });
+    }
+  });
+
+  app.post("/api/favorite-clients", requireAuth, requireAnyRole, async (req, res) => {
+    try {
+      const userId = req.user!.id;
+      const clientData = createFavoriteClientSchema.parse({
+        ...req.body,
+        userId
+      });
+      
+      // Check if client already exists
+      const existingClient = await storage.getFavoriteClientByCpf(clientData.cpf, userId);
+      if (existingClient) {
+        return res.status(409).json({ error: "Cliente já está nos favoritos" });
+      }
+      
+      const client = await storage.createFavoriteClient(clientData);
+      res.status(201).json(client);
+    } catch (error) {
+      console.error("Erro ao adicionar cliente favorito:", error);
+      res.status(400).json({ error: "Dados inválidos para cliente favorito" });
+    }
+  });
+
+  app.put("/api/favorite-clients/:id", requireAuth, requireAnyRole, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const clientData = updateFavoriteClientSchema.parse(req.body);
+      
+      const client = await storage.updateFavoriteClient(id, clientData);
+      if (!client) {
+        return res.status(404).json({ error: "Cliente não encontrado" });
+      }
+      
+      res.json(client);
+    } catch (error) {
+      console.error("Erro ao atualizar cliente favorito:", error);
+      res.status(400).json({ error: "Dados inválidos para atualização" });
+    }
+  });
+
+  app.delete("/api/favorite-clients/:id", requireAuth, requireAnyRole, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const deleted = await storage.deleteFavoriteClient(id);
+      
+      if (!deleted) {
+        return res.status(404).json({ error: "Cliente não encontrado" });
+      }
+      
+      res.json({ message: "Cliente removido dos favoritos" });
+    } catch (error) {
+      console.error("Erro ao remover cliente favorito:", error);
+      res.status(500).json({ error: "Erro ao remover cliente" });
+    }
+  });
+
+  // Notifications management
+  app.get("/api/notifications", requireAuth, requireAnyRole, async (req, res) => {
+    try {
+      const userId = req.user!.id;
+      const limit = parseInt(req.query.limit as string) || 50;
+      const notifications = await storage.getNotificationsByUser(userId, limit);
+      res.json(notifications);
+    } catch (error) {
+      console.error("Erro ao obter notificações:", error);
+      res.status(500).json({ error: "Erro ao carregar notificações" });
+    }
+  });
+
+  app.get("/api/notifications/unread-count", requireAuth, requireAnyRole, async (req, res) => {
+    try {
+      const userId = req.user!.id;
+      const count = await storage.getUnreadNotificationsCount(userId);
+      res.json({ count });
+    } catch (error) {
+      console.error("Erro ao contar notificações não lidas:", error);
+      res.status(500).json({ error: "Erro ao contar notificações" });
+    }
+  });
+
+  app.post("/api/notifications/:id/read", requireAuth, requireAnyRole, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const marked = await storage.markNotificationAsRead(id);
+      
+      if (!marked) {
+        return res.status(404).json({ error: "Notificação não encontrada" });
+      }
+      
+      res.json({ message: "Notificação marcada como lida" });
+    } catch (error) {
+      console.error("Erro ao marcar notificação como lida:", error);
+      res.status(500).json({ error: "Erro ao marcar notificação" });
+    }
+  });
+
+  // Benefit monitoring
+  app.get("/api/benefit-monitoring", requireAuth, requireAnyRole, async (req, res) => {
+    try {
+      const userId = req.user!.id;
+      const monitoring = await storage.getBenefitMonitoringByUser(userId);
+      res.json(monitoring);
+    } catch (error) {
+      console.error("Erro ao obter monitoramento de benefícios:", error);
+      res.status(500).json({ error: "Erro ao carregar monitoramento" });
+    }
+  });
+
+  app.post("/api/benefit-monitoring", requireAuth, requireAnyRole, async (req, res) => {
+    try {
+      const userId = req.user!.id;
+      const monitoringData = createBenefitMonitoringSchema.parse({
+        ...req.body,
+        userId
+      });
+      
+      const monitoring = await storage.createBenefitMonitoring(monitoringData);
+      res.status(201).json(monitoring);
+    } catch (error) {
+      console.error("Erro ao criar monitoramento de benefício:", error);
+      res.status(400).json({ error: "Dados inválidos para monitoramento" });
+    }
+  });
+
+  // Admin route to get all consultations (for management reporting)
+  app.get("/api/admin/consultations", requireAuth, requireManagerOrAdmin, async (req, res) => {
+    try {
+      const limit = parseInt(req.query.limit as string) || 100;
+      const consultations = await storage.getConsultationsByUser("", limit); // Empty string to get all
+      res.json(consultations);
+    } catch (error) {
+      console.error("Erro ao obter todas as consultas:", error);
+      res.status(500).json({ error: "Erro ao carregar consultas" });
     }
   });
 
