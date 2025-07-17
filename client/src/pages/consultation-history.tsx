@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { formatCurrency, formatDate, formatCPF } from "@/lib/utils";
+import { Navbar } from "@/components/navbar";
 import { Search, Clock, DollarSign, AlertCircle, Eye, Download } from "lucide-react";
 
 interface Consultation {
@@ -58,11 +59,14 @@ export default function ConsultationHistory() {
 
   if (isLoading) {
     return (
-      <div className="container mx-auto px-4 py-8">
-        <div className="space-y-4">
-          <div className="h-8 bg-muted rounded w-64 animate-pulse"></div>
-          <div className="h-4 bg-muted rounded w-96 animate-pulse"></div>
-          <div className="h-64 bg-muted rounded animate-pulse"></div>
+      <div className="min-h-screen bg-background">
+        <Navbar />
+        <div className="container mx-auto px-4 py-8">
+          <div className="space-y-4">
+            <div className="h-8 bg-muted rounded w-64 animate-pulse"></div>
+            <div className="h-4 bg-muted rounded w-96 animate-pulse"></div>
+            <div className="h-64 bg-muted rounded animate-pulse"></div>
+          </div>
         </div>
       </div>
     );
@@ -70,21 +74,26 @@ export default function ConsultationHistory() {
 
   if (error) {
     return (
-      <div className="container mx-auto px-4 py-8">
-        <Card className="border-red-200 bg-red-50 dark:bg-red-900/20">
-          <CardContent className="pt-6">
-            <div className="flex items-center gap-2 text-red-700 dark:text-red-400">
-              <AlertCircle className="h-4 w-4" />
-              <span>Erro ao carregar histórico de consultas</span>
-            </div>
-          </CardContent>
-        </Card>
+      <div className="min-h-screen bg-background">
+        <Navbar />
+        <div className="container mx-auto px-4 py-8">
+          <Card className="border-red-200 bg-red-50 dark:bg-red-900/20">
+            <CardContent className="pt-6">
+              <div className="flex items-center gap-2 text-red-700 dark:text-red-400">
+                <AlertCircle className="h-4 w-4" />
+                <span>Erro ao carregar histórico de consultas</span>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="min-h-screen bg-background">
+      <Navbar />
+      <div className="container mx-auto px-4 py-8">
       <div className="flex items-center justify-between mb-8">
         <div>
           <h1 className="text-3xl font-bold">Histórico de Consultas</h1>
@@ -309,6 +318,7 @@ export default function ConsultationHistory() {
           </Card>
         </div>
       )}
+      </div>
     </div>
   );
 }

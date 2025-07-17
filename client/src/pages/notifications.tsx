@@ -7,6 +7,7 @@ import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { formatDate } from "@/lib/utils";
+import { Navbar } from "@/components/navbar";
 import { Bell, BellOff, Check, AlertCircle, Info, TrendingUp, Settings } from "lucide-react";
 
 interface Notification {
@@ -91,14 +92,17 @@ export default function Notifications() {
 
   if (isLoading) {
     return (
-      <div className="container mx-auto px-4 py-8">
-        <div className="space-y-4">
-          <div className="h-8 bg-muted rounded w-64 animate-pulse"></div>
-          <div className="h-4 bg-muted rounded w-96 animate-pulse"></div>
-          <div className="space-y-2">
-            {Array.from({ length: 5 }).map((_, i) => (
-              <div key={i} className="h-20 bg-muted rounded animate-pulse"></div>
-            ))}
+      <div className="min-h-screen bg-background">
+        <Navbar />
+        <div className="container mx-auto px-4 py-8">
+          <div className="space-y-4">
+            <div className="h-8 bg-muted rounded w-64 animate-pulse"></div>
+            <div className="h-4 bg-muted rounded w-96 animate-pulse"></div>
+            <div className="space-y-2">
+              {Array.from({ length: 5 }).map((_, i) => (
+                <div key={i} className="h-20 bg-muted rounded animate-pulse"></div>
+              ))}
+            </div>
           </div>
         </div>
       </div>
@@ -107,21 +111,26 @@ export default function Notifications() {
 
   if (error) {
     return (
-      <div className="container mx-auto px-4 py-8">
-        <Card className="border-red-200 bg-red-50 dark:bg-red-900/20">
-          <CardContent className="pt-6">
-            <div className="flex items-center gap-2 text-red-700 dark:text-red-400">
-              <AlertCircle className="h-4 w-4" />
-              <span>Erro ao carregar notificações</span>
-            </div>
-          </CardContent>
-        </Card>
+      <div className="min-h-screen bg-background">
+        <Navbar />
+        <div className="container mx-auto px-4 py-8">
+          <Card className="border-red-200 bg-red-50 dark:bg-red-900/20">
+            <CardContent className="pt-6">
+              <div className="flex items-center gap-2 text-red-700 dark:text-red-400">
+                <AlertCircle className="h-4 w-4" />
+                <span>Erro ao carregar notificações</span>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="min-h-screen bg-background">
+      <Navbar />
+      <div className="container mx-auto px-4 py-8">
       <div className="flex items-center justify-between mb-8">
         <div>
           <h1 className="text-3xl font-bold">Notificações</h1>
@@ -292,6 +301,7 @@ export default function Notifications() {
           </CardContent>
         </Card>
       )}
+      </div>
     </div>
   );
 }

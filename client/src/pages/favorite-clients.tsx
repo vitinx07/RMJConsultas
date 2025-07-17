@@ -11,6 +11,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { formatCPF, formatDate } from "@/lib/utils";
+import { Navbar } from "@/components/navbar";
 import { Star, Plus, Edit2, Trash2, Phone, Mail, MessageSquare, Calendar, User } from "lucide-react";
 
 interface FavoriteClient {
@@ -270,18 +271,23 @@ export default function FavoriteClients() {
 
   if (isLoading) {
     return (
-      <div className="container mx-auto px-4 py-8">
-        <div className="space-y-4">
-          <div className="h-8 bg-muted rounded w-64 animate-pulse"></div>
-          <div className="h-4 bg-muted rounded w-96 animate-pulse"></div>
-          <div className="h-64 bg-muted rounded animate-pulse"></div>
+      <div className="min-h-screen bg-background">
+        <Navbar />
+        <div className="container mx-auto px-4 py-8">
+          <div className="space-y-4">
+            <div className="h-8 bg-muted rounded w-64 animate-pulse"></div>
+            <div className="h-4 bg-muted rounded w-96 animate-pulse"></div>
+            <div className="h-64 bg-muted rounded animate-pulse"></div>
+          </div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="min-h-screen bg-background">
+      <Navbar />
+      <div className="container mx-auto px-4 py-8">
       <div className="flex items-center justify-between mb-8">
         <div>
           <h1 className="text-3xl font-bold">Clientes Favoritos</h1>
@@ -446,6 +452,7 @@ export default function FavoriteClients() {
           )}
         </CardContent>
       </Card>
+      </div>
     </div>
   );
 }
