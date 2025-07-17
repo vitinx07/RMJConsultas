@@ -301,11 +301,26 @@ export const createUserSchema = createInsertSchema(users).omit({
   updatedAt: true,
   passwordHash: true,
 }).extend({
-  password: z.string().min(6, "Senha deve ter pelo menos 6 caracteres"),
-  confirmPassword: z.string(),
-}).refine((data) => data.password === data.confirmPassword, {
+  password: z.string().min(6, "Senha deve ter pelo menos 6 caracteres").optional(),
+  confirmPassword: z.string().optional(),
+  generatePassword: z.boolean().default(false),
+  sendPasswordByEmail: z.boolean().default(false),
+}).refine((data) => {
+  if (data.generatePassword) {
+    return true; // Se gerar senha automaticamente, não precisa validar
+  }
+  return data.password === data.confirmPassword;
+}, {
   message: "Senhas não coincidem",
   path: ["confirmPassword"],
+}).refine((data) => {
+  if (data.sendPasswordByEmail && !data.email) {
+    return false;
+  }
+  return true;
+}, {
+  message: "Email é obrigatório quando 'Enviar senha por email' está marcado",
+  path: ["email"],
 });
 
 export const loginSchema = z.object({

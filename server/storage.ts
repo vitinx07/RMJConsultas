@@ -22,6 +22,7 @@ import {
 import { db } from "./db";
 import { eq, and, desc, asc, gte, lte, sql, count } from "drizzle-orm";
 import bcrypt from "bcryptjs";
+import { emailService } from "./email";
 
 export interface IStorage {
   // User operations
@@ -33,6 +34,7 @@ export interface IStorage {
   getAllUsers(): Promise<User[]>;
   validateCredentials(username: string, password: string): Promise<User | null>;
   createAdminUser(): Promise<void>;
+  resetUserPassword(userId: string, newPassword?: string): Promise<{ user: User; password: string }>;
 
   // Consultation operations
   createConsultation(consultationData: CreateConsultation): Promise<Consultation>;
@@ -75,19 +77,84 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createUser(userData: CreateUser, creatorId?: string): Promise<User> {
-    const hashedPassword = await bcrypt.hash(userData.password, 10);
+    let password = userData.password;
+    
+    // Generate password if requested
+    if (userData.generatePassword) {
+      password = this.generateRandomPassword();
+    }
+    
+    if (!password) {
+      throw new Error("Senha é obrigatória");
+    }
+    
+    const hashedPassword = await bcrypt.hash(password, 10);
     
     const [user] = await db
       .insert(users)
       .values({
-        ...userData,
+        username: userData.username,
+        email: userData.email,
+        firstName: userData.firstName,
+        lastName: userData.lastName,
+        role: userData.role,
+        isActive: userData.isActive,
         passwordHash: hashedPassword,
         createdBy: creatorId,
         updatedAt: new Date(),
       })
       .returning();
     
+    // Send password by email if requested and email is provided
+    if (userData.sendPasswordByEmail && userData.email && password) {
+      try {
+        await emailService.sendPasswordEmail(userData.email, password, userData.username);
+      } catch (error) {
+        console.error("Erro ao enviar email:", error);
+        // Don't throw error, user was created successfully
+      }
+    }
+    
     return user;
+  }
+
+  private generateRandomPassword(): string {
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%&*';
+    let password = '';
+    for (let i = 0; i < 8; i++) {
+      password += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    return password;
+  }
+
+  async resetUserPassword(userId: string, newPassword?: string): Promise<{ user: User; password: string }> {
+    const user = await this.getUserById(userId);
+    if (!user) {
+      throw new Error("Usuário não encontrado");
+    }
+
+    const password = newPassword || this.generateRandomPassword();
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    const [updatedUser] = await db
+      .update(users)
+      .set({
+        passwordHash: hashedPassword,
+        updatedAt: new Date(),
+      })
+      .where(eq(users.id, userId))
+      .returning();
+
+    // Send password by email if user has email
+    if (user.email) {
+      try {
+        await emailService.sendPasswordResetEmail(user.email, user.username, password);
+      } catch (error) {
+        console.error("Erro ao enviar email de redefinição:", error);
+      }
+    }
+
+    return { user: updatedUser, password };
   }
 
   async updateUser(id: string, userData: UpdateUser): Promise<User | undefined> {
@@ -137,7 +204,7 @@ export class DatabaseStorage implements IStorage {
       role: "administrator",
       firstName: "Vitor",
       lastName: "Administrator",
-      email: "admin@system.com",
+      email: "cavalcantisilvav@gmail.com",
       isActive: true,
     });
   }

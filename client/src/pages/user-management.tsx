@@ -10,7 +10,8 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Badge } from "@/components/ui/badge";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Plus, Edit, Trash2, User, Shield, ShieldCheck, ArrowLeft } from "lucide-react";
+import { Plus, Edit, Trash2, User, Shield, ShieldCheck, ArrowLeft, Mail, Key, RotateCcw } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
 import { Link } from "wouter";
 import type { User as UserType, CreateUser } from "@shared/schema";
@@ -44,6 +45,8 @@ export default function UserManagement() {
     lastName: "",
     email: "",
     isActive: true,
+    generatePassword: false,
+    sendPasswordByEmail: false,
   });
 
   const { user: currentUser } = useAuth();
@@ -143,28 +146,93 @@ export default function UserManagement() {
     },
   });
 
+  // Mutation para redefinir senha
+  const resetPasswordMutation = useMutation({
+    mutationFn: async (userId: string) => {
+      const response = await fetch(`/api/users/${userId}/reset-password`, {
+        method: "POST",
+        credentials: 'include',
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({}),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || "Erro ao redefinir senha");
+      }
+
+      return response.json();
+    },
+    onSuccess: (data) => {
+      toast({
+        title: "Sucesso",
+        description: data.emailSent 
+          ? "Senha redefinida e enviada por email" 
+          : `Senha redefinida. Nova senha: ${data.temporaryPassword}`,
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Erro",
+        description: error.message || "Erro ao redefinir senha",
+        variant: "destructive",
+      });
+    },
+  });
+
   const handleCreateUser = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (newUser.password !== newUser.confirmPassword) {
-      toast({
-        title: "Erro",
-        description: "As senhas não coincidem",
-        variant: "destructive",
-      });
-      return;
+    // Validation for password generation
+    if (!newUser.generatePassword) {
+      if (newUser.password !== newUser.confirmPassword) {
+        toast({
+          title: "Erro",
+          description: "As senhas não coincidem",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      if (newUser.password && newUser.password.length < 6) {
+        toast({
+          title: "Erro",
+          description: "A senha deve ter pelo menos 6 caracteres",
+          variant: "destructive",
+        });
+        return;
+      }
     }
 
-    if (newUser.password.length < 4) {
+    // Validation for email sending
+    if (newUser.sendPasswordByEmail && !newUser.email) {
       toast({
         title: "Erro",
-        description: "A senha deve ter pelo menos 4 caracteres",
+        description: "Email é obrigatório quando 'Enviar senha por email' está marcado",
         variant: "destructive",
       });
       return;
     }
 
     await createUserMutation.mutateAsync(newUser);
+    
+    // Reset form
+    setNewUser({
+      username: "",
+      password: "",
+      confirmPassword: "",
+      role: "vendedor",
+      firstName: "",
+      lastName: "",
+      email: "",
+      isActive: true,
+      generatePassword: false,
+      sendPasswordByEmail: false,
+    });
+    
+    setIsCreateDialogOpen(false);
   };
 
   const handleDeleteUser = async (userId: string) => {
@@ -178,6 +246,19 @@ export default function UserManagement() {
     }
 
     await deleteUserMutation.mutateAsync(userId);
+  };
+
+  const handleResetPassword = async (userId: string) => {
+    if (userId === currentUser?.id) {
+      toast({
+        title: "Erro",
+        description: "Você não pode redefinir sua própria senha",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    await resetPasswordMutation.mutateAsync(userId);
   };
 
   if (currentUser?.role !== "administrator") {
@@ -319,29 +400,65 @@ export default function UserManagement() {
                   </Select>
                 </div>
                 
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="password">Senha</Label>
-                    <Input
-                      id="password"
-                      type="password"
-                      value={newUser.password}
-                      onChange={(e) => setNewUser({ ...newUser, password: e.target.value })}
-                      placeholder="Senha"
-                      required
+                {/* Password Generation Options */}
+                <div className="space-y-4">
+                  <div className="flex items-center space-x-2">
+                    <Checkbox
+                      id="generatePassword"
+                      checked={newUser.generatePassword}
+                      onCheckedChange={(checked) => setNewUser({ ...newUser, generatePassword: !!checked })}
                     />
+                    <Label htmlFor="generatePassword" className="flex items-center gap-2">
+                      <Key className="h-4 w-4" />
+                      Gerar senha automaticamente
+                    </Label>
                   </div>
-                  <div>
-                    <Label htmlFor="confirmPassword">Confirmar Senha</Label>
-                    <Input
-                      id="confirmPassword"
-                      type="password"
-                      value={newUser.confirmPassword}
-                      onChange={(e) => setNewUser({ ...newUser, confirmPassword: e.target.value })}
-                      placeholder="Confirmar senha"
-                      required
+                  
+                  <div className="flex items-center space-x-2">
+                    <Checkbox
+                      id="sendPasswordByEmail"
+                      checked={newUser.sendPasswordByEmail}
+                      onCheckedChange={(checked) => setNewUser({ ...newUser, sendPasswordByEmail: !!checked })}
+                      disabled={!newUser.email}
                     />
+                    <Label htmlFor="sendPasswordByEmail" className="flex items-center gap-2">
+                      <Mail className="h-4 w-4" />
+                      Enviar senha por email
+                    </Label>
                   </div>
+                  
+                  {!newUser.generatePassword && (
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <Label htmlFor="password">Senha</Label>
+                        <Input
+                          id="password"
+                          type="password"
+                          value={newUser.password}
+                          onChange={(e) => setNewUser({ ...newUser, password: e.target.value })}
+                          placeholder="Senha"
+                          required={!newUser.generatePassword}
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="confirmPassword">Confirmar Senha</Label>
+                        <Input
+                          id="confirmPassword"
+                          type="password"
+                          value={newUser.confirmPassword}
+                          onChange={(e) => setNewUser({ ...newUser, confirmPassword: e.target.value })}
+                          placeholder="Confirmar senha"
+                          required={!newUser.generatePassword}
+                        />
+                      </div>
+                    </div>
+                  )}
+                  
+                  {newUser.sendPasswordByEmail && !newUser.email && (
+                    <p className="text-sm text-orange-600 dark:text-orange-400">
+                      ⚠️ Email é obrigatório quando "Enviar senha por email" está marcado
+                    </p>
+                  )}
                 </div>
                 
                 <div className="flex justify-end space-x-2">
@@ -421,6 +538,38 @@ export default function UserManagement() {
                           >
                             <Edit className="h-4 w-4" />
                           </Button>
+                          
+                          {user.id !== currentUser?.id && (
+                            <AlertDialog>
+                              <AlertDialogTrigger asChild>
+                                <Button variant="outline" size="sm" className="text-orange-600 hover:text-orange-700">
+                                  <RotateCcw className="h-4 w-4" />
+                                </Button>
+                              </AlertDialogTrigger>
+                              <AlertDialogContent>
+                                <AlertDialogHeader>
+                                  <AlertDialogTitle>Redefinir Senha</AlertDialogTitle>
+                                  <AlertDialogDescription>
+                                    Tem certeza que deseja redefinir a senha do usuário "{user.username}"? 
+                                    {user.email 
+                                      ? "A nova senha será enviada por email." 
+                                      : "Uma nova senha temporária será gerada e exibida aqui."
+                                    }
+                                  </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                  <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                  <AlertDialogAction
+                                    onClick={() => handleResetPassword(user.id)}
+                                    className="bg-orange-600 hover:bg-orange-700"
+                                    disabled={resetPasswordMutation.isPending}
+                                  >
+                                    {resetPasswordMutation.isPending ? "Redefinindo..." : "Redefinir"}
+                                  </AlertDialogAction>
+                                </AlertDialogFooter>
+                              </AlertDialogContent>
+                            </AlertDialog>
+                          )}
                           
                           {user.id !== currentUser?.id && (
                             <AlertDialog>

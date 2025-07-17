@@ -128,9 +128,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const newUser = await storage.createUser(userData, req.user!.id);
       const { passwordHash, ...userWithoutPassword } = newUser;
       
+      // Return success with password info if generated
+      let responseMessage = "Usuário criado com sucesso";
+      if (userData.generatePassword) {
+        responseMessage += ". Senha gerada automaticamente";
+        if (userData.sendPasswordByEmail && userData.email) {
+          responseMessage += " e enviada por email";
+        }
+      }
+      
       res.status(201).json({
-        message: "Usuário criado com sucesso",
+        message: responseMessage,
         user: userWithoutPassword,
+        emailSent: userData.sendPasswordByEmail && userData.email
       });
     } catch (error) {
       console.error("Erro ao criar usuário:", error);
@@ -177,6 +187,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Erro ao deletar usuário:", error);
       res.status(500).json({ error: "Erro interno do servidor" });
+    }
+  });
+
+  // Reset user password (admin only)
+  app.post("/api/users/:id/reset-password", requireAuth, requireAdmin, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { newPassword } = req.body;
+      
+      const result = await storage.resetUserPassword(id, newPassword);
+      
+      res.json({
+        message: "Senha redefinida com sucesso",
+        emailSent: !!result.user.email,
+        temporaryPassword: newPassword ? undefined : result.password
+      });
+    } catch (error) {
+      console.error("Erro ao redefinir senha:", error);
+      res.status(500).json({ error: error.message || "Erro interno do servidor" });
     }
   });
 
@@ -285,6 +314,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const data = await response.json();
+      
+      // Save consultation to database
+      try {
+        if (Array.isArray(data) && data.length > 0) {
+          for (const benefit of data) {
+            const beneficiary = benefit.Beneficiario;
+            const financial = benefit.ResumoFinanceiro;
+            
+            await storage.createConsultation({
+              userId: req.user!.id,
+              searchType: "cpf",
+              searchValue: cpf,
+              cpf: beneficiary.CPF,
+              benefitNumber: beneficiary.Beneficio,
+              beneficiaryName: beneficiary.Nome,
+              benefitValue: financial.ValorBeneficio,
+              availableMargin: financial.MargemDisponivelEmprestimo,
+              loanBlocked: beneficiary.BloqueadoEmprestimo === "S",
+              blockReason: beneficiary.MotivoBloqueio,
+              resultData: benefit,
+            });
+          }
+        }
+      } catch (dbError) {
+        console.error("Erro ao salvar consulta no banco:", dbError);
+        // Don't fail the request, just log the error
+      }
+      
       res.json(data);
     } catch (error) {
       console.error("Erro na consulta por CPF:", error);
@@ -328,6 +385,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const data = await response.json();
+      
+      // Save consultation to database
+      try {
+        if (data && data.Beneficiario) {
+          const beneficiary = data.Beneficiario;
+          const financial = data.ResumoFinanceiro;
+          
+          await storage.createConsultation({
+            userId: req.user!.id,
+            searchType: "beneficio",
+            searchValue: beneficio,
+            cpf: beneficiary.CPF,
+            benefitNumber: beneficiary.Beneficio,
+            beneficiaryName: beneficiary.Nome,
+            benefitValue: financial.ValorBeneficio,
+            availableMargin: financial.MargemDisponivelEmprestimo,
+            loanBlocked: beneficiary.BloqueadoEmprestimo === "S",
+            blockReason: beneficiary.MotivoBloqueio,
+            resultData: data,
+          });
+        }
+      } catch (dbError) {
+        console.error("Erro ao salvar consulta no banco:", dbError);
+        // Don't fail the request, just log the error
+      }
+      
       res.json(data);
     } catch (error) {
       console.error("Erro na consulta offline:", error);
@@ -520,6 +603,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Erro ao obter estatísticas do usuário:", error);
       res.status(500).json({ error: "Erro ao carregar estatísticas" });
+    }
+  });
+
+  // Consultation history routes
+  app.get("/api/consultations", requireAuth, requireAnyRole, async (req, res) => {
+    try {
+      const userId = req.user!.id;
+      const limit = parseInt(req.query.limit as string) || 50;
+      const consultations = await storage.getConsultationsByUser(userId, limit);
+      res.json(consultations);
+    } catch (error) {
+      console.error("Erro ao buscar histórico de consultas:", error);
+      res.status(500).json({ error: "Erro ao carregar histórico" });
+    }
+  });
+
+  app.get("/api/consultations/all", requireAuth, requireAnyRole, async (req, res) => {
+    try {
+      // Only admins and managers can see all consultations
+      const user = req.user!;
+      if (user.role !== "administrator" && user.role !== "gerente") {
+        return res.status(403).json({ error: "Acesso negado" });
+      }
+      
+      const limit = parseInt(req.query.limit as string) || 100;
+      const consultations = await storage.getConsultationsByUser("", limit); // Empty string gets all
+      res.json(consultations);
+    } catch (error) {
+      console.error("Erro ao buscar todas as consultas:", error);
+      res.status(500).json({ error: "Erro ao carregar consultas" });
     }
   });
 
