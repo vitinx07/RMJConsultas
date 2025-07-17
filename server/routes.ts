@@ -495,7 +495,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Dashboard metrics (admin/manager only)
   app.get("/api/dashboard/stats", requireAuth, requireManagerOrAdmin, async (req, res) => {
     try {
-      const stats = await storage.getDashboardStats();
+      const filters = {
+        startDate: req.query.startDate as string | undefined,
+        endDate: req.query.endDate as string | undefined,
+      };
+      const stats = await storage.getDashboardStats(undefined, filters);
       res.json(stats);
     } catch (error) {
       console.error("Erro ao obter estatísticas do dashboard:", error);
@@ -507,7 +511,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/dashboard/user-stats", requireAuth, requireAnyRole, async (req, res) => {
     try {
       const userId = req.user!.id;
-      const stats = await storage.getDashboardStats(userId);
+      const filters = {
+        startDate: req.query.startDate as string | undefined,
+        endDate: req.query.endDate as string | undefined,
+      };
+      const stats = await storage.getDashboardStats(userId, filters);
       res.json(stats);
     } catch (error) {
       console.error("Erro ao obter estatísticas do usuário:", error);

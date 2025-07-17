@@ -60,7 +60,7 @@ export interface IStorage {
   getBenefitMonitoringForCheck(): Promise<BenefitMonitoring[]>;
   
   // Dashboard operations
-  getDashboardStats(userId?: string): Promise<DashboardStats>;
+  getDashboardStats(userId?: string, filters?: { startDate?: string; endDate?: string }): Promise<DashboardStats>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -329,7 +329,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Dashboard operations
-  async getDashboardStats(userId?: string): Promise<DashboardStats> {
+  async getDashboardStats(userId?: string, filters?: { startDate?: string; endDate?: string }): Promise<DashboardStats> {
     const today = new Date();
     const startOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate());
     const startOfWeek = new Date(today);
@@ -338,12 +338,27 @@ export class DatabaseStorage implements IStorage {
 
     // Base conditions
     const userCondition = userId ? eq(consultations.userId, userId) : sql`true`;
+    
+    // Date filters
+    const dateConditions = [];
+    if (filters?.startDate) {
+      dateConditions.push(gte(consultations.createdAt, new Date(filters.startDate)));
+    }
+    if (filters?.endDate) {
+      const endDate = new Date(filters.endDate);
+      endDate.setHours(23, 59, 59, 999); // Include full end date
+      dateConditions.push(lte(consultations.createdAt, endDate));
+    }
+    
+    const baseCondition = dateConditions.length > 0 
+      ? and(userCondition, ...dateConditions)
+      : userCondition;
 
     // Total consultations
     const totalConsultationsResult = await db
       .select({ count: count() })
       .from(consultations)
-      .where(userCondition);
+      .where(baseCondition);
 
     // Consultations today
     const consultationsTodayResult = await db
@@ -367,12 +382,12 @@ export class DatabaseStorage implements IStorage {
     const consultationsByCpfResult = await db
       .select({ count: count() })
       .from(consultations)
-      .where(and(userCondition, eq(consultations.searchType, 'cpf')));
+      .where(and(baseCondition, eq(consultations.searchType, 'cpf')));
 
     const consultationsByBenefitResult = await db
       .select({ count: count() })
       .from(consultations)
-      .where(and(userCondition, eq(consultations.searchType, 'beneficio')));
+      .where(and(baseCondition, eq(consultations.searchType, 'beneficio')));
 
     // Favorite clients
     const favoriteClientsResult = await db
@@ -408,13 +423,19 @@ export class DatabaseStorage implements IStorage {
     const blockedLoansResult = await db
       .select({ count: count() })
       .from(consultations)
-      .where(and(userCondition, eq(consultations.loanBlocked, true)));
+      .where(and(baseCondition, eq(consultations.loanBlocked, true)));
+
+    // Unblocked loans count
+    const unblockedLoansResult = await db
+      .select({ count: count() })
+      .from(consultations)
+      .where(and(baseCondition, eq(consultations.loanBlocked, false)));
 
     // Average margin
     const averageMarginResult = await db
       .select({ avg: sql<number>`AVG(${consultations.availableMargin})` })
       .from(consultations)
-      .where(and(userCondition, sql`${consultations.availableMargin} IS NOT NULL`));
+      .where(and(baseCondition, sql`${consultations.availableMargin} IS NOT NULL`));
 
     return {
       totalConsultations: totalConsultationsResult[0]?.count || 0,
@@ -434,6 +455,7 @@ export class DatabaseStorage implements IStorage {
       })),
       marginDistribution: [], // Implement if needed
       blockedLoansCount: blockedLoansResult[0]?.count || 0,
+      unblockedLoansCount: unblockedLoansResult[0]?.count || 0,
       averageMargin: averageMarginResult[0]?.avg || 0,
     };
   }

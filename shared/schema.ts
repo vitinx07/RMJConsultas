@@ -373,7 +373,14 @@ export const dashboardStatsSchema = z.object({
     count: z.number(),
   })),
   blockedLoansCount: z.number(),
+  unblockedLoansCount: z.number(),
   averageMargin: z.number(),
+});
+
+export const dashboardFiltersSchema = z.object({
+  startDate: z.string().optional(),
+  endDate: z.string().optional(),
+  userId: z.string().optional(),
 });
 
 // Types
@@ -396,6 +403,7 @@ export type BenefitMonitoring = typeof benefitMonitoring.$inferSelect;
 export type CreateBenefitMonitoring = z.infer<typeof createBenefitMonitoringSchema>;
 
 export type DashboardStats = z.infer<typeof dashboardStatsSchema>;
+export type DashboardFilters = z.infer<typeof dashboardFiltersSchema>;
 
 export type Beneficiary = z.infer<typeof beneficiarySchema>;
 export type FinancialSummary = z.infer<typeof financialSummarySchema>;

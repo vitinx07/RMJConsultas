@@ -3,6 +3,9 @@ import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Button } from "@/components/ui/button";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
 import { Navbar } from "@/components/navbar";
@@ -18,7 +21,10 @@ import {
   Bell,
   DollarSign,
   BarChart3,
-  Activity
+  Activity,
+  CheckCircle,
+  XCircle,
+  Filter
 } from "lucide-react";
 
 interface DashboardStats {
@@ -42,6 +48,7 @@ interface DashboardStats {
     count: number;
   }>;
   blockedLoansCount: number;
+  unblockedLoansCount: number;
   averageMargin: number;
 }
 
@@ -51,9 +58,21 @@ export default function Dashboard() {
   const isManager = user?.role === "gerente";
   const canViewGlobalStats = isAdmin || isManager;
 
+  // Date filters state
+  const [startDate, setStartDate] = useState<string>("");
+  const [endDate, setEndDate] = useState<string>("");
+
+  // Clear filters function
+  const clearFilters = () => {
+    setStartDate("");
+    setEndDate("");
+  };
+
   // Fetch dashboard stats based on user role
   const { data: stats, isLoading, error } = useQuery<DashboardStats>({
-    queryKey: canViewGlobalStats ? ["/api/dashboard/stats"] : ["/api/dashboard/user-stats"],
+    queryKey: canViewGlobalStats 
+      ? ["/api/dashboard/stats", { startDate, endDate }] 
+      : ["/api/dashboard/user-stats", { startDate, endDate }],
     refetchInterval: 30000, // Refresh every 30 seconds
   });
 
@@ -153,6 +172,49 @@ export default function Dashboard() {
         )}
       </div>
 
+      {/* Date Filter Section */}
+      <Card className="mb-8">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Filter className="h-5 w-5" />
+            Filtro por Data
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div>
+              <Label htmlFor="start-date">Data Inicial</Label>
+              <Input
+                id="start-date"
+                type="date"
+                value={startDate}
+                onChange={(e) => setStartDate(e.target.value)}
+                className="mt-1"
+              />
+            </div>
+            <div>
+              <Label htmlFor="end-date">Data Final</Label>
+              <Input
+                id="end-date"
+                type="date"
+                value={endDate}
+                onChange={(e) => setEndDate(e.target.value)}
+                className="mt-1"
+              />
+            </div>
+            <div className="flex items-end">
+              <Button
+                variant="outline"
+                onClick={clearFilters}
+                className="w-full"
+              >
+                Limpar Filtros
+              </Button>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
       {/* Main Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         <StatCard
@@ -186,7 +248,7 @@ export default function Dashboard() {
       </div>
 
       {/* Secondary Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
         <StatCard
           title="Consultas por CPF"
           value={stats?.consultationsByCpf || 0}
@@ -211,8 +273,16 @@ export default function Dashboard() {
         <StatCard
           title="Empréstimos Bloqueados"
           value={stats?.blockedLoansCount || 0}
-          icon={AlertCircle}
+          icon={XCircle}
           description="Benefícios com empréstimo bloqueado"
+        />
+        
+        <StatCard
+          title="Empréstimos Desbloqueados"
+          value={stats?.unblockedLoansCount || 0}
+          icon={CheckCircle}
+          description="Benefícios com empréstimo liberado"
+          color="primary"
         />
       </div>
 
