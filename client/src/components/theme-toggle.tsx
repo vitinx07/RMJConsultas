@@ -20,8 +20,10 @@ export function ThemeToggle() {
       onClick={toggleTheme}
       className="text-primary-foreground hover:bg-primary-foreground/20 transition-colors"
     >
-      <Sun className="h-4 w-4 mr-2 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
-      <Moon className="absolute h-4 w-4 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
+      <div className="relative w-4 h-4 mr-2">
+        <Sun className="absolute h-4 w-4 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
+        <Moon className="absolute h-4 w-4 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
+      </div>
       <span className="hidden sm:inline">
         {theme === "light" ? "Escuro" : "Claro"}
       </span>

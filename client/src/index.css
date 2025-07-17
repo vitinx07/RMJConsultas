@@ -42,8 +42,8 @@
   --popover-foreground: hsl(210, 40%, 98%);
   --card: hsl(220, 50%, 8%);
   --card-foreground: hsl(210, 40%, 98%);
-  --border: hsl(220, 40%, 15%);
-  --input: hsl(220, 40%, 15%);
+  --border: hsl(220, 40%, 20%);
+  --input: hsl(220, 40%, 20%);
   --primary: hsl(210, 100%, 60%);
   --primary-foreground: hsl(220, 50%, 6%);
   --secondary: hsl(220, 40%, 12%);
@@ -103,4 +103,39 @@
   .font-roboto {
     font-family: 'Roboto', sans-serif;
   }
+}
+
+/* Enhanced borders for dark theme */
+.dark table,
+.dark th,
+.dark td {
+  border-color: hsl(220, 40%, 25%) !important;
+}
+
+.dark .border {
+  border-color: hsl(220, 40%, 25%) !important;
+}
+
+.dark .border-t {
+  border-top-color: hsl(220, 40%, 25%) !important;
+}
+
+.dark .border-b {
+  border-bottom-color: hsl(220, 40%, 25%) !important;
+}
+
+.dark .border-l {
+  border-left-color: hsl(220, 40%, 25%) !important;
+}
+
+.dark .border-r {
+  border-right-color: hsl(220, 40%, 25%) !important;
+}
+
+.dark .divide-x > *:not(:first-child) {
+  border-left-color: hsl(220, 40%, 25%) !important;
+}
+
+.dark .divide-y > *:not(:first-child) {
+  border-top-color: hsl(220, 40%, 25%) !important;
 }
