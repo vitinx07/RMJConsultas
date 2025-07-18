@@ -17,8 +17,12 @@ import {
 } from "@shared/schema";
 import { banrisulApi, BanrisulApiError } from "./banrisul-api";
 import { generateJWT, requireAuthHybrid } from "./jwt-auth";
+import { randomBytes } from "crypto";
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Configure Express for Replit deployment
+  app.set('trust proxy', 1); // Trust first proxy (Replit's proxy)
+  
   // Configure session store
   const pgStore = connectPg(session);
   const sessionStore = new pgStore({
@@ -28,21 +32,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
     tableName: "sessions",
   });
 
-  // Session middleware - enhanced for deployment
+  // Session middleware - enhanced for deployment  
   app.use(session({
     store: sessionStore,
     secret: process.env.SESSION_SECRET || "fallback-secret-key-change-in-production",
-    resave: false,
-    saveUninitialized: false,
+    resave: true, // Force save on every request for deployment
+    saveUninitialized: true, // Save empty sessions for deployment
     rolling: true, // Reset expiry on each request
     cookie: {
-      secure: false, // Keep false for deployment compatibility
+      secure: false, // Keep false for compatibility with Replit
       httpOnly: true,
       maxAge: 24 * 60 * 60 * 1000, // 24 hours
-      sameSite: 'lax',
-      domain: undefined, // Let Express handle domain
+      sameSite: 'lax', // Standard setting for Replit
+      domain: undefined, // Let Express handle domain automatically
     },
-    name: 'connect.sid', // Explicit session name
+    name: 'connect.sid',
   }));
 
   // Debug middleware for session
@@ -51,6 +55,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log(`🔍 Session debug - Path: ${req.path}, Method: ${req.method}, SessionID: ${req.sessionID || 'none'}, UserID: ${req.session?.userId || 'none'}`);
       console.log(`🔍 Headers: ${JSON.stringify(req.headers.cookie || 'no-cookie')}`);
       console.log(`🔍 Session object: ${JSON.stringify(req.session || 'none')}`);
+      console.log(`🔍 Environment: NODE_ENV=${process.env.NODE_ENV}, REPLIT_DEPLOYMENT=${process.env.REPLIT_DEPLOYMENT}, HOST=${req.headers.host}`);
     }
     next();
   });
@@ -84,11 +89,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Generate JWT token as backup
       const token = generateJWT(user);
       
+      // Force session save and add explicit logging for deployment
       req.session.save((err) => {
         if (err) {
-          console.error("Erro ao salvar sessão:", err);
+          console.error("❌ Erro ao salvar sessão:", err);
           return res.status(500).json({ error: "Erro ao salvar sessão" });
         }
+        
+        console.log(`✅ Session saved - UserID: ${user.id}, SessionID: ${req.sessionID}`);
         
         // Return user without password plus JWT token
         const { passwordHash, ...userWithoutPassword } = user;

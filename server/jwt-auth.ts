@@ -35,7 +35,7 @@ export const verifyJWT = (token: string): JWTPayload | null => {
 
 // Middleware que tenta autenticar via sessão primeiro, depois JWT
 export const requireAuthHybrid = async (req: Request, res: Response, next: NextFunction) => {
-  console.log(`🔒 Hybrid auth check - Path: ${req.path}`);
+  console.log(`🔒 Hybrid auth check - Path: ${req.path}, Host: ${req.headers.host}`);
   
   // Primeiro, tenta autenticação via sessão
   if (req.session && req.session.userId) {
@@ -56,6 +56,8 @@ export const requireAuthHybrid = async (req: Request, res: Response, next: NextF
     } catch (error) {
       console.error('Session auth error:', error);
     }
+  } else {
+    console.log(`❌ No session found - SessionID: ${req.sessionID || 'none'}, Session: ${JSON.stringify(req.session || 'none')}`);
   }
   
   // Se sessão falhar, tenta JWT
