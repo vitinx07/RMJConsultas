@@ -4,9 +4,9 @@
   "description": "Sistema profissional para consulta de benefícios INSS via API CORBAN",
   "icons": [
     {
-      "src": "/attached_assets/rmj_1751973121690.jpeg",
+      "src": "/attached_assets/image_1752843323130.png",
       "sizes": "any",
-      "type": "image/jpeg",
+      "type": "image/png",
       "purpose": "any maskable"
     }
   ],
