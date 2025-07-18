@@ -11,8 +11,8 @@ export interface EmailService {
 
 // Brevo implementation using HTTP API (stable and working)
 class BrevoEmailService implements EmailService {
-  private fromEmail: string = '927880001@smtp-brevo.com';
-  private fromName: string = 'RMJ Consultas';
+  private fromEmail: string = 'cavalcantisilvav@gmail.com';
+  private fromName: string = 'Vitor Cavalcanti';
   private apiKey: string = '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';
   private apiUrl: string = 'https://api.brevo.com/v3/smtp/email';
 

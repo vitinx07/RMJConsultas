@@ -14,8 +14,7 @@ import {
   updateFavoriteClientSchema,
   createNotificationSchema,
   createBenefitMonitoringSchema,
-  resetPasswordSchema,
-  sendCustomEmailSchema
+  resetPasswordSchema
 } from "@shared/schema";
 import { banrisulApi, BanrisulApiError } from "./banrisul-api";
 import { generateJWT, requireAuthHybrid } from "./jwt-auth";
@@ -303,13 +302,42 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Send custom email (admin only)
   app.post("/api/admin/send-email", requireAuthHybrid, requireAdmin, async (req, res) => {
     try {
-      const { recipients, subject, message, isHtml } = sendCustomEmailSchema.parse(req.body);
+      const { recipients, subject, message, isHtml } = req.body;
       
-      const users = await storage.getUsersByIds(recipients);
-      const emailsToSend = users.filter(user => user.email).map(user => user.email!);
+      // Validate input
+      if (!recipients || !Array.isArray(recipients) || recipients.length === 0) {
+        return res.status(400).json({ error: "Lista de destinatários é obrigatória" });
+      }
+      
+      if (!subject || typeof subject !== 'string') {
+        return res.status(400).json({ error: "Assunto é obrigatório" });
+      }
+      
+      if (!message || typeof message !== 'string') {
+        return res.status(400).json({ error: "Mensagem é obrigatória" });
+      }
+      
+      let emailsToSend = [];
+      
+      // Check if recipients are UUIDs or emails
+      for (const recipient of recipients) {
+        if (typeof recipient === 'string') {
+          // Check if it's a valid UUID
+          if (recipient.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i)) {
+            // It's a UUID, get user by ID
+            const user = await storage.getUser(recipient);
+            if (user && user.email) {
+              emailsToSend.push(user.email);
+            }
+          } else if (recipient.includes('@')) {
+            // It's an email address
+            emailsToSend.push(recipient);
+          }
+        }
+      }
       
       if (emailsToSend.length === 0) {
-        return res.status(400).json({ error: "Nenhum usuário com email encontrado" });
+        return res.status(400).json({ error: "Nenhum email válido encontrado" });
       }
       
       let successCount = 0;
@@ -317,7 +345,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       for (const email of emailsToSend) {
         try {
-          const sent = await emailService.sendCustomEmail(email, subject, message, isHtml);
+          const sent = await emailService.sendCustomEmail(email, subject, message, isHtml || false);
           if (sent) successCount++;
           results.push({ email, sent });
         } catch (error) {
