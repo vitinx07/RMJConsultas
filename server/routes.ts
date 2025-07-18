@@ -34,11 +34,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
     resave: false,
     saveUninitialized: false,
     cookie: {
-      secure: process.env.NODE_ENV === "production",
+      secure: false, // Set to false for deployment compatibility
       httpOnly: true,
       maxAge: 24 * 60 * 60 * 1000, // 24 hours
+      sameSite: 'lax',
     },
+    name: 'connect.sid', // Explicit session name
   }));
+
+  // Debug middleware for session
+  app.use((req, res, next) => {
+    if (req.path.includes('/api/auth/')) {
+      console.log(`🔍 Session debug - Path: ${req.path}, SessionID: ${req.sessionID || 'none'}, UserID: ${req.session?.userId || 'none'}`);
+    }
+    next();
+  });
 
   // Initialize admin user on startup
   try {
@@ -63,13 +73,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(401).json({ error: "Credenciais inválidas" });
       }
 
+      // Save session and wait for it to be stored
       req.session.userId = user.id;
       
-      // Return user without password
-      const { passwordHash, ...userWithoutPassword } = user;
-      res.json({
-        message: "Login realizado com sucesso",
-        user: userWithoutPassword,
+      req.session.save((err) => {
+        if (err) {
+          console.error("Erro ao salvar sessão:", err);
+          return res.status(500).json({ error: "Erro ao salvar sessão" });
+        }
+        
+        // Return user without password
+        const { passwordHash, ...userWithoutPassword } = user;
+        res.json({
+          message: "Login realizado com sucesso",
+          user: userWithoutPassword,
+        });
       });
     } catch (error) {
       console.error("Erro no login:", error);
