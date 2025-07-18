@@ -153,6 +153,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.get("/api/users/:id", requireAuthHybrid, requireAdmin, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const user = await storage.getUserById(id);
+      
+      if (!user) {
+        return res.status(404).json({ error: "Usuário não encontrado" });
+      }
+
+      const { passwordHash, ...userWithoutPassword } = user;
+      res.json(userWithoutPassword);
+    } catch (error) {
+      console.error("Erro ao buscar usuário:", error);
+      res.status(500).json({ error: "Erro interno do servidor" });
+    }
+  });
+
   app.post("/api/users", requireAuthHybrid, requireAdmin, async (req, res) => {
     try {
       const userData = createUserSchema.parse(req.body);
@@ -325,7 +342,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           // Check if it's a valid UUID
           if (recipient.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i)) {
             // It's a UUID, get user by ID
-            const user = await storage.getUser(recipient);
+            const user = await storage.getUserById(recipient);
             if (user && user.email) {
               emailsToSend.push(user.email);
             }

@@ -18,7 +18,7 @@ import { Link } from "wouter";
 import { useAuth } from "@/hooks/useAuth";
 
 const emailSchema = z.object({
-  recipients: z.array(z.string().uuid("ID de usuário inválido")).min(1, "Selecione pelo menos um destinatário"),
+  recipients: z.array(z.string().min(1, "Destinatário inválido")).min(1, "Selecione pelo menos um destinatário"),
   subject: z.string().min(1, "Assunto é obrigatório").max(200, "Assunto muito longo"),
   message: z.string().min(1, "Mensagem é obrigatória").max(5000, "Mensagem muito longa"),
   isHtml: z.boolean().default(false),

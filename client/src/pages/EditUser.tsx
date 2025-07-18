@@ -43,7 +43,8 @@ interface UserData {
 }
 
 export default function EditUser() {
-  const { id } = useParams();
+  const params = useParams();
+  const id = params.id;
   const { toast } = useToast();
   const navigate = (path: string) => {
     window.location.href = path;
