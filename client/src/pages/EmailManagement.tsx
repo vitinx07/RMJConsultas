@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
+
 import { Switch } from "@/components/ui/switch";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
@@ -138,9 +138,20 @@ export default function EmailManagement() {
       return;
     }
     
+    if (!data.subject || !data.message) {
+      toast({
+        title: "Erro",
+        description: "Assunto e mensagem são obrigatórios",
+        variant: "destructive",
+      });
+      return;
+    }
+    
     sendEmailMutation.mutate({
-      ...data,
       recipients: selectedUsers,
+      subject: data.subject,
+      message: data.message,
+      isHtml: data.isHtml || false,
     });
   };
 
@@ -273,10 +284,11 @@ export default function EmailManagement() {
 
               <div className="space-y-2">
                 <Label htmlFor="message">Mensagem</Label>
-                <Textarea
+                <textarea
                   id="message"
                   placeholder="Digite sua mensagem..."
                   rows={8}
+                  className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                   {...form.register("message")}
                 />
                 {form.formState.errors.message && (
