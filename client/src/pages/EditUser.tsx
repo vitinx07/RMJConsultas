@@ -80,7 +80,7 @@ export default function EditUser() {
         description: "As informações do usuário foram atualizadas com sucesso.",
       });
       queryClient.invalidateQueries({ queryKey: ["/api/users"] });
-      navigate("/users");
+      navigate("/usuarios");
     },
     onError: (error: any) => {
       toast({
@@ -103,7 +103,7 @@ export default function EditUser() {
         description: "O usuário foi excluído com sucesso.",
       });
       queryClient.invalidateQueries({ queryKey: ["/api/users"] });
-      navigate("/users");
+      navigate("/usuarios");
     },
     onError: (error: any) => {
       toast({
@@ -179,7 +179,7 @@ export default function EditUser() {
     return (
       <div className="text-center py-8">
         <p className="text-gray-500">Usuário não encontrado</p>
-        <Button onClick={() => navigate("/users")} variant="outline" className="mt-4">
+        <Button onClick={() => navigate("/usuarios")} variant="outline" className="mt-4">
           Voltar para Usuários
         </Button>
       </div>
@@ -194,7 +194,7 @@ export default function EditUser() {
           <h1 className="text-2xl font-bold">Editar Usuário</h1>
         </div>
         <Button
-          onClick={() => navigate("/users")}
+          onClick={() => navigate("/usuarios")}
           variant="outline"
           className="flex items-center space-x-2"
         >

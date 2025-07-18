@@ -327,7 +327,7 @@ export default function UserManagement() {
             </div>
           )}
           
-          <Link href="/admin/emails">
+          <Link href="/usuarios/emails">
             <Button variant="outline" className="flex items-center gap-2">
               <Mail className="h-4 w-4" />
               Enviar Emails

@@ -63,7 +63,9 @@ function Router() {
         <Route path="/usuarios" component={UserManagement} />
         <Route path="/admin/users" component={UserManagement} />
         <Route path="/usuarios/:id/editar" component={EditUser} />
+        <Route path="/user/:id/editar" component={EditUser} />
         <Route path="/admin/emails" component={EmailManagement} />
+        <Route path="/usuarios/emails" component={EmailManagement} />
         <Route component={NotFound} />
       </Switch>
     </div>

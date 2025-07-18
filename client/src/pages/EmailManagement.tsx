@@ -157,7 +157,7 @@ export default function EmailManagement() {
       {/* Navbar */}
       <div className="flex justify-between items-center">
         <div className="flex items-center space-x-4">
-          <Link href="/admin/users">
+          <Link href="/usuarios">
             <Button variant="outline" size="sm" className="flex items-center gap-2">
               <ArrowLeft className="h-4 w-4" />
               Voltar para Usuários
@@ -253,7 +253,12 @@ export default function EmailManagement() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            <form onSubmit={(e) => {
+              console.log("Form submit event triggered");
+              console.log("Form errors:", form.formState.errors);
+              console.log("Form values:", form.getValues());
+              form.handleSubmit(onSubmit)(e);
+            }} className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="subject">Assunto</Label>
                 <Input
@@ -292,6 +297,12 @@ export default function EmailManagement() {
                 type="submit"
                 disabled={selectedUsers.length === 0 || sendEmailMutation.isPending}
                 className="w-full"
+                onClick={(e) => {
+                  console.log("Button clicked");
+                  console.log("Selected users:", selectedUsers);
+                  console.log("Form valid:", form.formState.isValid);
+                  console.log("Form errors:", form.formState.errors);
+                }}
               >
                 {sendEmailMutation.isPending ? (
                   <div className="flex items-center space-x-2">
