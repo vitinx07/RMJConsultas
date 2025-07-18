@@ -196,17 +196,25 @@ export class DatabaseStorage implements IStorage {
       return;
     }
 
-    // Create the default admin user
-    await this.createUser({
-      username: "Vitor.admin",
-      password: "admin",
-      confirmPassword: "admin",
-      role: "administrator",
-      firstName: "Vitor",
-      lastName: "Administrator",
-      email: "cavalcantisilvav@gmail.com",
-      isActive: true,
-    });
+    // Create the default admin user with a properly hashed password
+    const hashedPassword = await bcrypt.hash("admin123", 10);
+    
+    const [user] = await db
+      .insert(users)
+      .values({
+        username: "Vitor.admin",
+        passwordHash: hashedPassword,
+        role: "administrator",
+        firstName: "Vitor",
+        lastName: "Administrator",
+        email: "cavalcantisilvav@gmail.com",
+        isActive: true,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      })
+      .returning();
+    
+    console.log("✅ Usuário administrador criado com senha: admin123");
   }
 
   // Consultation operations
