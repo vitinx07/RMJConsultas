@@ -21,7 +21,7 @@ import {
   type DashboardStats,
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, and, desc, asc, gte, lte, sql, count } from "drizzle-orm";
+import { eq, and, desc, asc, gte, lte, sql, count, inArray } from "drizzle-orm";
 import bcrypt from "bcryptjs";
 import { emailService } from "./email";
 
@@ -92,7 +92,13 @@ export class DatabaseStorage implements IStorage {
 
   async getUsersByIds(ids: string[]): Promise<User[]> {
     if (ids.length === 0) return [];
-    return await db.select().from(users).where(sql`${users.id} = ANY(${ids})`);
+    
+    // Get users one by one to avoid SQL array issues
+    const userPromises = ids.map(id => this.getUserById(id));
+    const userResults = await Promise.all(userPromises);
+    
+    // Filter out undefined results
+    return userResults.filter((user): user is User => user !== undefined);
   }
 
   async createUser(userData: CreateUser, creatorId?: string): Promise<User> {

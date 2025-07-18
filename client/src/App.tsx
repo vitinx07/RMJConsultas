@@ -61,6 +61,7 @@ function Router() {
         <Route path="/favoritos" component={FavoriteClients} />
         <Route path="/notificacoes" component={Notifications} />
         <Route path="/usuarios" component={UserManagement} />
+        <Route path="/admin/users" component={UserManagement} />
         <Route path="/usuarios/:id/editar" component={EditUser} />
         <Route path="/admin/emails" component={EmailManagement} />
         <Route component={NotFound} />
