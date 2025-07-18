@@ -411,7 +411,7 @@ export function BenefitDetails({ benefit }: BenefitDetailsProps) {
                   <div>
                     <p className="text-sm text-muted-foreground">Bloqueado para Empréstimo</p>
                     <p className={`font-semibold ${Beneficiario.BloqueadoEmprestimo === '1' ? 'text-red-600' : 'text-green-600'}`}>
-                      {Beneficiario.BloqueadoEmprestimo === '1' ? 'SIM - BLOQUEADO' : 'NÃO - LIBERADO'}
+                      {Beneficiario.BloqueadoEmprestimo === '1' ? 'SIM - BLOQUEADO' : 'NÃO - DESBLOQUEADO'}
                     </p>
                   </div>
                 </div>
