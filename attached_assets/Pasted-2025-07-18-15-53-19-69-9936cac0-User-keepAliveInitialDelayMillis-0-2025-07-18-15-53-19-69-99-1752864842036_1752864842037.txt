@@ -1,0 +1,124 @@
+2025-07-18 15:53:19.69
+9936cac0
+User
+_keepAliveInitialDelayMillis: 0,
+2025-07-18 15:53:19.69
+9936cac0
+User
+lastBuffer: false,
+2025-07-18 15:53:19.69
+9936cac0
+User
+parsedStatements: {},
+2025-07-18 15:53:19.69
+9936cac0
+User
+ssl: {},
+2025-07-18 15:53:19.69
+9936cac0
+User
+_ending: true,
+2025-07-18 15:53:19.69
+9936cac0
+User
+_emitMessage: false,
+2025-07-18 15:53:19.69
+9936cac0
+User
+_connecting: true,
+2025-07-18 15:53:19.69
+9936cac0
+User
+[Symbol(shapeMode)]: false,
+2025-07-18 15:53:19.69
+9936cac0
+User
+[Symbol(kCapture)]: false
+2025-07-18 15:53:19.69
+9936cac0
+User
+},
+2025-07-18 15:53:19.69
+9936cac0
+User
+queryQueue: [],
+2025-07-18 15:53:19.69
+9936cac0
+User
+binary: false,
+2025-07-18 15:53:19.69
+9936cac0
+User
+processID: -684670650,
+2025-07-18 15:53:19.69
+9936cac0
+User
+secretKey: -1530605023,
+2025-07-18 15:53:19.69
+9936cac0
+User
+ssl: {},
+2025-07-18 15:53:19.69
+9936cac0
+User
+_connectionTimeoutMillis: 0,
+2025-07-18 15:53:19.69
+9936cac0
+User
+_connectionCallback: null,
+2025-07-18 15:53:19.69
+9936cac0
+User
+saslSession: null,
+2025-07-18 15:53:19.69
+9936cac0
+User
+release: [Function (anonymous)],
+2025-07-18 15:53:19.69
+9936cac0
+User
+activeQuery: null,
+2025-07-18 15:53:19.69
+9936cac0
+User
+readyForQuery: true,
+2025-07-18 15:53:19.69
+9936cac0
+User
+hasExecuted: true,
+2025-07-18 15:53:19.69
+9936cac0
+User
+_poolUseCount: 9,
+2025-07-18 15:53:19.69
+9936cac0
+User
+[Symbol(shapeMode)]: false,
+2025-07-18 15:53:19.69
+9936cac0
+User
+[Symbol(kCapture)]: false
+2025-07-18 15:53:19.69
+9936cac0
+User
+}
+2025-07-18 15:53:19.69
+9936cac0
+User
+}
+2025-07-18 15:53:30.15
+9936cac0
+User
+✅ Session auth success - User: Vitor.admin
+2025-07-18 15:53:30.36
+9936cac0
+User
+📧 Enviando nova senha para janaina.nipocredito@gmail.com via Brevo
+2025-07-18 15:53:30.88
+9936cac0
+User
+✅ Email enviado via Brevo: <202507181853.52689284823@smtp-relay.mailin.fr>
+2025-07-18 15:53:33.23
+9936cac0
+User
+6:53:33 PM [express] POST /api/users/7a770f7d-2129-4588-a73f-30290dc9508a/reset-password 200 in 1510…

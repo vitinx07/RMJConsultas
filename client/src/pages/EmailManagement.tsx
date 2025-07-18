@@ -13,12 +13,14 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
-import { Mail, Send, Users, UserCheck, AlertCircle } from "lucide-react";
+import { Mail, Send, Users, UserCheck, AlertCircle, ArrowLeft, Shield } from "lucide-react";
+import { Link } from "wouter";
+import { useAuth } from "@/hooks/useAuth";
 
 const emailSchema = z.object({
-  recipients: z.array(z.string()).min(1, "Selecione pelo menos um destinatário"),
-  subject: z.string().min(1, "Assunto é obrigatório"),
-  message: z.string().min(1, "Mensagem é obrigatória"),
+  recipients: z.array(z.string().uuid("ID de usuário inválido")).min(1, "Selecione pelo menos um destinatário"),
+  subject: z.string().min(1, "Assunto é obrigatório").max(200, "Assunto muito longo"),
+  message: z.string().min(1, "Mensagem é obrigatória").max(5000, "Mensagem muito longa"),
   isHtml: z.boolean().default(false),
 });
 
@@ -39,6 +41,31 @@ export default function EmailManagement() {
   const queryClient = useQueryClient();
   const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
   const [selectAll, setSelectAll] = useState(false);
+  const { user: currentUser } = useAuth();
+
+  // Check if user is admin
+  if (!currentUser || currentUser.role !== "administrator") {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Card className="max-w-md">
+          <CardHeader>
+            <CardTitle className="text-center text-red-600">Acesso Negado</CardTitle>
+          </CardHeader>
+          <CardContent className="text-center">
+            <p className="text-muted-foreground mb-4">
+              Apenas administradores podem acessar esta página.
+            </p>
+            <Link href="/">
+              <Button variant="outline">
+                <ArrowLeft className="h-4 w-4 mr-2" />
+                Voltar ao Menu
+              </Button>
+            </Link>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   const form = useForm<EmailFormData>({
     resolver: zodResolver(emailSchema),
@@ -115,10 +142,37 @@ export default function EmailManagement() {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center space-x-2">
-        <Mail className="w-6 h-6 text-blue-600" />
-        <h1 className="text-2xl font-bold">Gerenciamento de Emails</h1>
+    <div className="container mx-auto p-6 space-y-6">
+      {/* Navbar */}
+      <div className="flex justify-between items-center">
+        <div className="flex items-center space-x-4">
+          <Link href="/admin/users">
+            <Button variant="outline" size="sm" className="flex items-center gap-2">
+              <ArrowLeft className="h-4 w-4" />
+              Voltar para Usuários
+            </Button>
+          </Link>
+          <div className="flex items-center space-x-2">
+            <Mail className="w-6 h-6 text-blue-600" />
+            <h1 className="text-3xl font-bold">Gerenciamento de Emails</h1>
+          </div>
+        </div>
+
+        <div className="flex items-center space-x-4">
+          {currentUser && (
+            <div className="text-right">
+              <p className="text-sm font-medium">
+                Logado como: {currentUser.firstName || currentUser.username}
+              </p>
+              <div className="flex items-center justify-end space-x-1">
+                <Shield className="h-3 w-3" />
+                <span className="text-xs text-muted-foreground">
+                  Administrador
+                </span>
+              </div>
+            </div>
+          )}
+        </div>
       </div>
 
       <div className="grid md:grid-cols-2 gap-6">
