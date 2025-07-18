@@ -9,7 +9,7 @@ export interface EmailService {
   sendPasswordResetLink(to: string, username: string, resetToken: string): Promise<boolean>;
 }
 
-// Brevo implementation using direct API calls
+// Brevo implementation using HTTP API (stable and working)
 class BrevoEmailService implements EmailService {
   private fromEmail: string = '927880001@smtp-brevo.com';
   private fromName: string = 'RMJ Consultas';
@@ -17,10 +17,18 @@ class BrevoEmailService implements EmailService {
   private apiUrl: string = 'https://api.brevo.com/v3/smtp/email';
 
   constructor() {
-    // No initialization needed for direct API calls
+    // HTTP implementation - no initialization needed
   }
 
-  private async sendEmail(emailData: any): Promise<boolean> {
+  private async sendEmail(emailData: {
+    subject: string;
+    sender: { name: string; email: string };
+    to: { email: string; name: string }[];
+    htmlContent?: string;
+    textContent?: string;
+    replyTo?: { email: string };
+    tags?: string[];
+  }): Promise<boolean> {
     try {
       const response = await fetch(this.apiUrl, {
         method: 'POST',
@@ -41,8 +49,8 @@ class BrevoEmailService implements EmailService {
       const result = await response.json();
       console.log('✅ Email enviado via Brevo:', result.messageId);
       return true;
-    } catch (error) {
-      console.error('❌ Erro ao enviar email via Brevo:', error);
+    } catch (error: any) {
+      console.error('❌ Erro ao enviar email via Brevo:', error.message);
       return false;
     }
   }
@@ -51,6 +59,7 @@ class BrevoEmailService implements EmailService {
     console.log(`📧 Enviando senha para ${to} via Brevo`);
     
     const emailData = {
+      subject: 'Bem-vindo ao RMJ Consultas - Sua senha de acesso',
       sender: {
         name: this.fromName,
         email: this.fromEmail
@@ -59,7 +68,6 @@ class BrevoEmailService implements EmailService {
         email: to, 
         name: username 
       }],
-      subject: 'Bem-vindo ao RMJ Consultas - Sua senha de acesso',
       htmlContent: `
         <html>
           <head>
@@ -101,7 +109,8 @@ class BrevoEmailService implements EmailService {
             </div>
           </body>
         </html>
-      `
+      `,
+      tags: ['password-delivery', 'welcome']
     };
 
     return await this.sendEmail(emailData);
@@ -111,6 +120,7 @@ class BrevoEmailService implements EmailService {
     console.log(`📧 Enviando boas-vindas para ${to} via Brevo`);
     
     const emailData = {
+      subject: 'Bem-vindo ao RMJ Consultas',
       sender: {
         name: this.fromName,
         email: this.fromEmail
@@ -119,7 +129,6 @@ class BrevoEmailService implements EmailService {
         email: to, 
         name: username 
       }],
-      subject: 'Bem-vindo ao RMJ Consultas',
       htmlContent: `
         <html>
           <head>
@@ -151,7 +160,8 @@ class BrevoEmailService implements EmailService {
             </div>
           </body>
         </html>
-      `
+      `,
+      tags: ['welcome', 'account-setup']
     };
 
     return await this.sendEmail(emailData);
@@ -161,6 +171,7 @@ class BrevoEmailService implements EmailService {
     console.log(`📧 Enviando nova senha para ${to} via Brevo`);
     
     const emailData = {
+      subject: 'RMJ Consultas - Senha redefinida',
       sender: {
         name: this.fromName,
         email: this.fromEmail
@@ -169,7 +180,6 @@ class BrevoEmailService implements EmailService {
         email: to, 
         name: username 
       }],
-      subject: 'RMJ Consultas - Senha redefinida',
       htmlContent: `
         <html>
           <head>
@@ -209,7 +219,8 @@ class BrevoEmailService implements EmailService {
             </div>
           </body>
         </html>
-      `
+      `,
+      tags: ['password-reset', 'admin-action']
     };
 
     return await this.sendEmail(emailData);
@@ -219,6 +230,7 @@ class BrevoEmailService implements EmailService {
     console.log(`📧 Enviando email personalizado para ${to} via Brevo`);
     
     const emailData = {
+      subject: subject,
       sender: {
         name: this.fromName,
         email: this.fromEmail
@@ -227,8 +239,8 @@ class BrevoEmailService implements EmailService {
         email: to, 
         name: to.split('@')[0] 
       }],
-      subject: subject,
-      [isHtml ? 'htmlContent' : 'textContent']: isHtml ? message : message
+      [isHtml ? 'htmlContent' : 'textContent']: message,
+      tags: ['custom-email', 'admin-sent']
     };
 
     return await this.sendEmail(emailData);
@@ -240,6 +252,7 @@ class BrevoEmailService implements EmailService {
     const resetLink = `${process.env.FRONTEND_URL || 'http://localhost:5000'}/reset-password?token=${resetToken}`;
     
     const emailData = {
+      subject: 'RMJ Consultas - Redefinir Senha',
       sender: {
         name: this.fromName,
         email: this.fromEmail
@@ -248,7 +261,6 @@ class BrevoEmailService implements EmailService {
         email: to, 
         name: username 
       }],
-      subject: 'RMJ Consultas - Redefinir Senha',
       htmlContent: `
         <html>
           <head>
@@ -289,7 +301,8 @@ class BrevoEmailService implements EmailService {
             </div>
           </body>
         </html>
-      `
+      `,
+      tags: ['password-reset-link', 'self-service']
     };
 
     return await this.sendEmail(emailData);
