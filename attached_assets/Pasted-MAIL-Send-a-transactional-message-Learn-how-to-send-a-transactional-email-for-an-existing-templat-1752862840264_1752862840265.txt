@@ -1,0 +1,58 @@
+MAIL | Send a transactional message
+Learn how to send a transactional email for an existing template and adding dynamic content
+
+Suggest Edits
+Transactional emails are used for all non-promotional emails: send them when a user has created an account, when they have made an order, when request a new password...
+
+👍
+What you will learn from this tutorial
+
+In this tutorial, you will learn how to:
+
+send a basic transactional email with a dummy HTML content.
+
+send a transactional email where we'll insert dynamic contact attributes (ex. contact name, address) and transactional parameters (ex. order number, expected date of delivery).
+
+Requirements
+Get your API key from your settings (SMTP & API).
+
+If you are new to the API, read more about how the api works.
+
+Send a transactional email using a basic HTML content
+Let's assume we would like to send the following basic email.
+
+HTML content	<html><head></head><body><p>Hello,</p>This is my first transactional email sent from Brevo.</p></body></html>
+Email subject	"Hello worldl"
+Sender name	"Sender Alex"
+Sender email	"email":"senderalex@example.com"
+Recipient name	"John Doe"
+Recipient email	"email":"johndoe@example.com"
+The HTTP request to send using cURL is the following:
+
+cURL
+
+curl --request POST \
+  --url https://api.brevo.com/v3/smtp/email \
+  --header 'accept: application/json' \
+  --header 'api-key:YOUR_API_KEY' \
+  --header 'content-type: application/json' \
+  --data '{  
+   "sender":{  
+      "name":"Sender Alex",
+      "email":"senderalex@example.com"
+   },
+   "to":[  
+      {  
+         "email":"testmail@example.com",
+         "name":"John Doe"
+      }
+   ],
+   "subject":"Hello world",
+   "htmlContent":"<html><head></head><body><p>Hello,</p>This is my first transactional email sent from Brevo.</p></body></html>"
+}'
+Send a transactional email containing dynamic contact attributes and transactional parameters
+In this tutorial, we'll be sending an order confirmation email to a contact, where we'll insert dynamic contact attributes (contact name, address) and transactional parameters (order number, expected date of delivery).
+
+For the sake of simplicity, we'll use an existing email template to design our email.
+
+This is the email you should get by the end of the tutorial:

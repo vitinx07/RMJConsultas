@@ -1,4 +1,4 @@
-import * as brevo from '@getbrevo/brevo';
+import fetch from 'node-fetch';
 
 // Email service interface
 export interface EmailService {
@@ -7,31 +7,58 @@ export interface EmailService {
   sendPasswordResetEmail(to: string, username: string, newPassword: string): Promise<boolean>;
 }
 
-// Brevo implementation
+// Brevo implementation using direct API calls
 class BrevoEmailService implements EmailService {
-  private apiInstance: brevo.TransactionalEmailsApi;
   private fromEmail: string = '927880001@smtp-brevo.com';
   private fromName: string = 'RMJ Consultas';
+  private apiKey: string = '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';
+  private apiUrl: string = 'https://api.brevo.com/v3/smtp/email';
 
   constructor() {
-    this.apiInstance = new brevo.TransactionalEmailsApi();
-    brevo.TransactionalEmailsApiApiKeys.apiKey = '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';
+    // No initialization needed for direct API calls
+  }
+
+  private async sendEmail(emailData: any): Promise<boolean> {
+    try {
+      const response = await fetch(this.apiUrl, {
+        method: 'POST',
+        headers: {
+          'accept': 'application/json',
+          'api-key': this.apiKey,
+          'content-type': 'application/json'
+        },
+        body: JSON.stringify(emailData)
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('❌ Brevo API Error:', response.status, errorText);
+        return false;
+      }
+
+      const result = await response.json();
+      console.log('✅ Email enviado via Brevo:', result.messageId);
+      return true;
+    } catch (error) {
+      console.error('❌ Erro ao enviar email via Brevo:', error);
+      return false;
+    }
   }
 
   async sendPasswordEmail(to: string, password: string, username: string): Promise<boolean> {
     console.log(`📧 Enviando senha para ${to} via Brevo`);
     
-    try {
-      const sendSmtpEmail = new brevo.SendSmtpEmail();
-      
-      sendSmtpEmail.sender = {
+    const emailData = {
+      sender: {
         name: this.fromName,
         email: this.fromEmail
-      };
-      
-      sendSmtpEmail.to = [{ email: to, name: username }];
-      sendSmtpEmail.subject = 'Bem-vindo ao RMJ Consultas - Sua senha de acesso';
-      sendSmtpEmail.htmlContent = `
+      },
+      to: [{ 
+        email: to, 
+        name: username 
+      }],
+      subject: 'Bem-vindo ao RMJ Consultas - Sua senha de acesso',
+      htmlContent: `
         <html>
           <head>
             <style>
@@ -72,31 +99,26 @@ class BrevoEmailService implements EmailService {
             </div>
           </body>
         </html>
-      `;
+      `
+    };
 
-      const response = await this.apiInstance.sendTransacEmail(sendSmtpEmail);
-      console.log('✅ Email enviado com sucesso via Brevo:', response.messageId);
-      return true;
-    } catch (error) {
-      console.error('❌ Erro ao enviar email via Brevo:', error);
-      return false;
-    }
+    return await this.sendEmail(emailData);
   }
 
   async sendWelcomeEmail(to: string, username: string): Promise<boolean> {
     console.log(`📧 Enviando boas-vindas para ${to} via Brevo`);
     
-    try {
-      const sendSmtpEmail = new brevo.SendSmtpEmail();
-      
-      sendSmtpEmail.sender = {
+    const emailData = {
+      sender: {
         name: this.fromName,
         email: this.fromEmail
-      };
-      
-      sendSmtpEmail.to = [{ email: to, name: username }];
-      sendSmtpEmail.subject = 'Bem-vindo ao RMJ Consultas';
-      sendSmtpEmail.htmlContent = `
+      },
+      to: [{ 
+        email: to, 
+        name: username 
+      }],
+      subject: 'Bem-vindo ao RMJ Consultas',
+      htmlContent: `
         <html>
           <head>
             <style>
@@ -127,31 +149,26 @@ class BrevoEmailService implements EmailService {
             </div>
           </body>
         </html>
-      `;
+      `
+    };
 
-      const response = await this.apiInstance.sendTransacEmail(sendSmtpEmail);
-      console.log('✅ Email de boas-vindas enviado via Brevo:', response.messageId);
-      return true;
-    } catch (error) {
-      console.error('❌ Erro ao enviar email de boas-vindas via Brevo:', error);
-      return false;
-    }
+    return await this.sendEmail(emailData);
   }
 
   async sendPasswordResetEmail(to: string, username: string, newPassword: string): Promise<boolean> {
     console.log(`📧 Enviando nova senha para ${to} via Brevo`);
     
-    try {
-      const sendSmtpEmail = new brevo.SendSmtpEmail();
-      
-      sendSmtpEmail.sender = {
+    const emailData = {
+      sender: {
         name: this.fromName,
         email: this.fromEmail
-      };
-      
-      sendSmtpEmail.to = [{ email: to, name: username }];
-      sendSmtpEmail.subject = 'RMJ Consultas - Senha redefinida';
-      sendSmtpEmail.htmlContent = `
+      },
+      to: [{ 
+        email: to, 
+        name: username 
+      }],
+      subject: 'RMJ Consultas - Senha redefinida',
+      htmlContent: `
         <html>
           <head>
             <style>
@@ -190,15 +207,10 @@ class BrevoEmailService implements EmailService {
             </div>
           </body>
         </html>
-      `;
+      `
+    };
 
-      const response = await this.apiInstance.sendTransacEmail(sendSmtpEmail);
-      console.log('✅ Email de redefinição enviado via Brevo:', response.messageId);
-      return true;
-    } catch (error) {
-      console.error('❌ Erro ao enviar email de redefinição via Brevo:', error);
-      return false;
-    }
+    return await this.sendEmail(emailData);
   }
 }
 
