@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Eye, EyeOff, Lock, User } from "lucide-react";
-import logoPath from "@assets/rmj_1751973121690.jpeg";
+import logoPath from "@assets/image_1752843323130.png";
 import { useToast } from "@/hooks/use-toast";
 import type { LoginData } from "@shared/schema";
 
