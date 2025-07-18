@@ -7,8 +7,19 @@ const app = express();
 // Trust proxy for deployment (important for Replit)
 app.set('trust proxy', 1);
 
-app.use(express.json());
+// JSON parsing middleware with error handling
+app.use(express.json({ limit: '50mb' }));
+
 app.use(express.urlencoded({ extended: false }));
+
+// Global error handler for JSON parsing errors
+app.use((err: any, req: Request, res: Response, next: NextFunction) => {
+  if (err instanceof SyntaxError && 'body' in err) {
+    console.error('❌ JSON Parse Error:', err.message);
+    return res.status(400).json({ error: 'Invalid JSON format' });
+  }
+  next(err);
+});
 
 app.use((req, res, next) => {
   const start = Date.now();
@@ -45,10 +56,15 @@ app.use((req, res, next) => {
 
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
     const status = err.status || err.statusCode || 500;
-    const message = err.message || "Internal Server Error";
+    let message = err.message || "Internal Server Error";
 
-    res.status(status).json({ message });
-    throw err;
+    // Handle specific JSON parsing errors
+    if (err instanceof SyntaxError && err.message.includes('JSON')) {
+      message = 'Invalid JSON format';
+    }
+
+    console.error('❌ Server error:', err);
+    res.status(status).json({ error: message });
   });
 
   // importantly only setup vite in development and after

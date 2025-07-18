@@ -1,0 +1,128 @@
+2025-07-18 15:32:29.60
+3f362b64
+User
+_bufferedAmount: 0,
+2025-07-18 15:32:29.60
+3f362b64
+User
+_isServer: false,
+2025-07-18 15:32:29.60
+3f362b64
+User
+_redirects: 0,
+2025-07-18 15:32:29.60
+3f362b64
+User
+_autoPong: true,
+2025-07-18 15:32:29.60
+3f362b64
+User
+_req: null,
+2025-07-18 15:32:29.60
+3f362b64
+User
+[Symbol(shapeMode)]: false,
+2025-07-18 15:32:29.60
+3f362b64
+User
+},
+2025-07-18 15:32:29.60
+3f362b64
+User
+writeBuffer: undefined,
+2025-07-18 15:32:29.60
+3f362b64
+User
+tlsState: 0,
+2025-07-18 15:32:29.60
+3f362b64
+User
+tlsRead: undefined,
+2025-07-18 15:32:29.60
+3f362b64
+User
+tlsWrite: undefined
+2025-07-18 15:32:29.60
+3f362b64
+User
+_ending: true,
+2025-07-18 15:32:29.60
+3f362b64
+User
+},
+2025-07-18 15:32:29.60
+3f362b64
+User
+binary: false,
+2025-07-18 15:32:29.60
+3f362b64
+User
+processID: -1466454524,
+2025-07-18 15:32:29.60
+3f362b64
+User
+secretKey: 1213437007,
+2025-07-18 15:32:29.60
+3f362b64
+User
+ssl: false,
+2025-07-18 15:32:29.60
+3f362b64
+User
+_connectionTimeoutMillis: 0,
+2025-07-18 15:32:29.60
+3f362b64
+User
+config: {
+2025-07-18 15:32:29.60
+3f362b64
+User
+maxUses: Infinity,
+2025-07-18 15:32:29.60
+3f362b64
+User
+allowExitOnIdle: false,
+2025-07-18 15:32:29.60
+3f362b64
+User
+maxLifetimeSeconds: 0,
+2025-07-18 15:32:29.60
+3f362b64
+User
+_connectionCallback: null,
+2025-07-18 15:32:29.60
+3f362b64
+User
+hasExecuted: true,
+2025-07-18 15:32:29.60
+3f362b64
+User
+_poolUseCount: 3
+2025-07-18 15:32:29.60
+3f362b64
+User
+}
+2025-07-18 15:32:29.60
+3f362b64
+User
+Node.js v20.18.1
+2025-07-18 15:32:29.62
+3f362b64
+User
+npm notice New major version of npm available! 10.8.2 -> 11.4.2
+2025-07-18 15:32:29.62
+3f362b64
+User
+npm notice Changelog: https://github.com/npm/cli/releases/tag/v11.4.2
+2025-07-18 15:32:29.63
+3f362b64
+System
+command finished with error [npm run start]: exit status 1
+2025-07-18 15:32:47.83
+3f362b64
+User
+> rest-express@1.0.0 start
+2025-07-18 15:32:47.83
+3f362b64
+User
+> NODE_ENV=production node dist/index.js
