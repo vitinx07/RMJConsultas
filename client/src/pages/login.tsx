@@ -128,8 +128,17 @@ export default function Login() {
               {isLoggingIn ? "Entrando..." : "Entrar"}
             </Button>
           </form>
-
-
+          
+          <div className="mt-6 text-center">
+            <Button 
+              type="button" 
+              variant="link" 
+              className="text-sm text-muted-foreground hover:text-primary"
+              onClick={() => window.location.href = "/forgot-password"}
+            >
+              Esqueceu sua senha?
+            </Button>
+          </div>
         </CardContent>
       </Card>
     </div>

@@ -13,11 +13,14 @@ import {
   createFavoriteClientSchema,
   updateFavoriteClientSchema,
   createNotificationSchema,
-  createBenefitMonitoringSchema
+  createBenefitMonitoringSchema,
+  resetPasswordSchema,
+  sendCustomEmailSchema
 } from "@shared/schema";
 import { banrisulApi, BanrisulApiError } from "./banrisul-api";
 import { generateJWT, requireAuthHybrid } from "./jwt-auth";
 import { randomBytes } from "crypto";
+import { emailService } from "./email";
 
 
 export async function registerRoutes(app: Express): Promise<Server> {
@@ -242,6 +245,96 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Erro ao redefinir senha:", error);
       res.status(500).json({ error: error.message || "Erro interno do servidor" });
+    }
+  });
+
+  // Request password reset link (public)
+  app.post("/api/auth/request-reset", async (req, res) => {
+    try {
+      const { email } = req.body;
+      
+      if (!email) {
+        return res.status(400).json({ error: "Email é obrigatório" });
+      }
+      
+      const user = await storage.getUserByEmail(email);
+      if (!user) {
+        // Don't reveal if user exists - security best practice
+        return res.json({ message: "Se o email estiver cadastrado, você receberá um link de redefinição." });
+      }
+      
+      const resetToken = randomBytes(32).toString('hex');
+      const expiresAt = new Date(Date.now() + 60 * 60 * 1000); // 1 hora
+      
+      await storage.createPasswordResetToken(user.id, resetToken, expiresAt);
+      
+      const emailSent = await emailService.sendPasswordResetLink(user.email!, user.username, resetToken);
+      
+      res.json({ 
+        message: "Se o email estiver cadastrado, você receberá um link de redefinição.",
+        emailSent 
+      });
+    } catch (error) {
+      console.error("Erro ao solicitar redefinição:", error);
+      res.status(500).json({ error: "Erro interno do servidor" });
+    }
+  });
+
+  // Reset password with token (public)
+  app.post("/api/auth/reset-password", async (req, res) => {
+    try {
+      const { token, newPassword } = resetPasswordSchema.parse(req.body);
+      
+      const resetToken = await storage.getPasswordResetToken(token);
+      if (!resetToken || resetToken.used || resetToken.expiresAt < new Date()) {
+        return res.status(400).json({ error: "Token inválido ou expirado" });
+      }
+      
+      await storage.updateUserPassword(resetToken.userId, newPassword);
+      await storage.markPasswordResetTokenAsUsed(resetToken.id);
+      
+      res.json({ message: "Senha redefinida com sucesso" });
+    } catch (error) {
+      console.error("Erro ao redefinir senha:", error);
+      res.status(400).json({ error: "Dados inválidos" });
+    }
+  });
+
+  // Send custom email (admin only)
+  app.post("/api/admin/send-email", requireAuthHybrid, requireAdmin, async (req, res) => {
+    try {
+      const { recipients, subject, message, isHtml } = sendCustomEmailSchema.parse(req.body);
+      
+      const users = await storage.getUsersByIds(recipients);
+      const emailsToSend = users.filter(user => user.email).map(user => user.email!);
+      
+      if (emailsToSend.length === 0) {
+        return res.status(400).json({ error: "Nenhum usuário com email encontrado" });
+      }
+      
+      let successCount = 0;
+      const results = [];
+      
+      for (const email of emailsToSend) {
+        try {
+          const sent = await emailService.sendCustomEmail(email, subject, message, isHtml);
+          if (sent) successCount++;
+          results.push({ email, sent });
+        } catch (error) {
+          console.error(`Erro ao enviar email para ${email}:`, error);
+          results.push({ email, sent: false, error: error.message });
+        }
+      }
+      
+      res.json({
+        message: `${successCount} de ${emailsToSend.length} emails enviados com sucesso`,
+        totalSent: successCount,
+        totalRequested: emailsToSend.length,
+        results
+      });
+    } catch (error) {
+      console.error("Erro ao enviar emails:", error);
+      res.status(400).json({ error: "Dados inválidos" });
     }
   });
 

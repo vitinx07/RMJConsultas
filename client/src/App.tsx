@@ -13,6 +13,10 @@ import Dashboard from "@/pages/dashboard";
 import ConsultationHistory from "@/pages/consultation-history";
 import FavoriteClients from "@/pages/favorite-clients";
 import Notifications from "@/pages/notifications";
+import EmailManagement from "@/pages/EmailManagement";
+import ResetPassword from "@/pages/ResetPassword";
+import ForgotPassword from "@/pages/ForgotPassword";
+import EditUser from "@/pages/EditUser";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -35,9 +39,15 @@ function Router() {
     );
   }
 
-  // Se não está autenticado, mostra login
+  // Se não está autenticado, mostra login ou páginas públicas
   if (!isAuthenticated) {
-    return <Login />;
+    return (
+      <Switch>
+        <Route path="/reset-password" component={ResetPassword} />
+        <Route path="/forgot-password" component={ForgotPassword} />
+        <Route component={Login} />
+      </Switch>
+    );
   }
 
   // Se está autenticado, mostra o app principal
@@ -51,6 +61,8 @@ function Router() {
         <Route path="/favoritos" component={FavoriteClients} />
         <Route path="/notificacoes" component={Notifications} />
         <Route path="/usuarios" component={UserManagement} />
+        <Route path="/usuarios/:id/editar" component={EditUser} />
+        <Route path="/admin/emails" component={EmailManagement} />
         <Route component={NotFound} />
       </Switch>
     </div>

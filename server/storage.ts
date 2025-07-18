@@ -5,6 +5,7 @@ import {
   favoriteClients,
   notifications,
   benefitMonitoring,
+  passwordResetTokens,
   type User,
   type CreateUser,
   type UpdateUser,
@@ -28,6 +29,8 @@ export interface IStorage {
   // User operations
   getUserById(id: string): Promise<User | undefined>;
   getUserByUsername(username: string): Promise<User | undefined>;
+  getUserByEmail(email: string): Promise<User | undefined>;
+  getUsersByIds(ids: string[]): Promise<User[]>;
   createUser(userData: CreateUser, creatorId?: string): Promise<User>;
   updateUser(id: string, userData: UpdateUser): Promise<User | undefined>;
   deleteUser(id: string): Promise<boolean>;
@@ -35,6 +38,12 @@ export interface IStorage {
   validateCredentials(username: string, password: string): Promise<User | null>;
   createAdminUser(): Promise<void>;
   resetUserPassword(userId: string, newPassword?: string): Promise<{ user: User; password: string }>;
+  updateUserPassword(userId: string, newPassword: string): Promise<void>;
+  
+  // Password reset tokens
+  createPasswordResetToken(userId: string, token: string, expiresAt: Date): Promise<void>;
+  getPasswordResetToken(token: string): Promise<{ id: string; userId: string; used: boolean; expiresAt: Date } | undefined>;
+  markPasswordResetTokenAsUsed(tokenId: string): Promise<void>;
 
   // Consultation operations
   createConsultation(consultationData: CreateConsultation): Promise<Consultation>;
@@ -74,6 +83,16 @@ export class DatabaseStorage implements IStorage {
   async getUserByUsername(username: string): Promise<User | undefined> {
     const [user] = await db.select().from(users).where(eq(users.username, username));
     return user;
+  }
+
+  async getUserByEmail(email: string): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.email, email));
+    return user;
+  }
+
+  async getUsersByIds(ids: string[]): Promise<User[]> {
+    if (ids.length === 0) return [];
+    return await db.select().from(users).where(sql`${users.id} = ANY(${ids})`);
   }
 
   async createUser(userData: CreateUser, creatorId?: string): Promise<User> {
@@ -215,6 +234,44 @@ export class DatabaseStorage implements IStorage {
       .returning();
     
     console.log("✅ Usuário administrador criado com senha: admin123");
+  }
+
+  async updateUserPassword(userId: string, newPassword: string): Promise<void> {
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    
+    await db
+      .update(users)
+      .set({
+        passwordHash: hashedPassword,
+        updatedAt: new Date(),
+      })
+      .where(eq(users.id, userId));
+  }
+
+  // Password reset tokens
+  async createPasswordResetToken(userId: string, token: string, expiresAt: Date): Promise<void> {
+    await db.insert(passwordResetTokens).values({
+      userId,
+      token,
+      expiresAt,
+      used: false,
+    });
+  }
+
+  async getPasswordResetToken(token: string): Promise<{ id: string; userId: string; used: boolean; expiresAt: Date } | undefined> {
+    const [resetToken] = await db
+      .select()
+      .from(passwordResetTokens)
+      .where(eq(passwordResetTokens.token, token));
+    
+    return resetToken;
+  }
+
+  async markPasswordResetTokenAsUsed(tokenId: string): Promise<void> {
+    await db
+      .update(passwordResetTokens)
+      .set({ used: true })
+      .where(eq(passwordResetTokens.id, tokenId));
   }
 
   // Consultation operations

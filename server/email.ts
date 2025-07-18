@@ -5,6 +5,8 @@ export interface EmailService {
   sendPasswordEmail(to: string, password: string, username: string): Promise<boolean>;
   sendWelcomeEmail(to: string, username: string): Promise<boolean>;
   sendPasswordResetEmail(to: string, username: string, newPassword: string): Promise<boolean>;
+  sendCustomEmail(to: string, subject: string, message: string, isHtml?: boolean): Promise<boolean>;
+  sendPasswordResetLink(to: string, username: string, resetToken: string): Promise<boolean>;
 }
 
 // Brevo implementation using direct API calls
@@ -199,6 +201,86 @@ class BrevoEmailService implements EmailService {
                 </div>
                 
                 <p style="color: #dc2626;"><strong>Importante:</strong> Por questões de segurança, recomendamos que você altere sua senha após fazer login.</p>
+              </div>
+              <div class="footer">
+                <p>RMJ Consultas - Sistema de Benefícios INSS</p>
+                <p>Este é um email automático, não responda.</p>
+              </div>
+            </div>
+          </body>
+        </html>
+      `
+    };
+
+    return await this.sendEmail(emailData);
+  }
+
+  async sendCustomEmail(to: string, subject: string, message: string, isHtml: boolean = false): Promise<boolean> {
+    console.log(`📧 Enviando email personalizado para ${to} via Brevo`);
+    
+    const emailData = {
+      sender: {
+        name: this.fromName,
+        email: this.fromEmail
+      },
+      to: [{ 
+        email: to, 
+        name: to.split('@')[0] 
+      }],
+      subject: subject,
+      [isHtml ? 'htmlContent' : 'textContent']: isHtml ? message : message
+    };
+
+    return await this.sendEmail(emailData);
+  }
+
+  async sendPasswordResetLink(to: string, username: string, resetToken: string): Promise<boolean> {
+    console.log(`📧 Enviando link de redefinição de senha para ${to} via Brevo`);
+    
+    const resetLink = `${process.env.FRONTEND_URL || 'http://localhost:5000'}/reset-password?token=${resetToken}`;
+    
+    const emailData = {
+      sender: {
+        name: this.fromName,
+        email: this.fromEmail
+      },
+      to: [{ 
+        email: to, 
+        name: username 
+      }],
+      subject: 'RMJ Consultas - Redefinir Senha',
+      htmlContent: `
+        <html>
+          <head>
+            <style>
+              body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+              .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+              .header { background-color: #2563eb; color: white; padding: 20px; text-align: center; border-radius: 8px 8px 0 0; }
+              .content { padding: 20px; background-color: #f9fafb; border-radius: 0 0 8px 8px; }
+              .reset-button { display: inline-block; padding: 12px 24px; background-color: #2563eb; color: white; text-decoration: none; border-radius: 6px; margin: 20px 0; }
+              .footer { padding: 20px; text-align: center; font-size: 12px; color: #666; }
+            </style>
+          </head>
+          <body>
+            <div class="container">
+              <div class="header">
+                <h1>RMJ Consultas</h1>
+                <p>Sistema de Benefícios INSS</p>
+              </div>
+              <div class="content">
+                <h2>Redefinir Senha</h2>
+                <p>Olá <strong>${username}</strong>,</p>
+                <p>Você solicitou a redefinição de sua senha. Clique no botão abaixo para criar uma nova senha:</p>
+                
+                <div style="text-align: center;">
+                  <a href="${resetLink}" class="reset-button">Redefinir Senha</a>
+                </div>
+                
+                <p>Se você não solicitou esta redefinição, ignore este email.</p>
+                <p><strong>Este link expira em 1 hora.</strong></p>
+                
+                <p>Ou copie e cole o link abaixo no seu navegador:</p>
+                <p style="word-break: break-all; color: #666;">${resetLink}</p>
               </div>
               <div class="footer">
                 <p>RMJ Consultas - Sistema de Benefícios INSS</p>

@@ -327,6 +327,13 @@ export default function UserManagement() {
             </div>
           )}
           
+          <Link href="/admin/emails">
+            <Button variant="outline" className="flex items-center gap-2">
+              <Mail className="h-4 w-4" />
+              Enviar Emails
+            </Button>
+          </Link>
+          
           <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
             <DialogTrigger asChild>
               <Button>

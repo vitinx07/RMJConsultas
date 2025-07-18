@@ -235,6 +235,20 @@ export const benefitMonitoring = pgTable("benefit_monitoring", {
   index("idx_benefit_monitoring_check").on(table.lastCheck),
 ]);
 
+// Tokens de redefinição de senha
+export const passwordResetTokens = pgTable("password_reset_tokens", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  userId: uuid("user_id").references(() => users.id, { onDelete: "cascade" }).notNull(),
+  token: varchar("token", { length: 128 }).notNull().unique(),
+  expiresAt: timestamp("expires_at").notNull(),
+  used: boolean("used").default(false),
+  createdAt: timestamp("created_at").defaultNow(),
+}, (table) => [
+  index("idx_password_reset_tokens_user").on(table.userId),
+  index("idx_password_reset_tokens_token").on(table.token),
+  index("idx_password_reset_tokens_expires").on(table.expiresAt),
+]);
+
 // User relations
 export const usersRelations = relations(users, ({ many, one }) => ({
   createdUsers: many(users, { relationName: "creator" }),
@@ -359,6 +373,18 @@ export const updateFavoriteClientSchema = z.object({
 export const createNotificationSchema = createInsertSchema(notifications).omit({
   id: true,
   createdAt: true,
+});
+
+export const resetPasswordSchema = z.object({
+  token: z.string().min(1, "Token é obrigatório"),
+  newPassword: z.string().min(6, "Nova senha deve ter pelo menos 6 caracteres"),
+});
+
+export const sendCustomEmailSchema = z.object({
+  recipients: z.array(z.string().uuid("ID de usuário inválido")).min(1, "Pelo menos um destinatário é obrigatório"),
+  subject: z.string().min(1, "Assunto é obrigatório").max(200, "Assunto muito longo"),
+  message: z.string().min(1, "Mensagem é obrigatória").max(5000, "Mensagem muito longa"),
+  isHtml: z.boolean().default(false),
 });
 
 export const createBenefitMonitoringSchema = createInsertSchema(benefitMonitoring).omit({
