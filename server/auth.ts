@@ -27,13 +27,17 @@ export interface AuthenticatedRequest extends Request {
 
 // Middleware para verificar se o usuário está autenticado
 export const requireAuth = async (req: Request, res: Response, next: NextFunction) => {
+  console.log(`🔒 Auth check - Path: ${req.path}, Session exists: ${!!req.session}, UserID: ${req.session?.userId || 'none'}`);
+  
   if (!req.session || !req.session.userId) {
+    console.log(`❌ Auth failed - No session or userId`);
     return res.status(401).json({ error: "Não autenticado" });
   }
 
   try {
     const user = await storage.getUserById(req.session.userId);
     if (!user || !user.isActive) {
+      console.log(`❌ Auth failed - User not found or inactive: ${req.session.userId}`);
       req.session.destroy((err) => {
         if (err) console.error("Erro ao destruir sessão:", err);
       });
@@ -48,6 +52,7 @@ export const requireAuth = async (req: Request, res: Response, next: NextFunctio
       lastName: user.lastName || undefined,
     };
 
+    console.log(`✅ Auth success - User: ${user.username}, Role: ${user.role}`);
     next();
   } catch (error) {
     console.error("Erro na autenticação:", error);

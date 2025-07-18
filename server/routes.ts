@@ -16,6 +16,7 @@ import {
   createBenefitMonitoringSchema
 } from "@shared/schema";
 import { banrisulApi, BanrisulApiError } from "./banrisul-api";
+import { generateJWT, requireAuthHybrid } from "./jwt-auth";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Configure session store
@@ -27,17 +28,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
     tableName: "sessions",
   });
 
-  // Session middleware
+  // Session middleware - enhanced for deployment
   app.use(session({
     store: sessionStore,
     secret: process.env.SESSION_SECRET || "fallback-secret-key-change-in-production",
     resave: false,
     saveUninitialized: false,
+    rolling: true, // Reset expiry on each request
     cookie: {
-      secure: false, // Set to false for deployment compatibility
+      secure: false, // Keep false for deployment compatibility
       httpOnly: true,
       maxAge: 24 * 60 * 60 * 1000, // 24 hours
       sameSite: 'lax',
+      domain: undefined, // Let Express handle domain
     },
     name: 'connect.sid', // Explicit session name
   }));
@@ -45,7 +48,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Debug middleware for session
   app.use((req, res, next) => {
     if (req.path.includes('/api/auth/')) {
-      console.log(`🔍 Session debug - Path: ${req.path}, SessionID: ${req.sessionID || 'none'}, UserID: ${req.session?.userId || 'none'}`);
+      console.log(`🔍 Session debug - Path: ${req.path}, Method: ${req.method}, SessionID: ${req.sessionID || 'none'}, UserID: ${req.session?.userId || 'none'}`);
+      console.log(`🔍 Headers: ${JSON.stringify(req.headers.cookie || 'no-cookie')}`);
+      console.log(`🔍 Session object: ${JSON.stringify(req.session || 'none')}`);
     }
     next();
   });
@@ -76,17 +81,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Save session and wait for it to be stored
       req.session.userId = user.id;
       
+      // Generate JWT token as backup
+      const token = generateJWT(user);
+      
       req.session.save((err) => {
         if (err) {
           console.error("Erro ao salvar sessão:", err);
           return res.status(500).json({ error: "Erro ao salvar sessão" });
         }
         
-        // Return user without password
+        // Return user without password plus JWT token
         const { passwordHash, ...userWithoutPassword } = user;
         res.json({
           message: "Login realizado com sucesso",
           user: userWithoutPassword,
+          token: token, // Include JWT token for backup authentication
         });
       });
     } catch (error) {
@@ -106,7 +115,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Protected routes - Get current user
-  app.get("/api/auth/me", requireAuth, async (req, res) => {
+  app.get("/api/auth/me", requireAuthHybrid, async (req, res) => {
     try {
       const user = await storage.getUserById(req.user!.id);
       if (!user) {
@@ -122,7 +131,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // User management routes (Admin only)
-  app.get("/api/users", requireAuth, requireAdmin, async (req, res) => {
+  app.get("/api/users", requireAuthHybrid, requireAdmin, async (req, res) => {
     try {
       const users = await storage.getAllUsers();
       const usersWithoutPasswords = users.map(({ passwordHash, ...user }) => user);
@@ -133,7 +142,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/users", requireAuth, requireAdmin, async (req, res) => {
+  app.post("/api/users", requireAuthHybrid, requireAdmin, async (req, res) => {
     try {
       const userData = createUserSchema.parse(req.body);
       
@@ -166,7 +175,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.put("/api/users/:id", requireAuth, requireAdmin, async (req, res) => {
+  app.put("/api/users/:id", requireAuthHybrid, requireAdmin, async (req, res) => {
     try {
       const { id } = req.params;
       const userData = updateUserSchema.parse(req.body);
@@ -187,7 +196,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.delete("/api/users/:id", requireAuth, requireAdmin, async (req, res) => {
+  app.delete("/api/users/:id", requireAuthHybrid, requireAdmin, async (req, res) => {
     try {
       const { id } = req.params;
       
@@ -209,7 +218,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Reset user password (admin only)
-  app.post("/api/users/:id/reset-password", requireAuth, requireAdmin, async (req, res) => {
+  app.post("/api/users/:id/reset-password", requireAuthHybrid, requireAdmin, async (req, res) => {
     try {
       const { id } = req.params;
       const { newPassword } = req.body;
@@ -300,7 +309,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   };
 
   // Existing benefit API routes (require authentication)
-  app.post("/api/multicorban/cpf", requireAuth, requireAnyRole, async (req, res) => {
+  app.post("/api/multicorban/cpf", requireAuthHybrid, requireAnyRole, async (req, res) => {
     try {
       const { cpf } = req.body;
       
@@ -371,7 +380,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/multicorban/offline", requireAuth, requireAnyRole, async (req, res) => {
+  app.post("/api/multicorban/offline", requireAuthHybrid, requireAnyRole, async (req, res) => {
     try {
       const { beneficio } = req.body;
       
@@ -441,7 +450,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Banrisul API endpoints
-  app.post("/api/banrisul/contracts", requireAuth, requireAnyRole, async (req, res) => {
+  app.post("/api/banrisul/contracts", requireAuthHybrid, requireAnyRole, async (req, res) => {
     try {
       const { cpf } = req.body;
       
@@ -480,7 +489,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/banrisul/simulate", requireAuth, requireAnyRole, async (req, res) => {
+  app.post("/api/banrisul/simulate", requireAuthHybrid, requireAnyRole, async (req, res) => {
     try {
       const { 
         cpf, 
@@ -594,7 +603,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // ============== NOVAS ROTAS PARA DASHBOARD E CRM ==============
 
   // Dashboard metrics (admin/manager only)
-  app.get("/api/dashboard/stats", requireAuth, requireManagerOrAdmin, async (req, res) => {
+  app.get("/api/dashboard/stats", requireAuthHybrid, requireManagerOrAdmin, async (req, res) => {
     try {
       const filters = {
         startDate: req.query.startDate as string | undefined,
@@ -609,7 +618,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // User-specific dashboard stats
-  app.get("/api/dashboard/user-stats", requireAuth, requireAnyRole, async (req, res) => {
+  app.get("/api/dashboard/user-stats", requireAuthHybrid, requireAnyRole, async (req, res) => {
     try {
       const userId = req.user!.id;
       const filters = {
@@ -625,7 +634,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Consultation history routes
-  app.get("/api/consultations", requireAuth, requireAnyRole, async (req, res) => {
+  app.get("/api/consultations", requireAuthHybrid, requireAnyRole, async (req, res) => {
     try {
       const userId = req.user!.id;
       const limit = parseInt(req.query.limit as string) || 50;
@@ -637,7 +646,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/consultations/all", requireAuth, requireAnyRole, async (req, res) => {
+  app.get("/api/consultations/all", requireAuthHybrid, requireAnyRole, async (req, res) => {
     try {
       // Only admins and managers can see all consultations
       const user = req.user!;
@@ -654,21 +663,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Consultation history
-  app.get("/api/consultations", requireAuth, requireAnyRole, async (req, res) => {
-    try {
-      const userId = req.user!.id;
-      const limit = parseInt(req.query.limit as string) || 50;
-      const consultations = await storage.getConsultationsByUser(userId, limit);
-      res.json(consultations);
-    } catch (error) {
-      console.error("Erro ao obter histórico de consultas:", error);
-      res.status(500).json({ error: "Erro ao carregar histórico" });
-    }
-  });
+
 
   // Create consultation record
-  app.post("/api/consultations", requireAuth, requireAnyRole, async (req, res) => {
+  app.post("/api/consultations", requireAuthHybrid, requireAnyRole, async (req, res) => {
     try {
       const userId = req.user!.id;
       const consultationData = createConsultationSchema.parse({
@@ -685,7 +683,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Check for existing consultation
-  app.get("/api/consultations/check", requireAuth, requireAnyRole, async (req, res) => {
+  app.get("/api/consultations/check", requireAuthHybrid, requireAnyRole, async (req, res) => {
     try {
       const { cpf, benefitNumber } = req.query;
       const userId = req.user!.id;
@@ -707,7 +705,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Favorite clients management
-  app.get("/api/favorite-clients", requireAuth, requireAnyRole, async (req, res) => {
+  app.get("/api/favorite-clients", requireAuthHybrid, requireAnyRole, async (req, res) => {
     try {
       const userId = req.user!.id;
       const clients = await storage.getFavoriteClientsByUser(userId);
@@ -718,7 +716,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/favorite-clients", requireAuth, requireAnyRole, async (req, res) => {
+  app.post("/api/favorite-clients", requireAuthHybrid, requireAnyRole, async (req, res) => {
     try {
       const userId = req.user!.id;
       const clientData = createFavoriteClientSchema.parse({
@@ -740,7 +738,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.put("/api/favorite-clients/:id", requireAuth, requireAnyRole, async (req, res) => {
+  app.put("/api/favorite-clients/:id", requireAuthHybrid, requireAnyRole, async (req, res) => {
     try {
       const { id } = req.params;
       const clientData = updateFavoriteClientSchema.parse(req.body);
@@ -757,7 +755,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.delete("/api/favorite-clients/:id", requireAuth, requireAnyRole, async (req, res) => {
+  app.delete("/api/favorite-clients/:id", requireAuthHybrid, requireAnyRole, async (req, res) => {
     try {
       const { id } = req.params;
       const deleted = await storage.deleteFavoriteClient(id);
@@ -774,7 +772,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Notifications management
-  app.get("/api/notifications", requireAuth, requireAnyRole, async (req, res) => {
+  app.get("/api/notifications", requireAuthHybrid, requireAnyRole, async (req, res) => {
     try {
       const userId = req.user!.id;
       const limit = parseInt(req.query.limit as string) || 50;
@@ -786,7 +784,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/notifications/unread-count", requireAuth, requireAnyRole, async (req, res) => {
+  app.get("/api/notifications/unread-count", requireAuthHybrid, requireAnyRole, async (req, res) => {
     try {
       const userId = req.user!.id;
       const count = await storage.getUnreadNotificationsCount(userId);
@@ -797,7 +795,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/notifications/:id/read", requireAuth, requireAnyRole, async (req, res) => {
+  app.post("/api/notifications/:id/read", requireAuthHybrid, requireAnyRole, async (req, res) => {
     try {
       const { id } = req.params;
       const marked = await storage.markNotificationAsRead(id);
@@ -814,7 +812,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Benefit monitoring
-  app.get("/api/benefit-monitoring", requireAuth, requireAnyRole, async (req, res) => {
+  app.get("/api/benefit-monitoring", requireAuthHybrid, requireAnyRole, async (req, res) => {
     try {
       const userId = req.user!.id;
       const monitoring = await storage.getBenefitMonitoringByUser(userId);
@@ -825,7 +823,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/benefit-monitoring", requireAuth, requireAnyRole, async (req, res) => {
+  app.post("/api/benefit-monitoring", requireAuthHybrid, requireAnyRole, async (req, res) => {
     try {
       const userId = req.user!.id;
       const monitoringData = createBenefitMonitoringSchema.parse({
@@ -842,7 +840,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Admin route to get all consultations (for management reporting)
-  app.get("/api/admin/consultations", requireAuth, requireManagerOrAdmin, async (req, res) => {
+  app.get("/api/admin/consultations", requireAuthHybrid, requireManagerOrAdmin, async (req, res) => {
     try {
       const limit = parseInt(req.query.limit as string) || 100;
       const consultations = await storage.getConsultationsByUser("", limit); // Empty string to get all

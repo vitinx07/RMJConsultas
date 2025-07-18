@@ -22,7 +22,17 @@ const setAuthState = (newState: Partial<typeof authState>) => {
 
 // Check authentication once on app load
 if (!authState.hasChecked) {
-  fetch("/api/auth/me", { credentials: 'include' })
+  const token = localStorage.getItem('authToken');
+  const headers: Record<string, string> = { 'credentials': 'include' };
+  
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+  }
+  
+  fetch("/api/auth/me", { 
+    credentials: 'include',
+    headers: token ? { 'Authorization': `Bearer ${token}` } : {}
+  })
     .then(response => {
       if (response.ok) {
         return response.json();
@@ -81,21 +91,21 @@ export function useAuth() {
 
       return response.json();
     },
-    onSuccess: async () => {
-      // Buscar dados do usuário após login bem-sucedido
-      try {
-        const response = await fetch("/api/auth/me", { credentials: 'include' });
-        if (response.ok) {
-          const userData = await response.json();
-          setAuthState({
-            user: userData,
-            isAuthenticated: true,
-            isLoading: false
-          });
-        }
-      } catch (error) {
-        console.error("Erro ao buscar dados do usuário:", error);
+    onSuccess: async (data) => {
+      // Store JWT token if provided
+      if (data.token) {
+        localStorage.setItem('authToken', data.token);
       }
+      
+      // Set user data from login response
+      if (data.user) {
+        setAuthState({
+          user: data.user,
+          isAuthenticated: true,
+          isLoading: false
+        });
+      }
+      
       queryClient.invalidateQueries();
     },
   });
@@ -115,6 +125,9 @@ export function useAuth() {
       return response.json();
     },
     onSuccess: () => {
+      // Clear JWT token
+      localStorage.removeItem('authToken');
+      
       setAuthState({
         user: null,
         isAuthenticated: false,
