@@ -127,6 +127,17 @@ export default function EmailManagement() {
   };
 
   const onSubmit = (data: EmailFormData) => {
+    console.log("Enviando email:", { ...data, recipients: selectedUsers });
+    
+    if (selectedUsers.length === 0) {
+      toast({
+        title: "Erro",
+        description: "Selecione pelo menos um destinatário",
+        variant: "destructive",
+      });
+      return;
+    }
+    
     sendEmailMutation.mutate({
       ...data,
       recipients: selectedUsers,

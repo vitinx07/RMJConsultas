@@ -532,19 +532,14 @@ export default function UserManagement() {
                       </TableCell>
                       <TableCell>
                         <div className="flex space-x-2">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => {
-                              // TODO: Implementar edição
-                              toast({
-                                title: "Em desenvolvimento",
-                                description: "Funcionalidade de edição será implementada em breve",
-                              });
-                            }}
-                          >
-                            <Edit className="h-4 w-4" />
-                          </Button>
+                          <Link href={`/usuarios/${user.id}/editar`}>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                            >
+                              <Edit className="h-4 w-4" />
+                            </Button>
+                          </Link>
                           
                           {user.id !== currentUser?.id && (
                             <AlertDialog>
