@@ -19,6 +19,7 @@ import { banrisulApi, BanrisulApiError } from "./banrisul-api";
 import { generateJWT, requireAuthHybrid } from "./jwt-auth";
 import { randomBytes } from "crypto";
 
+
 export async function registerRoutes(app: Express): Promise<Server> {
   // Configure Express for Replit deployment
   app.set('trust proxy', 1); // Trust first proxy (Replit's proxy)

@@ -1,4 +1,4 @@
-import { MailService } from '@sendgrid/mail';
+import * as brevo from '@getbrevo/brevo';
 
 // Email service interface
 export interface EmailService {
@@ -7,142 +7,196 @@ export interface EmailService {
   sendPasswordResetEmail(to: string, username: string, newPassword: string): Promise<boolean>;
 }
 
-// SendGrid implementation
-class SendGridEmailService implements EmailService {
-  private mailService: MailService;
-  private fromEmail: string = 'noreply@multicorban.com';
+// Brevo implementation
+class BrevoEmailService implements EmailService {
+  private apiInstance: brevo.TransactionalEmailsApi;
+  private fromEmail: string = '927880001@smtp-brevo.com';
+  private fromName: string = 'RMJ Consultas';
 
   constructor() {
-    this.mailService = new MailService();
-    if (process.env.SENDGRID_API_KEY) {
-      this.mailService.setApiKey(process.env.SENDGRID_API_KEY);
-    }
+    this.apiInstance = new brevo.TransactionalEmailsApi();
+    brevo.TransactionalEmailsApiApiKeys.apiKey = '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';
   }
 
   async sendPasswordEmail(to: string, password: string, username: string): Promise<boolean> {
-    if (!process.env.SENDGRID_API_KEY) {
-      console.log(`[EMAIL SIMULADO] Enviando senha para ${to}`);
-      console.log(`Username: ${username}`);
-      console.log(`Senha temporária: ${password}`);
-      return true;
-    }
-
+    console.log(`📧 Enviando senha para ${to} via Brevo`);
+    
     try {
-      await this.mailService.send({
-        to,
-        from: this.fromEmail,
-        subject: 'Bem-vindo ao Sistema MULTI CORBAN - Sua senha de acesso',
-        html: `
-          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-            <h1 style="color: #2563eb;">Bem-vindo ao Sistema MULTI CORBAN</h1>
-            <p>Olá <strong>${username}</strong>,</p>
-            <p>Sua conta foi criada com sucesso! Aqui estão seus dados de acesso:</p>
-            
-            <div style="background-color: #f3f4f6; padding: 20px; border-radius: 8px; margin: 20px 0;">
-              <p><strong>Usuário:</strong> ${username}</p>
-              <p><strong>Senha temporária:</strong> <code style="background-color: #e5e7eb; padding: 4px 8px; border-radius: 4px;">${password}</code></p>
+      const sendSmtpEmail = new brevo.SendSmtpEmail();
+      
+      sendSmtpEmail.sender = {
+        name: this.fromName,
+        email: this.fromEmail
+      };
+      
+      sendSmtpEmail.to = [{ email: to, name: username }];
+      sendSmtpEmail.subject = 'Bem-vindo ao RMJ Consultas - Sua senha de acesso';
+      sendSmtpEmail.htmlContent = `
+        <html>
+          <head>
+            <style>
+              body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+              .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+              .header { background-color: #2563eb; color: white; padding: 20px; text-align: center; border-radius: 8px 8px 0 0; }
+              .content { padding: 20px; background-color: #f9fafb; border-radius: 0 0 8px 8px; }
+              .password-box { background-color: #e5e7eb; padding: 15px; margin: 20px 0; text-align: center; border-radius: 8px; }
+              .password { font-size: 18px; font-weight: bold; color: #1f2937; }
+              .footer { padding: 20px; text-align: center; font-size: 12px; color: #666; }
+            </style>
+          </head>
+          <body>
+            <div class="container">
+              <div class="header">
+                <h1>RMJ Consultas</h1>
+                <p>Sistema de Benefícios INSS</p>
+              </div>
+              <div class="content">
+                <h2>Bem-vindo ao Sistema!</h2>
+                <p>Olá <strong>${username}</strong>,</p>
+                <p>Sua conta foi criada com sucesso! Aqui estão seus dados de acesso:</p>
+                
+                <div class="password-box">
+                  <p><strong>Usuário:</strong> ${username}</p>
+                  <p><strong>Senha temporária:</strong></p>
+                  <div class="password">${password}</div>
+                </div>
+                
+                <p style="color: #dc2626;"><strong>Importante:</strong> Por questões de segurança, recomendamos que você altere sua senha no primeiro acesso.</p>
+                
+                <p>Para acessar o sistema, visite o portal e faça login com as credenciais acima.</p>
+              </div>
+              <div class="footer">
+                <p>RMJ Consultas - Sistema de Benefícios INSS</p>
+                <p>Este é um email automático, não responda.</p>
+              </div>
             </div>
-            
-            <p style="color: #dc2626;"><strong>Importante:</strong> Por questões de segurança, recomendamos que você altere sua senha no primeiro acesso.</p>
-            
-            <p>Para acessar o sistema, visite o portal e faça login com as credenciais acima.</p>
-            
-            <hr style="margin: 30px 0;">
-            <p style="color: #6b7280; font-size: 14px;">
-              Este é um email automático. Não responda este email.<br>
-              Sistema MULTI CORBAN - Consulta de Benefícios INSS
-            </p>
-          </div>
-        `,
-      });
+          </body>
+        </html>
+      `;
+
+      const response = await this.apiInstance.sendTransacEmail(sendSmtpEmail);
+      console.log('✅ Email enviado com sucesso via Brevo:', response.messageId);
       return true;
     } catch (error) {
-      console.error('Erro ao enviar email:', error);
+      console.error('❌ Erro ao enviar email via Brevo:', error);
       return false;
     }
   }
 
   async sendWelcomeEmail(to: string, username: string): Promise<boolean> {
-    if (!process.env.SENDGRID_API_KEY) {
-      console.log(`[EMAIL SIMULADO] Enviando boas-vindas para ${to}`);
-      return true;
-    }
-
+    console.log(`📧 Enviando boas-vindas para ${to} via Brevo`);
+    
     try {
-      await this.mailService.send({
-        to,
-        from: this.fromEmail,
-        subject: 'Bem-vindo ao Sistema MULTI CORBAN',
-        html: `
-          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-            <h1 style="color: #2563eb;">Bem-vindo ao Sistema MULTI CORBAN!</h1>
-            <p>Olá <strong>${username}</strong>,</p>
-            <p>Sua conta foi ativada com sucesso e você já pode começar a usar o sistema.</p>
-            
-            <div style="background-color: #f0f9ff; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #2563eb;">
-              <h3 style="color: #2563eb; margin-top: 0;">Recursos disponíveis:</h3>
-              <ul>
-                <li>Consulta de benefícios por CPF</li>
-                <li>Consulta de benefícios por número</li>
-                <li>Simulação de refinanciamento Banrisul</li>
-                <li>Histórico de consultas</li>
-                <li>Gerenciamento de clientes favoritos</li>
-              </ul>
+      const sendSmtpEmail = new brevo.SendSmtpEmail();
+      
+      sendSmtpEmail.sender = {
+        name: this.fromName,
+        email: this.fromEmail
+      };
+      
+      sendSmtpEmail.to = [{ email: to, name: username }];
+      sendSmtpEmail.subject = 'Bem-vindo ao RMJ Consultas';
+      sendSmtpEmail.htmlContent = `
+        <html>
+          <head>
+            <style>
+              body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+              .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+              .header { background-color: #2563eb; color: white; padding: 20px; text-align: center; border-radius: 8px 8px 0 0; }
+              .content { padding: 20px; background-color: #f9fafb; border-radius: 0 0 8px 8px; }
+              .footer { padding: 20px; text-align: center; font-size: 12px; color: #666; }
+            </style>
+          </head>
+          <body>
+            <div class="container">
+              <div class="header">
+                <h1>RMJ Consultas</h1>
+                <p>Sistema de Benefícios INSS</p>
+              </div>
+              <div class="content">
+                <h2>Bem-vindo ao Sistema!</h2>
+                <p>Olá <strong>${username}</strong>,</p>
+                <p>Seja bem-vindo ao RMJ Consultas! Sua conta foi configurada com sucesso.</p>
+                <p>Agora você tem acesso a todas as funcionalidades do sistema para consulta de benefícios INSS.</p>
+                <p>Se tiver dúvidas, entre em contato com o administrador do sistema.</p>
+              </div>
+              <div class="footer">
+                <p>RMJ Consultas - Sistema de Benefícios INSS</p>
+                <p>Este é um email automático, não responda.</p>
+              </div>
             </div>
-            
-            <p>Se precisar de ajuda, entre em contato com o administrador do sistema.</p>
-            
-            <hr style="margin: 30px 0;">
-            <p style="color: #6b7280; font-size: 14px;">
-              Sistema MULTI CORBAN - Consulta de Benefícios INSS
-            </p>
-          </div>
-        `,
-      });
+          </body>
+        </html>
+      `;
+
+      const response = await this.apiInstance.sendTransacEmail(sendSmtpEmail);
+      console.log('✅ Email de boas-vindas enviado via Brevo:', response.messageId);
       return true;
     } catch (error) {
-      console.error('Erro ao enviar email de boas-vindas:', error);
+      console.error('❌ Erro ao enviar email de boas-vindas via Brevo:', error);
       return false;
     }
   }
 
   async sendPasswordResetEmail(to: string, username: string, newPassword: string): Promise<boolean> {
-    if (!process.env.SENDGRID_API_KEY) {
-      console.log(`[EMAIL SIMULADO] Enviando nova senha para ${to}`);
-      console.log(`Username: ${username}`);
-      console.log(`Nova senha: ${newPassword}`);
-      return true;
-    }
-
+    console.log(`📧 Enviando nova senha para ${to} via Brevo`);
+    
     try {
-      await this.mailService.send({
-        to,
-        from: this.fromEmail,
-        subject: 'Sistema MULTI CORBAN - Senha redefinida',
-        html: `
-          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-            <h1 style="color: #2563eb;">Senha Redefinida</h1>
-            <p>Olá <strong>${username}</strong>,</p>
-            <p>Sua senha foi redefinida com sucesso pelo administrador do sistema.</p>
-            
-            <div style="background-color: #f3f4f6; padding: 20px; border-radius: 8px; margin: 20px 0;">
-              <p><strong>Usuário:</strong> ${username}</p>
-              <p><strong>Nova senha:</strong> <code style="background-color: #e5e7eb; padding: 4px 8px; border-radius: 4px;">${newPassword}</code></p>
+      const sendSmtpEmail = new brevo.SendSmtpEmail();
+      
+      sendSmtpEmail.sender = {
+        name: this.fromName,
+        email: this.fromEmail
+      };
+      
+      sendSmtpEmail.to = [{ email: to, name: username }];
+      sendSmtpEmail.subject = 'RMJ Consultas - Senha redefinida';
+      sendSmtpEmail.htmlContent = `
+        <html>
+          <head>
+            <style>
+              body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+              .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+              .header { background-color: #2563eb; color: white; padding: 20px; text-align: center; border-radius: 8px 8px 0 0; }
+              .content { padding: 20px; background-color: #f9fafb; border-radius: 0 0 8px 8px; }
+              .password-box { background-color: #e5e7eb; padding: 15px; margin: 20px 0; text-align: center; border-radius: 8px; }
+              .password { font-size: 18px; font-weight: bold; color: #1f2937; }
+              .footer { padding: 20px; text-align: center; font-size: 12px; color: #666; }
+            </style>
+          </head>
+          <body>
+            <div class="container">
+              <div class="header">
+                <h1>RMJ Consultas</h1>
+                <p>Sistema de Benefícios INSS</p>
+              </div>
+              <div class="content">
+                <h2>Senha Redefinida</h2>
+                <p>Olá <strong>${username}</strong>,</p>
+                <p>Sua senha foi redefinida com sucesso pelo administrador do sistema.</p>
+                
+                <div class="password-box">
+                  <p><strong>Usuário:</strong> ${username}</p>
+                  <p><strong>Nova senha:</strong></p>
+                  <div class="password">${newPassword}</div>
+                </div>
+                
+                <p style="color: #dc2626;"><strong>Importante:</strong> Por questões de segurança, recomendamos que você altere sua senha após fazer login.</p>
+              </div>
+              <div class="footer">
+                <p>RMJ Consultas - Sistema de Benefícios INSS</p>
+                <p>Este é um email automático, não responda.</p>
+              </div>
             </div>
-            
-            <p style="color: #dc2626;"><strong>Importante:</strong> Por questões de segurança, recomendamos que você altere sua senha após fazer login.</p>
-            
-            <hr style="margin: 30px 0;">
-            <p style="color: #6b7280; font-size: 14px;">
-              Este é um email automático. Não responda este email.<br>
-              Sistema MULTI CORBAN - Consulta de Benefícios INSS
-            </p>
-          </div>
-        `,
-      });
+          </body>
+        </html>
+      `;
+
+      const response = await this.apiInstance.sendTransacEmail(sendSmtpEmail);
+      console.log('✅ Email de redefinição enviado via Brevo:', response.messageId);
       return true;
     } catch (error) {
-      console.error('Erro ao enviar email de redefinição:', error);
+      console.error('❌ Erro ao enviar email de redefinição via Brevo:', error);
       return false;
     }
   }
@@ -150,8 +204,8 @@ class SendGridEmailService implements EmailService {
 
 // Factory function
 export function createEmailService(): EmailService {
-  return new SendGridEmailService();
+  return new BrevoEmailService();
 }
 
-// Export email service instance
+// Export instance
 export const emailService = createEmailService();
