@@ -17,6 +17,7 @@ import {
   Bell,
   Menu,
   X,
+  UserCog,
 } from "lucide-react";
 
 const roleLabels = {
@@ -139,6 +140,19 @@ export function Navbar() {
                     Notificações
                   </Button>
                 </Link>
+
+                {(user.role === "administrator" || user.role === "gerente") && (
+                  <Link href="/marcacoes">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className={getNavButtonClass("/marcacoes")}
+                    >
+                      <UserCog className="h-4 w-4 mr-2" />
+                      Marcações
+                    </Button>
+                  </Link>
+                )}
 
                 {user.role === "administrator" && (
                   <Link href="/usuarios">
@@ -278,6 +292,22 @@ export function Navbar() {
                     Notificações
                   </Button>
                 </Link>
+
+                {(user.role === "administrator" || user.role === "gerente") && (
+                  <Link
+                    href="/marcacoes"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className={`w-full justify-start ${getNavButtonClass("/marcacoes")}`}
+                    >
+                      <UserCog className="h-4 w-4 mr-3" />
+                      Marcações
+                    </Button>
+                  </Link>
+                )}
 
                 {user.role === "administrator" && (
                   <Link

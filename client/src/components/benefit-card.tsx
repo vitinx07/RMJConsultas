@@ -1,9 +1,14 @@
-import { Eye, User, FileText } from "lucide-react";
+import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { Eye, User, FileText, UserCog } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Benefit } from "@shared/schema";
 import { formatCurrency, formatCPF, getStatusColor, getBenefitSpeciesName } from "@/lib/utils";
+import { ClientMarkerBadge } from "./ClientMarkerBadge";
+import { ClientMarkerDialog } from "./ClientMarkerDialog";
+import { apiRequest } from "@/lib/queryClient";
 
 interface BenefitCardProps {
   benefit: Benefit;
@@ -12,10 +17,17 @@ interface BenefitCardProps {
 
 export function BenefitCard({ benefit, onViewDetails }: BenefitCardProps) {
   const { Beneficiario, ResumoFinanceiro } = benefit;
+  const [markerDialogOpen, setMarkerDialogOpen] = useState(false);
 
   const handleViewDetails = () => {
     onViewDetails(Beneficiario.Beneficio);
   };
+
+  // Buscar marcação do cliente
+  const { data: clientMarker } = useQuery({
+    queryKey: [`/api/client-markers/${Beneficiario.CPF}`],
+    queryFn: () => apiRequest(`/api/client-markers/${Beneficiario.CPF}`).catch(() => null),
+  });
 
   return (
     <Card className="border-l-4 border-l-primary">
@@ -30,9 +42,12 @@ export function BenefitCard({ benefit, onViewDetails }: BenefitCardProps) {
               </p>
             </div>
           </div>
-          <Badge className={getStatusColor(Beneficiario.Situacao)}>
-            {Beneficiario.Situacao}
-          </Badge>
+          <div className="flex flex-col gap-2 items-end">
+            <Badge className={getStatusColor(Beneficiario.Situacao)}>
+              {Beneficiario.Situacao}
+            </Badge>
+            {clientMarker && <ClientMarkerBadge marker={clientMarker} />}
+          </div>
         </div>
       </CardHeader>
       
@@ -68,13 +83,32 @@ export function BenefitCard({ benefit, onViewDetails }: BenefitCardProps) {
           </div>
         </div>
         
-        <Button 
-          onClick={handleViewDetails}
-          className="w-full bg-primary hover:bg-primary/90"
-        >
-          <Eye className="h-4 w-4 mr-2" />
-          Ver Detalhes
-        </Button>
+        <div className="flex gap-2">
+          <Button 
+            onClick={handleViewDetails}
+            className="flex-1 bg-primary hover:bg-primary/90"
+          >
+            <Eye className="h-4 w-4 mr-2" />
+            Ver Detalhes
+          </Button>
+          <Button
+            onClick={() => setMarkerDialogOpen(true)}
+            variant={clientMarker ? "secondary" : "outline"}
+            size="sm"
+            className="px-3"
+          >
+            <UserCog className="h-4 w-4" />
+          </Button>
+        </div>
+        
+        {/* Client Marker Dialog */}
+        <ClientMarkerDialog
+          open={markerDialogOpen}
+          onOpenChange={setMarkerDialogOpen}
+          cpf={Beneficiario.CPF}
+          clientName={Beneficiario.Nome}
+          existingMarker={clientMarker}
+        />
       </CardContent>
     </Card>
   );

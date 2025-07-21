@@ -19,6 +19,7 @@ import ForgotPassword from "@/pages/ForgotPassword";
 import ChangePassword from "@/pages/ChangePassword";
 import EditUser from "@/pages/EditUser";
 import PasswordExpiryDemo from "@/pages/PasswordExpiryDemo";
+import ClientMarkers from "@/pages/client-markers";
 import NotFound from "@/pages/not-found";
 import PasswordExpiryAlert from "@/components/PasswordExpiryAlert";
 
@@ -88,6 +89,8 @@ function Router() {
         <Route path="/user/:id/editar" component={EditUser} />
         <Route path="/admin/emails" component={EmailManagement} />
         <Route path="/usuarios/emails" component={EmailManagement} />
+        <Route path="/marcacoes" component={ClientMarkers} />
+        <Route path="/admin/marcacoes" component={ClientMarkers} />
         <Route path="/change-password" component={ChangePassword} />
         <Route component={NotFound} />
       </Switch>

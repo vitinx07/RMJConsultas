@@ -7,6 +7,7 @@ import {
   boolean,
   uuid,
   index,
+  uniqueIndex,
   jsonb,
   integer,
   decimal,
@@ -177,6 +178,24 @@ export const consultations = pgTable("consultations", {
   index("idx_consultations_user").on(table.userId),
   index("idx_consultations_cpf").on(table.cpf),
   index("idx_consultations_created").on(table.createdAt),
+]);
+
+// Marcações de clientes para evitar negociações simultâneas
+export const clientMarkers = pgTable("client_markers", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  cpf: varchar("cpf", { length: 14 }).notNull(), // CPF do cliente (sem formatação)
+  status: varchar("status", { length: 30 }).notNull(), // Status da negociação
+  userId: uuid("user_id").references(() => users.id, { onDelete: "cascade" }).notNull(),
+  userName: varchar("user_name", { length: 100 }).notNull(), // Nome do usuário para exibição
+  notes: text("notes"), // Observações opcionais sobre a negociação
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+}, (table) => [
+  // Cada CPF pode ter apenas uma marcação ativa por vez
+  uniqueIndex("unique_cpf_marker").on(table.cpf),
+  index("idx_client_markers_user").on(table.userId),
+  index("idx_client_markers_status").on(table.status),
+  index("idx_client_markers_created").on(table.createdAt),
 ]);
 
 // Clientes Favoritos (CRM Simplificado)
@@ -435,6 +454,24 @@ export const dashboardFiltersSchema = z.object({
 
 // Types
 export type User = typeof users.$inferSelect;
+
+// Client Marker schemas and types
+export const insertClientMarkerSchema = createInsertSchema(clientMarkers).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const clientMarkerStatusSchema = z.enum([
+  "em_negociacao",
+  "finalizada", 
+  "zerado",
+  "tem_coisa_mas_nao_quer"
+]);
+
+export type SelectClientMarker = typeof clientMarkers.$inferSelect;
+export type InsertClientMarker = z.infer<typeof insertClientMarkerSchema>;
+export type ClientMarkerStatus = z.infer<typeof clientMarkerStatusSchema>;
 export type CreateUser = z.infer<typeof createUserSchema>;
 export type LoginData = z.infer<typeof loginSchema>;
 export type UpdateUser = z.infer<typeof updateUserSchema>;

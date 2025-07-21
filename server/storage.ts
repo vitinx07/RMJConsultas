@@ -6,6 +6,7 @@ import {
   notifications,
   benefitMonitoring,
   passwordResetTokens,
+  clientMarkers,
   type User,
   type CreateUser,
   type UpdateUser,
@@ -19,6 +20,9 @@ import {
   type BenefitMonitoring,
   type CreateBenefitMonitoring,
   type DashboardStats,
+  type SelectClientMarker,
+  type InsertClientMarker,
+  type ClientMarkerStatus,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc, asc, gte, lte, sql, count, inArray } from "drizzle-orm";
@@ -72,6 +76,14 @@ export interface IStorage {
   
   // Dashboard operations
   getDashboardStats(userId?: string, filters?: { startDate?: string; endDate?: string }): Promise<DashboardStats>;
+  
+  // Client markers for preventing simultaneous negotiations
+  getClientMarker(cpf: string): Promise<SelectClientMarker | undefined>;
+  createClientMarker(markerData: InsertClientMarker): Promise<SelectClientMarker>;
+  updateClientMarker(cpf: string, markerData: Partial<InsertClientMarker>): Promise<SelectClientMarker | undefined>;
+  deleteClientMarker(cpf: string): Promise<boolean>;
+  getAllClientMarkers(): Promise<SelectClientMarker[]>;
+  getClientMarkersByUser(userId: string): Promise<SelectClientMarker[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -262,8 +274,7 @@ export class DatabaseStorage implements IStorage {
       .update(users)
       .set({
         passwordHash: hashedPassword,
-        passwordExpiresAt: passwordExpiresAt,
-        passwordCreatedAt: now,
+        passwordExpiresAt: expiryDate,
         lastPasswordChange: now,
         mustChangePassword: false, // Remover obrigação após mudança
         updatedAt: now,
@@ -618,6 +629,71 @@ export class DatabaseStorage implements IStorage {
       unblockedLoansCount: unblockedLoansResult[0]?.count || 0,
       averageMargin: averageMarginResult[0]?.avg || 0,
     };
+  }
+
+  // Client markers operations
+  async getClientMarker(cpf: string): Promise<SelectClientMarker | undefined> {
+    const [marker] = await db
+      .select()
+      .from(clientMarkers)
+      .where(eq(clientMarkers.cpf, cpf.replace(/\D/g, ''))); // Remove formatação do CPF
+    
+    return marker;
+  }
+
+  async createClientMarker(markerData: InsertClientMarker): Promise<SelectClientMarker> {
+    // Remove formatação do CPF
+    const cleanCpf = markerData.cpf.replace(/\D/g, '');
+    
+    const [marker] = await db
+      .insert(clientMarkers)
+      .values({
+        ...markerData,
+        cpf: cleanCpf,
+      })
+      .returning();
+    
+    return marker;
+  }
+
+  async updateClientMarker(cpf: string, markerData: Partial<InsertClientMarker>): Promise<SelectClientMarker | undefined> {
+    const cleanCpf = cpf.replace(/\D/g, '');
+    
+    const [marker] = await db
+      .update(clientMarkers)
+      .set({
+        ...markerData,
+        updatedAt: new Date(),
+      })
+      .where(eq(clientMarkers.cpf, cleanCpf))
+      .returning();
+    
+    return marker;
+  }
+
+  async deleteClientMarker(cpf: string): Promise<boolean> {
+    const cleanCpf = cpf.replace(/\D/g, '');
+    
+    const result = await db
+      .delete(clientMarkers)
+      .where(eq(clientMarkers.cpf, cleanCpf));
+    
+    return (result.rowCount || 0) > 0;
+  }
+
+  async getAllClientMarkers(): Promise<SelectClientMarker[]> {
+    return await db
+      .select()
+      .from(clientMarkers)
+      .orderBy(desc(clientMarkers.createdAt));
+  }
+
+  async getClientMarkersByUser(userId: string): Promise<SelectClientMarker[]> {
+    return await db
+      .select()
+      .from(clientMarkers)
+      .where(eq(clientMarkers.userId, userId))
+      .orderBy(desc(clientMarkers.createdAt));
   }
 }
 

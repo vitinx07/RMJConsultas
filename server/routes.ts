@@ -14,7 +14,9 @@ import {
   updateFavoriteClientSchema,
   createNotificationSchema,
   createBenefitMonitoringSchema,
-  resetPasswordSchema
+  resetPasswordSchema,
+  insertClientMarkerSchema,
+  clientMarkerStatusSchema,
 } from "@shared/schema";
 import { banrisulApi, BanrisulApiError } from "./banrisul-api";
 import { generateJWT, requireAuthHybrid } from "./jwt-auth";
@@ -1110,6 +1112,132 @@ consultation = await storage.getConsultationByCpf(cpf as string, userId);
     } catch (error) {
       console.error("Erro ao obter todas as consultas:", error);
       res.status(500).json({ error: "Erro ao carregar consultas" });
+    }
+  });
+
+  // Client markers routes - Sistema de marcação de clientes
+  
+  // Buscar marcação de um cliente por CPF
+  app.get("/api/client-markers/:cpf", requireAuthHybrid, requireAnyRole, async (req, res) => {
+    try {
+      const { cpf } = req.params;
+      const marker = await storage.getClientMarker(cpf);
+      res.json(marker || null);
+    } catch (error) {
+      console.error("Erro ao buscar marcação do cliente:", error);
+      res.status(500).json({ error: "Erro ao buscar marcação" });
+    }
+  });
+
+  // Criar nova marcação de cliente
+  app.post("/api/client-markers", requireAuthHybrid, requireAnyRole, async (req, res) => {
+    try {
+      const user = req.user!;
+      const markerData = insertClientMarkerSchema.parse({
+        ...req.body,
+        userId: user.id,
+        userName: user.firstName && user.lastName 
+          ? `${user.firstName} ${user.lastName}` 
+          : user.username,
+      });
+
+      const marker = await storage.createClientMarker(markerData);
+      res.status(201).json(marker);
+    } catch (error) {
+      if ((error as any).code === '23505') { // Unique constraint violation
+        return res.status(409).json({ 
+          error: "Este cliente já possui uma marcação ativa" 
+        });
+      }
+      console.error("Erro ao criar marcação:", error);
+      res.status(400).json({ error: "Dados inválidos para marcação" });
+    }
+  });
+
+  // Atualizar marcação de cliente
+  app.put("/api/client-markers/:cpf", requireAuthHybrid, requireAnyRole, async (req, res) => {
+    try {
+      const { cpf } = req.params;
+      const user = req.user!;
+      
+      // Verificar se a marcação existe e pertence ao usuário atual
+      const existingMarker = await storage.getClientMarker(cpf);
+      if (!existingMarker) {
+        return res.status(404).json({ error: "Marcação não encontrada" });
+      }
+      
+      if (existingMarker.userId !== user.id && user.role !== "administrator") {
+        return res.status(403).json({ 
+          error: "Você só pode alterar suas próprias marcações" 
+        });
+      }
+
+      const updateData = {
+        status: req.body.status,
+        notes: req.body.notes,
+        userName: user.firstName && user.lastName 
+          ? `${user.firstName} ${user.lastName}` 
+          : user.username,
+      };
+
+      const marker = await storage.updateClientMarker(cpf, updateData);
+      res.json(marker);
+    } catch (error) {
+      console.error("Erro ao atualizar marcação:", error);
+      res.status(400).json({ error: "Erro ao atualizar marcação" });
+    }
+  });
+
+  // Remover marcação de cliente
+  app.delete("/api/client-markers/:cpf", requireAuthHybrid, requireAnyRole, async (req, res) => {
+    try {
+      const { cpf } = req.params;
+      const user = req.user!;
+      
+      // Verificar se a marcação existe e pertence ao usuário atual
+      const existingMarker = await storage.getClientMarker(cpf);
+      if (!existingMarker) {
+        return res.status(404).json({ error: "Marcação não encontrada" });
+      }
+      
+      if (existingMarker.userId !== user.id && user.role !== "administrator") {
+        return res.status(403).json({ 
+          error: "Você só pode remover suas próprias marcações" 
+        });
+      }
+
+      const success = await storage.deleteClientMarker(cpf);
+      if (success) {
+        res.json({ message: "Marcação removida com sucesso" });
+      } else {
+        res.status(404).json({ error: "Marcação não encontrada" });
+      }
+    } catch (error) {
+      console.error("Erro ao remover marcação:", error);
+      res.status(500).json({ error: "Erro ao remover marcação" });
+    }
+  });
+
+  // Listar todas as marcações (apenas admins)
+  app.get("/api/client-markers", requireAuthHybrid, requireManagerOrAdmin, async (req, res) => {
+    try {
+      const markers = await storage.getAllClientMarkers();
+      res.json(markers);
+    } catch (error) {
+      console.error("Erro ao listar marcações:", error);
+      res.status(500).json({ error: "Erro ao carregar marcações" });
+    }
+  });
+
+  // Listar marcações do usuário atual
+  app.get("/api/client-markers/user/me", requireAuthHybrid, requireAnyRole, async (req, res) => {
+    try {
+      const userId = req.user!.id;
+      const markers = await storage.getClientMarkersByUser(userId);
+      res.json(markers);
+    } catch (error) {
+      console.error("Erro ao buscar marcações do usuário:", error);
+      res.status(500).json({ error: "Erro ao carregar suas marcações" });
     }
   });
 
