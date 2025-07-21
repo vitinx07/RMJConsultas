@@ -276,19 +276,18 @@ export function ClientMarkerDialog({
                     onClick={handleDelete}
                     disabled={deleteMarkerMutation.isPending}
                   >
-                    {deleteMarkerMutation.isPending ? "Removendo..." : "Remover Marcação"}
+                    {deleteMarkerMutation.isPending ? "Removendo..." : "Remover"}
                   </Button>
                 )}
                 
-                {existingMarker && canAssume && existingMarker.status === "em_negociacao" && (
+                {canAssume && (
                   <Button
                     type="button"
                     variant="outline"
                     onClick={handleAssumeSale}
-                    disabled={assumeSaleMutation.isPending || isAssuming}
-                    className="border-blue-300 text-blue-700 hover:bg-blue-50 dark:border-blue-600 dark:text-blue-300"
+                    disabled={assumeSaleMutation.isPending}
                   >
-                    {assumeSaleMutation.isPending || isAssuming ? "Assumindo..." : "Assumir Venda"}
+                    {assumeSaleMutation.isPending ? "Assumindo..." : "Assumir Venda"}
                   </Button>
                 )}
               </div>
@@ -301,16 +300,20 @@ export function ClientMarkerDialog({
                 >
                   Cancelar
                 </Button>
-                <Button
-                  type="submit"
-                  disabled={saveMarkerMutation.isPending}
-                >
-                  {saveMarkerMutation.isPending
-                    ? "Salvando..."
-                    : existingMarker
-                    ? "Atualizar"
-                    : "Marcar Cliente"}
-                </Button>
+                
+                {(isOwnMarker || !existingMarker) && (
+                  <Button
+                    type="submit"
+                    disabled={saveMarkerMutation.isPending}
+                  >
+                    {saveMarkerMutation.isPending 
+                      ? "Salvando..." 
+                      : existingMarker 
+                        ? "Atualizar" 
+                        : "Marcar Cliente"
+                    }
+                  </Button>
+                )}
               </div>
             </DialogFooter>
         </form>

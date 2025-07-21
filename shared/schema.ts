@@ -202,6 +202,26 @@ export const clientMarkers = pgTable("client_markers", {
   index("idx_client_markers_created").on(table.createdAt),
 ]);
 
+// Histórico de marcações de clientes
+export const clientMarkerHistory = pgTable("client_marker_history", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  cpf: varchar("cpf", { length: 14 }).notNull(),
+  clientName: varchar("client_name", { length: 200 }),
+  status: varchar("status", { length: 30 }).notNull(),
+  userId: uuid("user_id").references(() => users.id, { onDelete: "cascade" }).notNull(),
+  userName: varchar("user_name", { length: 100 }).notNull(),
+  notes: text("notes"),
+  action: varchar("action", { length: 20 }).notNull(), // "created", "updated", "assumed", "removed"
+  previousUserId: uuid("previous_user_id").references(() => users.id, { onDelete: "cascade" }),
+  previousUserName: varchar("previous_user_name", { length: 100 }),
+  previousStatus: varchar("previous_status", { length: 30 }),
+  createdAt: timestamp("created_at").defaultNow(),
+}, (table) => [
+  index("idx_client_marker_history_cpf").on(table.cpf),
+  index("idx_client_marker_history_user").on(table.userId),
+  index("idx_client_marker_history_created").on(table.createdAt),
+]);
+
 // Clientes Favoritos (CRM Simplificado)
 export const favoriteClients = pgTable("favorite_clients", {
   id: uuid("id").primaryKey().defaultRandom(),
@@ -425,6 +445,28 @@ export const createBenefitMonitoringSchema = createInsertSchema(benefitMonitorin
   lastCheck: true,
 });
 
+export const clientMarkerSchema = z.object({
+  cpf: z.string().min(11, "CPF é obrigatório").max(14),
+  status: z.enum(["em_negociacao", "finalizada", "zerado", "tem_coisa_mas_nao_quer", "apenas_consulta"]),
+  notes: z.string().optional(),
+  clientName: z.string().optional(),
+});
+
+export const clientMarkerHistorySchema = z.object({
+  id: z.string().uuid(),
+  cpf: z.string(),
+  clientName: z.string().optional(),
+  status: z.string(),
+  userId: z.string().uuid(),
+  userName: z.string(),
+  notes: z.string().optional(),
+  action: z.enum(["created", "updated", "assumed", "removed"]),
+  previousUserId: z.string().uuid().optional(),
+  previousUserName: z.string().optional(),
+  previousStatus: z.string().optional(),
+  createdAt: z.date(),
+});
+
 export const dashboardStatsSchema = z.object({
   totalConsultations: z.number(),
   consultationsToday: z.number(),
@@ -477,6 +519,8 @@ export const clientMarkerStatusSchema = z.enum([
 export type SelectClientMarker = typeof clientMarkers.$inferSelect;
 export type InsertClientMarker = z.infer<typeof insertClientMarkerSchema>;
 export type ClientMarkerStatus = z.infer<typeof clientMarkerStatusSchema>;
+export type ClientMarkerHistory = typeof clientMarkerHistory.$inferSelect;
+export type InsertClientMarkerHistory = typeof clientMarkerHistory.$inferInsert;
 export type CreateUser = z.infer<typeof createUserSchema>;
 export type LoginData = z.infer<typeof loginSchema>;
 export type UpdateUser = z.infer<typeof updateUserSchema>;

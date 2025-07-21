@@ -61,10 +61,23 @@ export default function Home() {
     setSearchParams({ apiKey, searchType, searchValue });
     setSelectedBenefit(null);
     
-    // Para operadores, verificar clientes não marcados após a consulta
+    // Para operadores, verificar clientes não marcados após a consulta (só se houver clientes)
     if (user?.role === "operador") {
-      setTimeout(() => {
-        setShowUnmarkedDialog(true);
+      setTimeout(async () => {
+        // Verificar se há clientes não marcados antes de mostrar o dialog
+        try {
+          const response = await fetch('/api/client-markers/unmarked', {
+            credentials: 'include'
+          });
+          if (response.ok) {
+            const unmarkedClients = await response.json();
+            if (unmarkedClients && unmarkedClients.length > 0) {
+              setShowUnmarkedDialog(true);
+            }
+          }
+        } catch (error) {
+          console.error('Erro ao verificar clientes não marcados:', error);
+        }
       }, 2000); // Aguardar 2 segundos após a consulta
     }
   };

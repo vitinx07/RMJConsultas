@@ -46,7 +46,7 @@ export function BenefitCard({ benefit, onViewDetails }: BenefitCardProps) {
             <Badge className={getStatusColor(Beneficiario.Situacao)}>
               {Beneficiario.Situacao}
             </Badge>
-            {clientMarker && <ClientMarkerBadge marker={clientMarker} />}
+            {clientMarker && <ClientMarkerBadge marker={clientMarker} cpf={Beneficiario.CPF} />}
           </div>
         </div>
       </CardHeader>

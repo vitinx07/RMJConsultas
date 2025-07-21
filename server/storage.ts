@@ -7,6 +7,7 @@ import {
   benefitMonitoring,
   passwordResetTokens,
   clientMarkers,
+  clientMarkerHistory,
   type User,
   type CreateUser,
   type UpdateUser,
@@ -23,6 +24,8 @@ import {
   type SelectClientMarker,
   type InsertClientMarker,
   type ClientMarkerStatus,
+  type ClientMarkerHistory,
+  type InsertClientMarkerHistory,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc, asc, gte, lte, sql, count, inArray, isNull } from "drizzle-orm";
@@ -641,9 +644,7 @@ export class DatabaseStorage implements IStorage {
     return marker;
   }
 
-  async getClientMarkerByCpf(cpf: string): Promise<SelectClientMarker | undefined> {
-    return this.getClientMarker(cpf);
-  }
+
 
   async createClientMarker(markerData: InsertClientMarker): Promise<SelectClientMarker> {
     // Remove formatação do CPF
@@ -657,11 +658,25 @@ export class DatabaseStorage implements IStorage {
       })
       .returning();
     
+    // Criar histórico da criação
+    await this.createClientMarkerHistory({
+      cpf: cleanCpf,
+      clientName: markerData.clientName || undefined,
+      status: markerData.status,
+      userId: markerData.userId,
+      userName: markerData.userName,
+      action: 'created',
+      notes: markerData.notes,
+    });
+    
     return marker;
   }
 
   async updateClientMarker(cpf: string, markerData: Partial<any>): Promise<SelectClientMarker | undefined> {
     const cleanCpf = cpf.replace(/\D/g, '');
+    
+    // Buscar marcação atual para histórico
+    const currentMarker = await this.getClientMarker(cleanCpf);
     
     const [marker] = await db
       .update(clientMarkers)
@@ -672,15 +687,50 @@ export class DatabaseStorage implements IStorage {
       .where(eq(clientMarkers.cpf, cleanCpf))
       .returning();
     
+    // Criar histórico da atualização se há mudanças significativas
+    if (marker && currentMarker && (
+      markerData.status !== currentMarker.status || 
+      markerData.notes !== currentMarker.notes
+    )) {
+      await this.createClientMarkerHistory({
+        cpf: cleanCpf,
+        clientName: marker.clientName || undefined,
+        status: marker.status,
+        userId: marker.userId,
+        userName: marker.userName,
+        action: 'updated',
+        notes: marker.notes,
+        previousUserId: currentMarker.userId,
+        previousUserName: currentMarker.userName,
+        previousStatus: currentMarker.status,
+      });
+    }
+    
     return marker;
   }
 
   async deleteClientMarker(cpf: string): Promise<boolean> {
     const cleanCpf = cpf.replace(/\D/g, '');
     
+    // Buscar marcação atual para histórico
+    const currentMarker = await this.getClientMarker(cleanCpf);
+    
     const result = await db
       .delete(clientMarkers)
       .where(eq(clientMarkers.cpf, cleanCpf));
+    
+    // Criar histórico da remoção
+    if (currentMarker && (result.rowCount || 0) > 0) {
+      await this.createClientMarkerHistory({
+        cpf: cleanCpf,
+        clientName: currentMarker.clientName || undefined,
+        status: currentMarker.status,
+        userId: currentMarker.userId,
+        userName: currentMarker.userName,
+        action: 'removed',
+        notes: currentMarker.notes,
+      });
+    }
     
     return (result.rowCount || 0) > 0;
   }
@@ -698,6 +748,106 @@ export class DatabaseStorage implements IStorage {
       .from(clientMarkers)
       .where(eq(clientMarkers.userId, userId))
       .orderBy(desc(clientMarkers.createdAt));
+  }
+
+  // Client marker history operations
+  async createClientMarkerHistory(historyData: InsertClientMarkerHistory): Promise<ClientMarkerHistory> {
+    const [history] = await db
+      .insert(clientMarkerHistory)
+      .values(historyData)
+      .returning();
+    
+    return history;
+  }
+
+  async getClientMarkerHistory(cpf: string): Promise<ClientMarkerHistory[]> {
+    const cleanCpf = cpf.replace(/\D/g, '');
+    
+    return await db
+      .select()
+      .from(clientMarkerHistory)
+      .where(eq(clientMarkerHistory.cpf, cleanCpf))
+      .orderBy(desc(clientMarkerHistory.createdAt));
+  }
+
+  // Funcionalidades adicionais para marcação
+  async getUnmarkedClients(userId: string): Promise<Array<{ cpf: string; beneficiaryName: string; lastConsultation: Date }>> {
+    // Buscar consultas do usuário que não têm marcação
+    const unmarkedConsultations = await db
+      .select({
+        cpf: consultations.cpf,
+        beneficiaryName: sql<string>`${consultations.resultData}->>'beneficiaryName'`,
+        lastConsultation: consultations.createdAt,
+      })
+      .from(consultations)
+      .leftJoin(clientMarkers, eq(consultations.cpf, clientMarkers.cpf))
+      .where(
+        and(
+          eq(consultations.userId, userId),
+          isNull(clientMarkers.cpf), // Não tem marcação
+          gte(consultations.createdAt, new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)) // Últimos 7 dias
+        )
+      )
+      .orderBy(desc(consultations.createdAt));
+
+    return unmarkedConsultations;
+  }
+
+  async assumeClientMarker(cpf: string, newUserId: string, newUserName: string): Promise<{ success: boolean; notificationSent: boolean; error?: string }> {
+    try {
+      const cleanCpf = cpf.replace(/\D/g, '');
+      const currentMarker = await this.getClientMarker(cleanCpf);
+      
+      if (!currentMarker) {
+        return { success: false, notificationSent: false, error: "Marcação não encontrada" };
+      }
+
+      // Atualizar a marcação
+      const [updatedMarker] = await db
+        .update(clientMarkers)
+        .set({
+          assumedBy: newUserId,
+          assumedByName: newUserName,
+          updatedAt: new Date(),
+        })
+        .where(eq(clientMarkers.cpf, cleanCpf))
+        .returning();
+
+      // Criar histórico da assunção
+      await this.createClientMarkerHistory({
+        cpf: cleanCpf,
+        clientName: currentMarker.clientName || undefined,
+        status: currentMarker.status,
+        userId: newUserId,
+        userName: newUserName,
+        action: 'assumed',
+        previousUserId: currentMarker.userId,
+        previousUserName: currentMarker.userName,
+        previousStatus: currentMarker.status,
+      });
+
+      // Enviar notificação apenas se o status for "em_negociacao"
+      let notificationSent = false;
+      if (currentMarker.status === 'em_negociacao') {
+        try {
+          await this.createNotification({
+            userId: currentMarker.userId,
+            type: 'client_marker_assumed',
+            title: 'Venda Assumida',
+            message: `${newUserName} assumiu a negociação do cliente CPF ${cpf}`,
+            cpf: cleanCpf,
+          });
+          notificationSent = true;
+        } catch (notifError) {
+          console.error('Erro ao enviar notificação:', notifError);
+        }
+      }
+
+      return { success: true, notificationSent };
+    } catch (error) {
+      console.error('Erro ao assumir marcação:', error);
+      return { success: false, notificationSent: false, error: (error as Error).message };
+    }
   }
 
   async getUnmarkedClientsByUser(userId: string): Promise<any[]> {

@@ -1247,7 +1247,7 @@ consultation = await storage.getConsultationByCpf(cpf as string, userId);
       const { cpf } = req.params;
       
       // Buscar marcação existente
-      const existingMarker = await storage.getClientMarkerByCpf(cpf);
+      const existingMarker = await storage.getClientMarker(cpf);
       if (!existingMarker) {
         return res.status(404).json({ error: "Marcação não encontrada" });
       }
@@ -1257,31 +1257,17 @@ consultation = await storage.getConsultationByCpf(cpf as string, userId);
         return res.status(400).json({ error: "Você não pode assumir sua própria venda" });
       }
 
-      // Atualizar marcação com informações de quem assumiu
-      const updatedMarker = await storage.updateClientMarker(cpf, {
-        assumedBy: user.id,
-        assumedByName: user.firstName || user.username,
-        originalMarkerId: existingMarker.userId,
-        originalMarkerName: existingMarker.userName,
-      });
+      // Assumir a marcação usando o método específico
+      const result = await storage.assumeClientMarker(cpf, user.id, user.firstName || user.username);
 
-      // Criar notificação apenas se status for "em_negociacao"
-      if (existingMarker.status === "em_negociacao") {
-        await storage.createNotification({
-          userId: existingMarker.userId,
-          type: "sale_assumed",
-          title: "Venda Assumida",
-          message: `${user.firstName || user.username} assumiu a venda do cliente CPF: ${cpf}`,
-          cpf: cpf,
-          metadata: {
-            assumedBy: user.id,
-            assumedByName: user.firstName || user.username,
-            originalStatus: existingMarker.status
-          }
-        });
+      if (!result.success) {
+        return res.status(400).json({ error: result.error });
       }
 
-      res.json(updatedMarker);
+      res.json({ 
+        message: "Venda assumida com sucesso", 
+        notificationSent: result.notificationSent 
+      });
     } catch (error) {
       console.error("Error assuming sale:", error);
       res.status(500).json({ error: "Erro interno do servidor" });
@@ -1294,12 +1280,24 @@ consultation = await storage.getConsultationByCpf(cpf as string, userId);
       const user = req.user!;
       
       // Buscar clientes consultados pelo usuário que não foram marcados
-      const unmarkedClients = await storage.getUnmarkedClientsByUser(user.id);
+      const unmarkedClients = await storage.getUnmarkedClients(user.id);
       
       res.json(unmarkedClients);
     } catch (error) {
       console.error("Erro ao buscar clientes não marcados:", error);
       res.status(500).json({ error: "Erro ao carregar clientes não marcados" });
+    }
+  });
+
+  // Buscar histórico de marcações de um cliente por CPF
+  app.get("/api/client-markers/:cpf/history", requireAuthHybrid, requireAnyRole, async (req, res) => {
+    try {
+      const { cpf } = req.params;
+      const history = await storage.getClientMarkerHistory(cpf);
+      res.json(history);
+    } catch (error) {
+      console.error("Erro ao buscar histórico de marcações:", error);
+      res.status(500).json({ error: "Erro ao carregar histórico" });
     }
   });
 
