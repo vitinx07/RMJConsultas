@@ -57,7 +57,7 @@ class BrevoEmailService implements EmailService {
 
   async sendPasswordEmail(to: string, password: string, username: string): Promise<boolean> {
     console.log(`📧 Enviando senha para ${to} via Brevo`);
-    
+
     const emailData = {
       subject: 'Bem-vindo ao RMJ Consultas - Sua senha de acesso',
       sender: {
@@ -91,15 +91,15 @@ class BrevoEmailService implements EmailService {
                 <h2>Bem-vindo ao Sistema!</h2>
                 <p>Olá <strong>${username}</strong>,</p>
                 <p>Sua conta foi criada com sucesso! Aqui estão seus dados de acesso:</p>
-                
+
                 <div class="password-box">
                   <p><strong>Usuário:</strong> ${username}</p>
                   <p><strong>Senha temporária:</strong></p>
                   <div class="password">${password}</div>
                 </div>
-                
+
                 <p style="color: #dc2626;"><strong>Importante:</strong> Por questões de segurança, recomendamos que você altere sua senha no primeiro acesso.</p>
-                
+
                 <p>Para acessar o sistema, visite o portal e faça login com as credenciais acima.</p>
               </div>
               <div class="footer">
@@ -118,7 +118,7 @@ class BrevoEmailService implements EmailService {
 
   async sendWelcomeEmail(to: string, username: string): Promise<boolean> {
     console.log(`📧 Enviando boas-vindas para ${to} via Brevo`);
-    
+
     const emailData = {
       subject: 'Bem-vindo ao RMJ Consultas',
       sender: {
@@ -169,7 +169,7 @@ class BrevoEmailService implements EmailService {
 
   async sendPasswordResetEmail(to: string, username: string, newPassword: string): Promise<boolean> {
     console.log(`📧 Enviando nova senha para ${to} via Brevo`);
-    
+
     const emailData = {
       subject: 'RMJ Consultas - Senha redefinida',
       sender: {
@@ -203,13 +203,13 @@ class BrevoEmailService implements EmailService {
                 <h2>Senha Redefinida</h2>
                 <p>Olá <strong>${username}</strong>,</p>
                 <p>Sua senha foi redefinida com sucesso pelo administrador do sistema.</p>
-                
+
                 <div class="password-box">
                   <p><strong>Usuário:</strong> ${username}</p>
                   <p><strong>Nova senha:</strong></p>
                   <div class="password">${newPassword}</div>
                 </div>
-                
+
                 <p style="color: #dc2626;"><strong>Importante:</strong> Por questões de segurança, recomendamos que você altere sua senha após fazer login.</p>
               </div>
               <div class="footer">
@@ -228,123 +228,257 @@ class BrevoEmailService implements EmailService {
 
   async sendCustomEmail(to: string, subject: string, message: string, isHtml: boolean = false): Promise<boolean> {
     console.log(`📧 Enviando email personalizado para ${to} via Brevo`);
-    
+
     let finalContent;
-    
+
     if (isHtml) {
       // Se já é HTML, mantém o conteúdo original
       finalContent = message;
     } else {
       // Se é texto simples, cria um template HTML profissional
       finalContent = `
-        <html>
+<html>
           <head>
             <meta charset="UTF-8">
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
             <style>
               body { 
-                font-family: 'Roboto', Arial, sans-serif; 
+                font-family: 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif; 
                 line-height: 1.6; 
                 color: #1f2937; 
                 margin: 0; 
-                padding: 0; 
-                background-color: #f8fafc;
+                padding: 20px; 
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                min-height: 100vh;
               }
               .container { 
-                max-width: 600px; 
+                max-width: 650px; 
                 margin: 0 auto; 
                 background-color: #ffffff;
-                border-radius: 12px;
+                border-radius: 20px;
                 overflow: hidden;
-                box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+                box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+                backdrop-filter: blur(10px);
               }
               .header { 
-                background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+                background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 50%, #2563eb 100%);
                 color: white; 
-                padding: 30px 20px; 
+                padding: 40px 30px; 
                 text-align: center;
                 position: relative;
+                overflow: hidden;
               }
               .header::before {
+                content: '';
+                position: absolute;
+                top: -50%;
+                left: -50%;
+                width: 200%;
+                height: 200%;
+                background: radial-gradient(circle, rgba(255,255,255,0.1) 1px, transparent 1px);
+                background-size: 20px 20px;
+                animation: float 20s ease-in-out infinite;
+              }
+              @keyframes float {
+                0%, 100% { transform: translateY(0px) rotate(0deg); }
+                50% { transform: translateY(-20px) rotate(180deg); }
+              }
+              .logo-container {
+                position: relative;
+                z-index: 2;
+                margin-bottom: 20px;
+              }
+              .logo {
+                background: linear-gradient(135deg, #1f2937 0%, #374151 100%);
+                color: white;
+                width: 80px;
+                height: 80px;
+                border-radius: 50%;
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 28px;
+                font-weight: 900;
+                margin-bottom: 15px;
+                box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+                border: 4px solid rgba(255, 255, 255, 0.2);
+                position: relative;
+              }
+              .logo::after {
+                content: '';
+                position: absolute;
+                top: -4px;
+                left: -4px;
+                right: -4px;
+                bottom: -4px;
+                border-radius: 50%;
+                background: linear-gradient(45deg, #60a5fa, #a78bfa, #f472b6);
+                z-index: -1;
+                animation: rotate 3s linear infinite;
+              }
+              @keyframes rotate {
+                from { transform: rotate(0deg); }
+                to { transform: rotate(360deg); }
+              }
+              .header h1 {
+                margin: 0;
+                font-size: 32px;
+                font-weight: 800;
+                position: relative;
+                z-index: 2;
+                text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+                letter-spacing: -0.5px;
+              }
+              .header p {
+                margin: 8px 0 0 0;
+                opacity: 0.95;
+                font-size: 18px;
+                position: relative;
+                z-index: 2;
+                font-weight: 500;
+              }
+              .divider {
+                border: none;
+                height: 4px;
+                background: linear-gradient(90deg, #f59e0b 0%, #ef4444 25%, #8b5cf6 50%, #06b6d4 75%, #10b981 100%);
+                margin: 0;
+                background-size: 200% 100%;
+                animation: gradientShift 3s ease infinite;
+              }
+              @keyframes gradientShift {
+                0%, 100% { background-position: 0% 50%; }
+                50% { background-position: 100% 50%; }
+              }
+              .content {
+                padding: 45px 35px;
+                background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+                position: relative;
+              }
+              .content::before {
                 content: '';
                 position: absolute;
                 top: 0;
                 left: 0;
                 right: 0;
                 bottom: 0;
-                background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="25" cy="25" r="1" fill="white" opacity="0.1"/><circle cx="75" cy="75" r="1" fill="white" opacity="0.1"/><circle cx="50" cy="10" r="0.5" fill="white" opacity="0.1"/><circle cx="20" cy="80" r="0.5" fill="white" opacity="0.1"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>');
+                background-image: radial-gradient(circle at 25% 25%, rgba(79, 70, 229, 0.05) 0%, transparent 50%),
+                                  radial-gradient(circle at 75% 75%, rgba(139, 92, 246, 0.05) 0%, transparent 50%);
                 pointer-events: none;
               }
-              .logo-container {
+              .content-header {
+                display: flex;
+                align-items: center;
+                margin-bottom: 25px;
                 position: relative;
                 z-index: 1;
-                margin-bottom: 15px;
               }
-              .logo {
-                width: 80px;
-                height: 80px;
-                background: white;
-                border-radius: 50%;
-                display: inline-flex;
+              .email-icon {
+                background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+                color: white;
+                width: 45px;
+                height: 45px;
+                border-radius: 12px;
+                display: flex;
                 align-items: center;
                 justify-content: center;
-                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-                font-weight: bold;
+                margin-right: 15px;
+                box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
+              }
+              .content-title {
+                color: #1e293b;
+                margin: 0;
                 font-size: 24px;
-                color: #2563eb;
-              }
-              .header h1 { 
-                margin: 0; 
-                font-size: 28px; 
                 font-weight: 700;
-                position: relative;
-                z-index: 1;
-              }
-              .header p { 
-                margin: 8px 0 0 0; 
-                font-size: 16px; 
-                opacity: 0.9;
-                position: relative;
-                z-index: 1;
-              }
-              .content { 
-                padding: 40px 30px; 
-                background-color: #ffffff;
+                letter-spacing: -0.3px;
               }
               .message-content {
-                background-color: #f8fafc;
+                background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+                border: 2px solid transparent;
+                background-clip: padding-box;
                 padding: 25px;
-                border-radius: 8px;
-                border-left: 4px solid #2563eb;
-                margin: 20px 0;
-                white-space: pre-wrap;
+                margin: 25px 0;
+                border-radius: 16px;
                 font-size: 16px;
                 line-height: 1.8;
+                color: #334155;
+                position: relative;
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
               }
-              .footer { 
-                padding: 25px 30px; 
-                text-align: center; 
-                font-size: 14px; 
-                color: #64748b;
-                background-color: #f1f5f9;
-                border-top: 1px solid #e2e8f0;
+              .message-content::before {
+                content: '';
+                position: absolute;
+                top: -2px;
+                left: -2px;
+                right: -2px;
+                bottom: -2px;
+                background: linear-gradient(135deg, #4f46e5, #7c3aed, #06b6d4);
+                border-radius: 18px;
+                z-index: -1;
+              }
+              .subject-info {
+                background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+                border-radius: 12px;
+                padding: 20px;
+                margin-top: 20px;
+                border-left: 4px solid #3b82f6;
+                position: relative;
+                z-index: 1;
+              }
+              .footer {
+                background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+                color: #94a3b8;
+                padding: 35px 35px;
+                text-align: center;
+                font-size: 14px;
+                position: relative;
+              }
+              .footer::before {
+                content: '';
+                position: absolute;
+                top: 0;
+                left: 0;
+                right: 0;
+                height: 2px;
+                background: linear-gradient(90deg, #4f46e5, #7c3aed, #06b6d4, #10b981);
               }
               .footer-logo {
-                font-weight: 600;
-                color: #2563eb;
-                margin-bottom: 8px;
+                color: #60a5fa;
+                font-size: 20px;
+                font-weight: 800;
+                margin-bottom: 10px;
+                text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
               }
-              .divider {
-                height: 2px;
-                background: linear-gradient(90deg, #2563eb 0%, #60a5fa 100%);
-                margin: 0;
-                border: none;
+              .footer-subtitle {
+                color: #cbd5e1;
+                font-weight: 600;
+                margin: 0 0 8px 0;
+              }
+              .footer-disclaimer {
+                color: #64748b;
+                font-size: 12px;
+                margin: 8px 0 0 0;
+                opacity: 0.8;
               }
               @media (max-width: 600px) {
-                .container { margin: 10px; }
-                .content { padding: 25px 20px; }
-                .header { padding: 25px 20px; }
-                .header h1 { font-size: 24px; }
+                body { padding: 10px; }
+                .container {
+                  margin: 0;
+                  border-radius: 15px;
+                }
+                .content {
+                  padding: 30px 25px;
+                }
+                .header {
+                  padding: 30px 20px;
+                }
+                .header h1 {
+                  font-size: 28px;
+                }
+                .logo {
+                  width: 70px;
+                  height: 70px;
+                  font-size: 24px;
+                }
               }
             </style>
           </head>
@@ -359,25 +493,29 @@ class BrevoEmailService implements EmailService {
               </div>
               <hr class="divider">
               <div class="content">
-                <h2 style="color: #2563eb; margin-top: 0; font-size: 22px;">📧 Mensagem Personalizada</h2>
+                <div class="content-header">
+                  <div class="email-icon">📧</div>
+                  <h2 class="content-title">Mensagem Personalizada</h2>
+                </div>
                 <div class="message-content">
 ${message}
                 </div>
-                <p style="margin-bottom: 0; color: #64748b; font-size: 14px;">
-                  <strong>Assunto:</strong> ${subject}
-                </p>
+                <div class="subject-info">
+                  <strong style="color: #1e40af;">📋 Assunto:</strong> 
+                  <span style="color: #1e293b; font-weight: 600;">${subject}</span>
+                </div>
               </div>
               <div class="footer">
                 <div class="footer-logo">RMJ Consultas</div>
-                <p style="margin: 0;">Sistema Profissional de Benefícios INSS</p>
-                <p style="margin: 5px 0 0 0; font-size: 12px;">Este é um email automático enviado pelo administrador do sistema.</p>
+                <p class="footer-subtitle">Sistema Profissional de Benefícios INSS</p>
+                <p class="footer-disclaimer">Este é um email automático enviado pelo administrador do sistema.</p>
               </div>
             </div>
           </body>
         </html>
       `;
     }
-    
+
     const emailData = {
       subject: subject,
       sender: {
@@ -397,9 +535,9 @@ ${message}
 
   async sendPasswordResetLink(to: string, username: string, resetToken: string): Promise<boolean> {
     console.log(`📧 Enviando link de redefinição de senha para ${to} via Brevo`);
-    
+
     const resetLink = `${process.env.FRONTEND_URL || 'http://localhost:5000'}/reset-password?token=${resetToken}`;
-    
+
     const emailData = {
       subject: 'RMJ Consultas - Redefinir Senha',
       sender: {
@@ -432,14 +570,14 @@ ${message}
                 <h2>Redefinir Senha</h2>
                 <p>Olá <strong>${username}</strong>,</p>
                 <p>Você solicitou a redefinição de sua senha. Clique no botão abaixo para criar uma nova senha:</p>
-                
+
                 <div style="text-align: center;">
                   <a href="${resetLink}" class="reset-button">Redefinir Senha</a>
                 </div>
-                
+
                 <p>Se você não solicitou esta redefinição, ignore este email.</p>
                 <p><strong>Este link expira em 1 hora.</strong></p>
-                
+
                 <p>Ou copie e cole o link abaixo no seu navegador:</p>
                 <p style="word-break: break-all; color: #666;">${resetLink}</p>
               </div>
