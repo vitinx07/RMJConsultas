@@ -103,6 +103,14 @@ function ConsultationDetails({ consultation, onExportPDF }: { consultation: any,
                 <label className="text-sm font-medium text-muted-foreground">Nome da Mãe</label>
                 <p className="text-sm">{currentBenefit.Beneficiario?.NomeMae || 'N/A'}</p>
               </div>
+              <div>
+                <label className="text-sm font-medium text-muted-foreground">CEP</label>
+                <p className="text-sm">{currentBenefit.Beneficiario?.Cep || currentBenefit.Beneficiario?.CEP || 'N/A'}</p>
+              </div>
+              <div>
+                <label className="text-sm font-medium text-muted-foreground">DIB (Data Início Benefício)</label>
+                <p className="text-sm">{currentBenefit.Beneficiario?.DIB || 'N/A'}</p>
+              </div>
             </div>
           </AccordionContent>
         </AccordionItem>
@@ -182,10 +190,13 @@ function ConsultationDetails({ consultation, onExportPDF }: { consultation: any,
                       <h4 className="font-medium">{contrato.NomeBanco}</h4>
                     </div>
                     <div className="grid grid-cols-2 gap-2 text-sm">
-                      <div>Contrato: {contrato.NumeroContrato}</div>
-                      <div>Valor: {formatCurrency(contrato.ValorEmprestimo)}</div>
+                      <div>Contrato: {contrato.NumeroContrato || contrato.Contrato}</div>
+                      <div>Valor: {formatCurrency(contrato.ValorEmprestimo || contrato.Valor)}</div>
                       <div>Saldo Devedor: {formatCurrency(contrato.SaldoDevedor)}</div>
-                      <div>Parcelas: {contrato.ParcelasPagas}/{contrato.TotalParcelas}</div>
+                      <div>Parcelas: {contrato.ParcelasPagas ? `${contrato.ParcelasPagas}/${contrato.TotalParcelas}` : 
+                                     contrato.QuantidadeParcelas ? `- / ${contrato.QuantidadeParcelas}` : 'N/A'}</div>
+                      {contrato.TaxaJuros && <div>Taxa Juros: {contrato.TaxaJuros}%</div>}
+                      {contrato.ValorParcela && <div>Valor Parcela: {formatCurrency(contrato.ValorParcela)}</div>}
                     </div>
                   </div>
                 ))}
@@ -212,9 +223,11 @@ function ConsultationDetails({ consultation, onExportPDF }: { consultation: any,
                       <Badge variant="outline">{cartao.TipoCartao}</Badge>
                     </div>
                     <div className="grid grid-cols-2 gap-2 text-sm">
-                      <div>Limite Total: {formatCurrency(cartao.LimiteCartao)}</div>
+                      <div>Limite Total: {formatCurrency(cartao.LimiteCartao || cartao.Limite)}</div>
                       <div>Limite Usado: {formatCurrency(cartao.LimiteUsado)}</div>
-                      <div>Limite Disponível: {formatCurrency(cartao.LimiteDisponivel)}</div>
+                      <div>Limite Disponível: {formatCurrency(cartao.LimiteDisponivel || cartao.Disponivel)}</div>
+                      {cartao.ValorFatura && <div>Valor Fatura: {formatCurrency(cartao.ValorFatura)}</div>}
+                      {cartao.NumeroCartao && <div>Cartão: {cartao.NumeroCartao?.replace(/(\d{4})(\d{4})(\d{4})(\d{4})/, '**** **** **** $4')}</div>}
                     </div>
                   </div>
                 ))}
@@ -360,12 +373,163 @@ Sistema MULTI CORBAN - Consulta de Benefícios INSS
 =================================================================
     `;
 
-    // Criar e baixar arquivo PDF (simulado como TXT para simplicidade)
-    const blob = new Blob([pdfContent], { type: 'text/plain;charset=utf-8;' });
-    const link = document.createElement('a');
-    link.href = URL.createObjectURL(blob);
-    link.download = `relatorio_completo_${benefit.Beneficiario?.Nome?.replace(/\s+/g, '_')}_${benefit.Beneficiario?.Beneficio}_${format(new Date(), 'dd-MM-yyyy')}.txt`;
-    link.click();
+    // Criar HTML para PDF/impressão
+    const htmlContent = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <title>Relatório Completo - ${benefit.Beneficiario?.Nome || 'Cliente'}</title>
+        <style>
+          @media print {
+            body { margin: 0; }
+            .no-print { display: none; }
+          }
+          body { font-family: Arial, sans-serif; margin: 20px; line-height: 1.4; }
+          .header { text-align: center; border-bottom: 2px solid #333; padding-bottom: 15px; margin-bottom: 25px; }
+          .section { margin-bottom: 25px; page-break-inside: avoid; }
+          .section h3 { color: #333; border-bottom: 1px solid #ddd; padding-bottom: 8px; margin-bottom: 15px; }
+          .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; }
+          .info-item { padding: 8px; background: #f8f9fa; border-radius: 4px; border-left: 3px solid #007bff; }
+          .info-item strong { color: #495057; }
+          table { width: 100%; border-collapse: collapse; margin-bottom: 20px; font-size: 12px; }
+          th, td { border: 1px solid #ddd; padding: 10px; text-align: left; }
+          th { background-color: #f8f9fa; font-weight: bold; }
+          .summary { background: #e8f5e8; padding: 20px; border-radius: 8px; border-left: 4px solid #28a745; }
+          .footer { text-align: center; margin-top: 40px; font-size: 11px; color: #6c757d; }
+        </style>
+      </head>
+      <body>
+        <div class="header">
+          <h1>RMJ CONSULTAS</h1>
+          <h2>Relatório Completo do Cliente</h2>
+          <p><strong>Data da Consulta:</strong> ${format(new Date(consultation.createdAt), 'dd/MM/yyyy HH:mm', { locale: ptBR })}</p>
+        </div>
+
+        <div class="section">
+          <h3>📋 Dados Pessoais</h3>
+          <div class="grid">
+            <div class="info-item"><strong>Nome:</strong> ${benefit.Beneficiario?.Nome || 'N/A'}</div>
+            <div class="info-item"><strong>CPF:</strong> ${formatCPF(benefit.Beneficiario?.CPF || consultation.cpf)}</div>
+            <div class="info-item"><strong>Data de Nascimento:</strong> ${benefit.Beneficiario?.DataNascimento || 'N/A'}</div>
+            <div class="info-item"><strong>RG:</strong> ${benefit.Beneficiario?.Rg || 'N/A'}</div>
+            <div class="info-item"><strong>Sexo:</strong> ${benefit.Beneficiario?.Sexo || 'N/A'}</div>
+            <div class="info-item"><strong>CEP:</strong> ${benefit.Beneficiario?.Cep || 'N/A'}</div>
+            <div class="info-item"><strong>Nome da Mãe:</strong> ${benefit.Beneficiario?.NomeMae || 'N/A'}</div>
+          </div>
+        </div>
+
+        <div class="section">
+          <h3>💳 Dados do Benefício</h3>
+          <div class="grid">
+            <div class="info-item"><strong>Número do Benefício:</strong> ${benefit.Beneficiario?.Beneficio || 'N/A'}</div>
+            <div class="info-item"><strong>Espécie:</strong> ${benefit.Beneficiario?.Especie || 'N/A'}</div>
+            <div class="info-item"><strong>Situação:</strong> ${benefit.Beneficiario?.Situacao || 'N/A'}</div>
+            <div class="info-item"><strong>DIB (Data Início):</strong> ${benefit.Beneficiario?.DIB || 'N/A'}</div>
+            <div class="info-item"><strong>DDB (Data Desligamento):</strong> ${benefit.Beneficiario?.DDB || 'N/A'}</div>
+            <div class="info-item"><strong>Valor do Benefício:</strong> ${benefit.ResumoFinanceiro ? formatCurrency(benefit.ResumoFinanceiro.ValorBeneficio) : 'N/A'}</div>
+          </div>
+        </div>
+
+        <div class="section">
+          <h3>💰 Informações Financeiras</h3>
+          <div class="summary">
+            <div class="grid">
+              <div class="info-item"><strong>Margem Disponível Empréstimo:</strong> ${benefit.ResumoFinanceiro ? formatCurrency(benefit.ResumoFinanceiro.MargemDisponivelEmprestimo) : 'N/A'}</div>
+              <div class="info-item"><strong>Margem Disponível RMC:</strong> ${benefit.ResumoFinanceiro ? formatCurrency(benefit.ResumoFinanceiro.MargemDisponivelRmc) : 'N/A'}</div>
+              <div class="info-item"><strong>Margem Disponível RCC:</strong> ${benefit.ResumoFinanceiro ? formatCurrency(benefit.ResumoFinanceiro.MargemDisponivelRcc) : 'N/A'}</div>
+              <div class="info-item"><strong>Total Empréstimos:</strong> ${benefit.ResumoFinanceiro ? formatCurrency(benefit.ResumoFinanceiro.TotalEmprestimos) : 'N/A'}</div>
+              <div class="info-item"><strong>Bloqueado Empréstimo:</strong> ${benefit.Beneficiario?.BloqueadoEmprestimo === 'SIM' ? '❌ SIM' : '✅ NÃO'}</div>
+              <div class="info-item"><strong>Possui Cartão:</strong> ${benefit.ResumoFinanceiro?.PossuiCartao ? '✅ SIM' : '❌ NÃO'}</div>
+            </div>
+          </div>
+        </div>
+
+        ${benefit.ContratosEmprestimo && benefit.ContratosEmprestimo.length > 0 ? `
+        <div class="section">
+          <h3>📋 Contratos de Empréstimo</h3>
+          <table>
+            <thead>
+              <tr>
+                <th>Contrato</th>
+                <th>Banco</th>
+                <th>Valor</th>
+                <th>Saldo Devedor</th>
+                <th>Parcelas</th>
+                <th>Taxa Juros</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${benefit.ContratosEmprestimo.map((contrato) => `
+              <tr>
+                <td>${contrato.NumeroContrato}</td>
+                <td>${contrato.NomeBanco}</td>
+                <td>${formatCurrency(contrato.ValorEmprestimo)}</td>
+                <td>${formatCurrency(contrato.SaldoDevedor)}</td>
+                <td>${contrato.ParcelasPagas}/${contrato.TotalParcelas}</td>
+                <td>${contrato.TaxaJuros}%</td>
+              </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        </div>
+        ` : ''}
+
+        ${benefit.InformacoesCartao && benefit.InformacoesCartao.length > 0 ? `
+        <div class="section">
+          <h3>💳 Informações de Cartão</h3>
+          <table>
+            <thead>
+              <tr>
+                <th>Banco</th>
+                <th>Tipo</th>
+                <th>Limite</th>
+                <th>Disponível</th>
+                <th>Fatura</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${benefit.InformacoesCartao.map((cartao) => `
+              <tr>
+                <td>${cartao.Banco}</td>
+                <td>${cartao.Tipo}</td>
+                <td>${formatCurrency(cartao.Limite)}</td>
+                <td>${formatCurrency(cartao.Disponivel)}</td>
+                <td>${formatCurrency(cartao.ValorFatura)}</td>
+              </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        </div>
+        ` : ''}
+
+        <div class="section">
+          <h3>📞 Dados de Contato</h3>
+          <div class="grid">
+            <div class="info-item"><strong>Telefone:</strong> ${benefit.Beneficiario?.Telefone || 'N/A'}</div>
+            <div class="info-item"><strong>Email:</strong> ${benefit.Beneficiario?.Email || 'N/A'}</div>
+          </div>
+        </div>
+
+        <div class="footer">
+          <p>Relatório gerado em ${new Date().toLocaleString('pt-BR')} - RMJ CONSULTAS</p>
+          <p>Sistema de Consulta de Benefícios INSS</p>
+        </div>
+      </body>
+      </html>
+    `;
+
+    // Abrir em nova janela para imprimir/salvar como PDF
+    const printWindow = window.open('', '_blank');
+    if (printWindow) {
+      printWindow.document.write(htmlContent);
+      printWindow.document.close();
+      printWindow.focus();
+      
+      // Aguardar carregamento e configurar para impressão
+      setTimeout(() => {
+        printWindow.print();
+      }, 1000);
+    }
   };
 
   return (
