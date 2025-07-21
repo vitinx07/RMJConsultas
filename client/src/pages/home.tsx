@@ -10,12 +10,50 @@ import { Card, CardContent } from "@/components/ui/card";
 import { BenefitSearch } from "@/components/benefit-search";
 import { BenefitCard } from "@/components/benefit-card";
 import { BenefitDetails } from "@/components/benefit-details";
+import { BenefitSelector } from "@/components/BenefitSelector";
 import { ErrorDisplay } from "@/components/error-display";
 import { searchBenefits, getBenefitDetails, ApiError } from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
 import { Benefit } from "@shared/schema";
 import { Navbar } from "@/components/navbar";
 import { UnmarkedClientsDialog } from "@/components/UnmarkedClientsDialog";
+
+// Utilitários para formatação de CPF
+function cleanCPF(cpf: string): string {
+  return cpf.replace(/\D/g, '');
+}
+
+function formatCPF(cpf: string): string {
+  const cleaned = cleanCPF(cpf);
+  const padded = cleaned.padStart(11, '0');
+  return padded.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
+}
+
+function isValidCPF(cpf: string): boolean {
+  const cleaned = cleanCPF(cpf);
+  if (cleaned.length !== 11) return false;
+  if (/^(\d)\1{10}$/.test(cleaned)) return false;
+  
+  let sum = 0;
+  let remainder;
+  
+  for (let i = 1; i <= 9; i++) {
+    sum += parseInt(cleaned.substring(i - 1, i)) * (11 - i);
+  }
+  remainder = (sum * 10) % 11;
+  if (remainder === 10 || remainder === 11) remainder = 0;
+  if (remainder !== parseInt(cleaned.substring(9, 10))) return false;
+  
+  sum = 0;
+  for (let i = 1; i <= 10; i++) {
+    sum += parseInt(cleaned.substring(i - 1, i)) * (12 - i);
+  }
+  remainder = (sum * 10) % 11;
+  if (remainder === 10 || remainder === 11) remainder = 0;
+  if (remainder !== parseInt(cleaned.substring(10, 11))) return false;
+  
+  return true;
+}
 
 export default function Home() {
   const [searchParams, setSearchParams] = useState<{
@@ -57,14 +95,31 @@ export default function Home() {
     retry: false,
     staleTime: 60000, // 1 minute
   });
-  const handleSearch = (apiKey: string, searchType: 'cpf' | 'beneficio', searchValue: string) => {
-    setSearchParams({ apiKey, searchType, searchValue });
+  const handleSearch = async (apiKey: string, searchType: 'cpf' | 'beneficio', searchValue: string) => {
+    // Formatar CPF se necessário
+    let finalSearchValue = searchValue;
+    let formattedCPF = '';
+    
+    if (searchType === 'cpf') {
+      const cleaned = cleanCPF(searchValue);
+      if (!isValidCPF(cleaned)) {
+        toast({
+          title: "CPF Inválido",
+          description: "Digite um CPF válido para continuar.",
+          variant: "destructive",
+        });
+        return;
+      }
+      finalSearchValue = cleaned;
+      formattedCPF = formatCPF(cleaned);
+    }
+    
+    setSearchParams({ apiKey, searchType, searchValue: finalSearchValue });
     setSelectedBenefit(null);
     
-    // Para operadores, verificar clientes não marcados após a consulta (só se houver clientes)
+    // Para operadores, verificar clientes não marcados após a consulta
     if (user?.role === "operador") {
       setTimeout(async () => {
-        // Verificar se há clientes não marcados antes de mostrar o dialog
         try {
           const response = await fetch('/api/client-markers/unmarked', {
             credentials: 'include'
@@ -78,7 +133,7 @@ export default function Home() {
         } catch (error) {
           console.error('Erro ao verificar clientes não marcados:', error);
         }
-      }, 2000); // Aguardar 2 segundos após a consulta
+      }, 2000);
     }
   };
 
@@ -129,15 +184,24 @@ export default function Home() {
           </Alert>
         )}
 
-        {/* Benefits Results */}
-        {benefits && benefits.length > 0 && (
+        {/* Benefits Results - New Selector Interface for CPF */}
+        {benefits && benefits.length > 0 && searchParams?.searchType === 'cpf' && (
+          <BenefitSelector 
+            benefits={benefits}
+            cpf={searchParams.searchValue}
+            onBenefitSelect={handleViewDetails}
+          />
+        )}
+
+        {/* Benefits Results - Original Cards for benefit search */}
+        {benefits && benefits.length > 0 && searchParams?.searchType === 'beneficio' && (
           <div className="mt-8">
             <div className="grid gap-6 md:grid-cols-2">
               {benefits.map((benefit, index) => (
                 <BenefitCard
                   key={`${benefit.Beneficiario.Beneficio}-${index}`}
                   benefit={benefit}
-                  onViewDetails={handleViewDetails}
+                  onViewDetails={() => handleViewDetails(benefit.Beneficiario.Beneficio)}
                 />
               ))}
             </div>

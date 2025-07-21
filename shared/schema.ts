@@ -408,6 +408,11 @@ export const updateUserSchema = z.object({
 export const createConsultationSchema = createInsertSchema(consultations).omit({
   id: true,
   createdAt: true,
+}).extend({
+  // CPF deve ser sempre formatado
+  cpf: z.string().min(1, "CPF é obrigatório"),
+  // Benefício é opcional na criação, será selecionado posteriormente
+  benefitNumber: z.string().optional(),
 });
 
 export const createFavoriteClientSchema = createInsertSchema(favoriteClients).omit({

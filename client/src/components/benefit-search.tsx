@@ -1,11 +1,49 @@
 import { useState } from "react";
-import { Search } from "lucide-react";
+import { Search, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useToast } from "@/hooks/use-toast";
+
+// Utilitários para formatação de CPF
+function cleanCPF(cpf: string): string {
+  return cpf.replace(/\D/g, '');
+}
+
+function formatCPF(cpf: string): string {
+  const cleaned = cleanCPF(cpf);
+  const padded = cleaned.padStart(11, '0');
+  return padded.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
+}
+
+function isValidCPF(cpf: string): boolean {
+  const cleaned = cleanCPF(cpf);
+  if (cleaned.length !== 11) return false;
+  if (/^(\d)\1{10}$/.test(cleaned)) return false;
+  
+  let sum = 0;
+  let remainder;
+  
+  for (let i = 1; i <= 9; i++) {
+    sum += parseInt(cleaned.substring(i - 1, i)) * (11 - i);
+  }
+  remainder = (sum * 10) % 11;
+  if (remainder === 10 || remainder === 11) remainder = 0;
+  if (remainder !== parseInt(cleaned.substring(9, 10))) return false;
+  
+  sum = 0;
+  for (let i = 1; i <= 10; i++) {
+    sum += parseInt(cleaned.substring(i - 1, i)) * (12 - i);
+  }
+  remainder = (sum * 10) % 11;
+  if (remainder === 10 || remainder === 11) remainder = 0;
+  if (remainder !== parseInt(cleaned.substring(10, 11))) return false;
+  
+  return true;
+}
 
 interface BenefitSearchProps {
   onSearch: (apiKey: string, searchType: 'cpf' | 'beneficio', searchValue: string) => void;
@@ -16,7 +54,31 @@ export function BenefitSearch({ onSearch, isLoading }: BenefitSearchProps) {
   const apiKey = '4630e3b1ad52c0397c64c81e5a3fb8ec'; // API key interna do sistema
   const [searchType, setSearchType] = useState<'cpf' | 'beneficio'>('cpf');
   const [searchValue, setSearchValue] = useState('');
+  const [cpfError, setCpfError] = useState('');
   const { toast } = useToast();
+
+  const handleCPFChange = (value: string) => {
+    if (searchType === 'cpf') {
+      const cleaned = cleanCPF(value);
+      if (cleaned.length <= 11) {
+        const formatted = cleaned.length <= 11 ? formatCPF(cleaned) : value;
+        setSearchValue(formatted);
+        
+        // Validar CPF se tem 11 dígitos
+        if (cleaned.length === 11) {
+          if (!isValidCPF(cleaned)) {
+            setCpfError('CPF inválido');
+          } else {
+            setCpfError('');
+          }
+        } else {
+          setCpfError('');
+        }
+      }
+    } else {
+      setSearchValue(value);
+    }
+  };
 
   const handleSearch = () => {
     if (!searchValue.trim()) {
@@ -28,7 +90,22 @@ export function BenefitSearch({ onSearch, isLoading }: BenefitSearchProps) {
       return;
     }
 
-    onSearch(apiKey, searchType, searchValue);
+    // Validar CPF se for busca por CPF
+    if (searchType === 'cpf') {
+      const cleaned = cleanCPF(searchValue);
+      if (cleaned.length !== 11 || !isValidCPF(cleaned)) {
+        toast({
+          title: "CPF Inválido",
+          description: "Por favor, digite um CPF válido com 11 dígitos.",
+          variant: "destructive",
+        });
+        return;
+      }
+    }
+
+    // Enviar CPF limpo ou valor do benefício
+    const finalValue = searchType === 'cpf' ? cleanCPF(searchValue) : searchValue;
+    onSearch(apiKey, searchType, finalValue);
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -80,12 +157,21 @@ export function BenefitSearch({ onSearch, isLoading }: BenefitSearchProps) {
                 <Input
                   id="searchInput"
                   type="text"
-                  placeholder={searchType === 'cpf' ? 'Digite o CPF (somente números)' : 'Digite o número do benefício'}
+                  placeholder={searchType === 'cpf' ? 'Digite o CPF' : 'Digite o número do benefício'}
                   value={searchValue}
-                  onChange={(e) => setSearchValue(e.target.value)}
+                  onChange={(e) => handleCPFChange(e.target.value)}
                   onKeyPress={handleKeyPress}
-                  className="mt-2"
+                  className={`mt-2 ${cpfError ? 'border-red-500' : ''}`}
                 />
+                {searchType === 'cpf' && cpfError && (
+                  <Alert variant="destructive" className="mt-2">
+                    <AlertTriangle className="h-4 w-4" />
+                    <AlertDescription>{cpfError}</AlertDescription>
+                  </Alert>
+                )}
+                {searchType === 'cpf' && searchValue && !cpfError && cleanCPF(searchValue).length === 11 && (
+                  <p className="text-sm text-green-600 mt-1">✓ CPF válido</p>
+                )}
               </div>
               <Button 
                 onClick={handleSearch}
