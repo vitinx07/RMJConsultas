@@ -1166,18 +1166,31 @@ consultation = await storage.getConsultationByCpf(cpf as string, userId);
         return res.status(404).json({ error: "Marcação não encontrada" });
       }
       
-      if (existingMarker.userId !== user.id && user.role !== "administrator") {
+      // Verificar se o usuário pode editar: dono da marcação, quem assumiu a venda, ou administrador
+      const canEdit = existingMarker.userId === user.id || 
+                     existingMarker.assumedBy === user.id || 
+                     user.role === "administrator";
+      
+      if (!canEdit) {
         return res.status(403).json({ 
-          error: "Você só pode alterar suas próprias marcações" 
+          error: "Você só pode alterar marcações suas ou que tenha assumido" 
         });
       }
 
       const updateData = {
         status: req.body.status,
         notes: req.body.notes,
-        userName: user.firstName && user.lastName 
-          ? `${user.firstName} ${user.lastName}` 
-          : user.username,
+        // Se quem está editando assumiu a venda, manter o usuário original mas atualizar quem assumiu
+        ...(existingMarker.assumedBy === user.id ? {
+          assumedBy: user.id,
+          assumedByName: user.firstName && user.lastName 
+            ? `${user.firstName} ${user.lastName}` 
+            : user.username,
+        } : {
+          userName: user.firstName && user.lastName 
+            ? `${user.firstName} ${user.lastName}` 
+            : user.username,
+        })
       };
 
       const marker = await storage.updateClientMarker(cpf, updateData);

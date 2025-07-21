@@ -187,8 +187,12 @@ export function ClientMarkerDialog({
 
   // Verificar permissões
   const canDelete = user?.role === "administrator";
-  const canAssume = user?.role === "operador" && existingMarker && existingMarker.userId !== user.id;
+  const canAssume = existingMarker && 
+    existingMarker.userId !== user?.id && 
+    existingMarker.assumedBy !== user?.id;
   const isOwnMarker = existingMarker && existingMarker.userId === user?.id;
+  const hasAssumedMarker = existingMarker && existingMarker.assumedBy === user?.id;
+  const canEdit = isOwnMarker || hasAssumedMarker;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -280,7 +284,7 @@ export function ClientMarkerDialog({
                   </Button>
                 )}
                 
-                {canAssume && existingMarker?.status === "em_negociacao" && (
+                {canAssume && (
                   <Button
                     type="button"
                     variant="outline"
@@ -302,7 +306,7 @@ export function ClientMarkerDialog({
                   Cancelar
                 </Button>
                 
-                {(isOwnMarker || !existingMarker) && (
+                {(canEdit || !existingMarker) && (
                   <Button
                     type="submit"
                     disabled={saveMarkerMutation.isPending}
@@ -310,7 +314,7 @@ export function ClientMarkerDialog({
                     {saveMarkerMutation.isPending 
                       ? "Salvando..." 
                       : existingMarker 
-                        ? "Atualizar" 
+                        ? hasAssumedMarker ? "Atualizar Status" : "Atualizar" 
                         : "Marcar Cliente"
                     }
                   </Button>
