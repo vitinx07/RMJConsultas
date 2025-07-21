@@ -31,7 +31,7 @@ const roleIcons = {
 const roleColors = {
   administrator: "bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400",
   gerente: "bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400",
-  vendedor: "bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400"
+  operador: "bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400"
 };
 
 export default function UserManagement() {
@@ -40,7 +40,7 @@ export default function UserManagement() {
     username: "",
     password: "",
     confirmPassword: "",
-    role: "vendedor",
+    role: "operador",
     firstName: "",
     lastName: "",
     email: "",
@@ -95,7 +95,7 @@ export default function UserManagement() {
         username: "",
         password: "",
         confirmPassword: "",
-        role: "vendedor",
+        role: "operador",
         firstName: "",
         lastName: "",
         email: "",
@@ -223,7 +223,7 @@ export default function UserManagement() {
       username: "",
       password: "",
       confirmPassword: "",
-      role: "vendedor",
+      role: "operador",
       firstName: "",
       lastName: "",
       email: "",
@@ -400,7 +400,7 @@ export default function UserManagement() {
                       <SelectValue placeholder="Selecione o papel" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="vendedor">Vendedor</SelectItem>
+                      <SelectItem value="operador">Operador</SelectItem>
                       <SelectItem value="gerente">Gerente</SelectItem>
                       <SelectItem value="administrator">Administrador</SelectItem>
                     </SelectContent>

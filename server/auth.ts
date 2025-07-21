@@ -81,8 +81,8 @@ export const requireAdmin = requireRole(["administrator"]);
 // Middleware para gerentes e administradores
 export const requireManagerOrAdmin = requireRole(["administrator", "gerente"]);
 
-// Middleware para todos os usuários autenticados (vendedor, gerente, administrator)
-export const requireAnyRole = requireRole(["administrator", "gerente", "vendedor"]);
+// Middleware para todos os usuários autenticados (operador, gerente, administrator)
+export const requireAnyRole = requireRole(["administrator", "gerente", "operador"]);
 
 declare module "express-session" {
   interface SessionData {
