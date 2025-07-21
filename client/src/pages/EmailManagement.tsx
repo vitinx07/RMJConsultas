@@ -82,25 +82,55 @@ export default function EmailManagement() {
   });
 
   const sendEmailMutation = useMutation({
-    mutationFn: async (data: EmailFormData) => {
-      return await apiRequest("/api/admin/send-email", {
+    mutationFn: async (data: any) => {
+      console.log("Fazendo requisição para:", "/api/admin/send-email");
+      console.log("Dados enviados:", data);
+      
+      const response = await apiRequest("/api/admin/send-email", {
         method: "POST",
         body: JSON.stringify(data),
       });
+      
+      console.log("Resposta recebida:", response);
+      return response;
     },
     onSuccess: (response) => {
+      console.log("Sucesso no envio:", response);
       toast({
-        title: "Emails enviados",
-        description: response.message,
+        title: "✅ Emails Enviados com Sucesso",
+        description: `${response.message || `${response.totalSent || 0} de ${response.totalRequested || 0} emails enviados`}`,
+        variant: "default",
       });
+      
+      // Resetar formulário
       form.reset();
       setSelectedUsers([]);
       setSelectAll(false);
     },
     onError: (error: any) => {
+      console.error("Erro detalhado:", error);
+      
+      let errorMessage = "Erro desconhecido ao enviar emails";
+      let errorTitle = "Erro no Envio";
+      
+      if (error?.message) {
+        errorMessage = error.message;
+      }
+      
+      if (error?.status === 400) {
+        errorTitle = "Dados Inválidos";
+        errorMessage = error.message || "Verifique os dados informados";
+      } else if (error?.status === 401) {
+        errorTitle = "Acesso Negado";
+        errorMessage = "Você não tem permissão para enviar emails";
+      } else if (error?.status === 500) {
+        errorTitle = "Erro do Servidor";
+        errorMessage = "Erro interno do servidor. Tente novamente em alguns minutos.";
+      }
+      
       toast({
-        title: "Erro ao enviar emails",
-        description: error.message,
+        title: `❌ ${errorTitle}`,
+        description: errorMessage,
         variant: "destructive",
       });
     },
@@ -138,21 +168,34 @@ export default function EmailManagement() {
       return;
     }
     
-    if (!data.subject || !data.message) {
+    if (!data.subject.trim()) {
       toast({
         title: "Erro",
-        description: "Assunto e mensagem são obrigatórios",
+        description: "O assunto é obrigatório",
         variant: "destructive",
       });
       return;
     }
     
-    sendEmailMutation.mutate({
+    if (!data.message.trim()) {
+      toast({
+        title: "Erro",
+        description: "A mensagem é obrigatória",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    // Enviar com os usuários selecionados
+    const emailData = {
       recipients: selectedUsers,
-      subject: data.subject,
-      message: data.message,
+      subject: data.subject.trim(),
+      message: data.message.trim(),
       isHtml: data.isHtml || false,
-    });
+    };
+    
+    console.log("Dados finais do email:", emailData);
+    sendEmailMutation.mutate(emailData);
   };
 
   if (isLoading) {
@@ -307,19 +350,51 @@ export default function EmailManagement() {
 
               <Button
                 type="submit"
-                disabled={selectedUsers.length === 0 || sendEmailMutation.isPending}
+                disabled={selectedUsers.length === 0 || sendEmailMutation.isPending || !form.watch("subject")?.trim() || !form.watch("message")?.trim()}
                 className="w-full"
                 onClick={(e) => {
-                  console.log("Button clicked");
+                  console.log("=== BOTÃO ENVIAR CLICADO ===");
                   console.log("Selected users:", selectedUsers);
+                  console.log("Subject:", form.watch("subject"));
+                  console.log("Message:", form.watch("message"));
                   console.log("Form valid:", form.formState.isValid);
                   console.log("Form errors:", form.formState.errors);
+                  
+                  if (selectedUsers.length === 0) {
+                    e.preventDefault();
+                    toast({
+                      title: "❌ Erro de Validação",
+                      description: "Selecione pelo menos um destinatário antes de enviar",
+                      variant: "destructive",
+                    });
+                    return;
+                  }
+                  
+                  if (!form.watch("subject")?.trim()) {
+                    e.preventDefault();
+                    toast({
+                      title: "❌ Erro de Validação", 
+                      description: "O assunto é obrigatório",
+                      variant: "destructive",
+                    });
+                    return;
+                  }
+                  
+                  if (!form.watch("message")?.trim()) {
+                    e.preventDefault();
+                    toast({
+                      title: "❌ Erro de Validação",
+                      description: "A mensagem é obrigatória", 
+                      variant: "destructive",
+                    });
+                    return;
+                  }
                 }}
               >
                 {sendEmailMutation.isPending ? (
                   <div className="flex items-center space-x-2">
                     <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                    <span>Enviando...</span>
+                    <span>Enviando Email...</span>
                   </div>
                 ) : (
                   <div className="flex items-center space-x-2">
@@ -329,11 +404,36 @@ export default function EmailManagement() {
                 )}
               </Button>
 
-              {selectedUsers.length === 0 && (
-                <p className="text-sm text-orange-600 text-center">
-                  Selecione pelo menos um destinatário para enviar o email
-                </p>
-              )}
+              {/* Status de validação */}
+              <div className="space-y-2">
+                {selectedUsers.length === 0 && (
+                  <p className="text-sm text-orange-600 text-center flex items-center justify-center space-x-1">
+                    <AlertCircle className="w-4 h-4" />
+                    <span>Selecione pelo menos um destinatário para enviar o email</span>
+                  </p>
+                )}
+                
+                {selectedUsers.length > 0 && !form.watch("subject")?.trim() && (
+                  <p className="text-sm text-orange-600 text-center flex items-center justify-center space-x-1">
+                    <AlertCircle className="w-4 h-4" />
+                    <span>Digite o assunto do email</span>
+                  </p>
+                )}
+                
+                {selectedUsers.length > 0 && form.watch("subject")?.trim() && !form.watch("message")?.trim() && (
+                  <p className="text-sm text-orange-600 text-center flex items-center justify-center space-x-1">
+                    <AlertCircle className="w-4 h-4" />
+                    <span>Digite a mensagem do email</span>
+                  </p>
+                )}
+                
+                {selectedUsers.length > 0 && form.watch("subject")?.trim() && form.watch("message")?.trim() && !sendEmailMutation.isPending && (
+                  <p className="text-sm text-green-600 text-center flex items-center justify-center space-x-1">
+                    <UserCheck className="w-4 h-4" />
+                    <span>Pronto para enviar para {selectedUsers.length} destinatário(s)</span>
+                  </p>
+                )}
+              </div>
             </form>
           </CardContent>
         </Card>

@@ -20,18 +20,46 @@ function getAuthHeaders() {
 }
 
 export async function apiRequest(url: string, options: RequestInit = {}) {
-  const res = await fetch(url, {
+  const token = localStorage.getItem('auth_token');
+
+  const response = await fetch(url, {
     ...options,
+    credentials: 'include',
     headers: {
       'Content-Type': 'application/json',
-      ...getAuthHeaders(),
+      ...(token && { 'Authorization': `Bearer ${token}` }),
       ...options.headers,
     },
-    credentials: 'include',
   });
 
-  await throwIfResNotOk(res);
-  return await res.json();
+  if (!response.ok) {
+    const error = await response.text();
+    let errorMessage;
+    let errorData: any = {};
+
+    try {
+      errorData = JSON.parse(error);
+      errorMessage = errorData.error || errorData.message || 'Erro desconhecido';
+    } catch {
+      errorMessage = error || `Erro ${response.status}`;
+    }
+
+    // Criar objeto de erro mais detalhado
+    const detailedError = new Error(errorMessage) as any;
+    detailedError.status = response.status;
+    detailedError.statusText = response.statusText;
+    detailedError.details = errorData.details;
+    detailedError.title = errorData.title;
+
+    throw detailedError;
+  }
+
+  const contentType = response.headers.get('content-type');
+  if (contentType && contentType.includes('application/json')) {
+    return await response.json();
+  }
+
+  return await response.text();
 }
 
 type UnauthorizedBehavior = "returnNull" | "throw";
