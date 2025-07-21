@@ -245,176 +245,94 @@ class BrevoEmailService implements EmailService {
     } else {
       // Se é texto simples, cria um template HTML profissional
       finalContent = `
-<html>
+        <html>
           <head>
             <meta charset="UTF-8">
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
             <style>
               body { 
-                font-family: 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif; 
+                font-family: Arial, sans-serif; 
                 line-height: 1.6; 
-                color: #1f2937; 
+                color: #333; 
                 margin: 0; 
                 padding: 20px; 
-                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                min-height: 100vh;
+                background-color: #f0f2f5;
               }
               .container { 
-                max-width: 650px; 
+                max-width: 600px; 
                 margin: 0 auto; 
                 background-color: #ffffff;
-                border-radius: 20px;
+                border-radius: 12px;
                 overflow: hidden;
-                box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
-                backdrop-filter: blur(10px);
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
               }
               .header { 
                 background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 50%, #2563eb 100%);
                 color: white; 
-                padding: 40px 30px; 
+                padding: 30px; 
                 text-align: center;
-                position: relative;
-                overflow: hidden;
-              }
-              .header::before {
-                content: '';
-                position: absolute;
-                top: -50%;
-                left: -50%;
-                width: 200%;
-                height: 200%;
-                background: radial-gradient(circle, rgba(255,255,255,0.1) 1px, transparent 1px);
-                background-size: 20px 20px;
-                animation: float 20s ease-in-out infinite;
-              }
-              @keyframes float {
-                0%, 100% { transform: translateY(0px) rotate(0deg); }
-                50% { transform: translateY(-20px) rotate(180deg); }
-              }
-              .logo-container {
-                position: relative;
-                z-index: 10;
-                margin-bottom: 20px;
-                display: flex;
-                justify-content: center;
-                align-items: center;
               }
               .logo {
                 background: linear-gradient(135deg, #1f2937 0%, #374151 100%);
                 color: white;
-                width: 80px;
-                height: 80px;
+                width: 70px;
+                height: 70px;
                 border-radius: 50%;
                 display: flex;
                 align-items: center;
                 justify-content: center;
-                font-size: 28px;
+                font-size: 24px;
                 font-weight: 900;
-                margin: 0 auto 15px auto;
-                box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
-                border: 4px solid rgba(255, 255, 255, 0.2);
-                position: relative;
-              }
-              .logo::after {
-                content: '';
-                position: absolute;
-                top: -4px;
-                left: -4px;
-                right: -4px;
-                bottom: -4px;
-                border-radius: 50%;
-                background: linear-gradient(45deg, #60a5fa, #a78bfa, #f472b6);
-                z-index: -1;
-                animation: rotate 3s linear infinite;
-              }
-              @keyframes rotate {
-                from { transform: rotate(0deg); }
-                to { transform: rotate(360deg); }
+                margin: 0 auto 20px auto;
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+                border: 3px solid rgba(255, 255, 255, 0.2);
               }
               .header h1 {
-                margin: 10px 0 5px 0;
-                font-size: 32px;
-                font-weight: 800;
-                position: relative;
-                z-index: 10;
-                text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
-                letter-spacing: -0.5px;
-                text-align: center;
+                margin: 0;
+                font-size: 28px;
+                font-weight: 700;
+                text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
               }
               .header p {
-                margin: 0;
-                opacity: 0.95;
-                font-size: 18px;
-                position: relative;
-                z-index: 10;
-                font-weight: 500;
-                text-align: center;
-              }
-              .divider {
-                border: none;
-                height: 4px;
-                background: linear-gradient(90deg, #f59e0b 0%, #ef4444 25%, #8b5cf6 50%, #06b6d4 75%, #10b981 100%);
-                margin: 0;
-                background-size: 200% 100%;
-                animation: gradientShift 3s ease infinite;
-                width: 100%;
-              }
-              @keyframes gradientShift {
-                0%, 100% { background-position: 0% 50%; }
-                50% { background-position: 100% 50%; }
+                margin: 8px 0 0 0;
+                opacity: 0.9;
+                font-size: 16px;
+                font-weight: 400;
               }
               .content {
-                padding: 45px 35px;
-                background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
-                position: relative;
-              }
-              .content::before {
-                content: '';
-                position: absolute;
-                top: 0;
-                left: 0;
-                right: 0;
-                bottom: 0;
-                background-image: radial-gradient(circle at 25% 25%, rgba(79, 70, 229, 0.05) 0%, transparent 50%),
-                                  radial-gradient(circle at 75% 75%, rgba(139, 92, 246, 0.05) 0%, transparent 50%);
-                pointer-events: none;
+                padding: 30px;
+                background-color: #ffffff;
               }
               .content-header {
                 display: flex;
                 align-items: center;
-                justify-content: flex-start;
-                margin-bottom: 25px;
-                position: relative;
-                z-index: 1;
+                margin-bottom: 20px;
               }
               .email-icon {
                 background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
                 color: white;
-                width: 45px;
-                height: 45px;
-                border-radius: 12px;
+                width: 40px;
+                height: 40px;
+                border-radius: 10px;
                 display: flex;
                 align-items: center;
                 justify-content: center;
                 margin-right: 15px;
-                box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
+                box-shadow: 0 2px 8px rgba(79, 70, 229, 0.3);
                 flex-shrink: 0;
               }
               .content-title {
                 color: #1e293b;
                 margin: 0;
-                font-size: 24px;
-                font-weight: 700;
-                letter-spacing: -0.3px;
-                line-height: 1.3;
+                font-size: 20px;
+                font-weight: 600;
               }
               .message-content {
-                background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
-                border: 2px solid transparent;
-                background-clip: padding-box;
-                padding: 25px;
-                margin: 25px 0;
-                border-radius: 16px;
+                background-color: #f8fafc;
+                border: 1px solid #e2e8f0;
+                padding: 20px;
+                margin: 20px 0;
+                border-radius: 8px;
                 font-size: 16px;
                 line-height: 1.8;
                 color: #334155;
@@ -516,13 +434,10 @@ class BrevoEmailService implements EmailService {
           <body>
             <div class="container">
               <div class="header">
-                <div class="logo-container">
-                  <div class="logo">RMJ</div>
-                </div>
+                <div class="logo">RMJ</div>
                 <h1>RMJ Consultas</h1>
                 <p>Sistema de Benefícios INSS</p>
               </div>
-              <hr class="divider">
               <div class="content">
                 <div class="content-header">
                   <div class="email-icon">📧</div>

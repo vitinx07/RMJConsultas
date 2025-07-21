@@ -16,11 +16,12 @@ import Notifications from "@/pages/notifications";
 import EmailManagement from "@/pages/EmailManagement";
 import ResetPassword from "@/pages/ResetPassword";
 import ForgotPassword from "@/pages/ForgotPassword";
+import ChangePassword from "@/pages/ChangePassword";
 import EditUser from "@/pages/EditUser";
 import NotFound from "@/pages/not-found";
 
 function Router() {
-  const { isAuthenticated, isLoading, error } = useAuth();
+  const { isAuthenticated, isLoading, error, user } = useAuth();
 
   // Se há erro e não está carregando, assume não autenticado
   if (error && !isLoading) {
@@ -45,8 +46,22 @@ function Router() {
       <Switch>
         <Route path="/reset-password" component={ResetPassword} />
         <Route path="/forgot-password" component={ForgotPassword} />
+        <Route path="/change-password" component={ChangePassword} />
         <Route component={Login} />
       </Switch>
+    );
+  }
+
+  // Verificar se o usuário precisa alterar a senha
+  if (user?.mustChangePassword) {
+    return (
+      <ChangePassword 
+        isRequired={true} 
+        onSuccess={() => {
+          // Atualizar o estado do usuário para remover a flag mustChangePassword
+          window.location.reload();
+        }}
+      />
     );
   }
 
@@ -67,6 +82,7 @@ function Router() {
         <Route path="/user/:id/editar" component={EditUser} />
         <Route path="/admin/emails" component={EmailManagement} />
         <Route path="/usuarios/emails" component={EmailManagement} />
+        <Route path="/change-password" component={ChangePassword} />
         <Route component={NotFound} />
       </Switch>
     </div>

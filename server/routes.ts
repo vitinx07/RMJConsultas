@@ -316,6 +316,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Change password (authenticated users)
+  app.post("/api/auth/change-password", requireAuthHybrid, requireAnyRole, async (req, res) => {
+    try {
+      const { currentPassword, newPassword } = req.body;
+
+      if (!currentPassword || !newPassword) {
+        return res.status(400).json({ error: "Senha atual e nova senha são obrigatórias" });
+      }
+
+      if (newPassword.length < 6) {
+        return res.status(400).json({ error: "Nova senha deve ter pelo menos 6 caracteres" });
+      }
+
+      // Verify current password
+      const user = await storage.validateCredentials(req.user!.username, currentPassword);
+      if (!user) {
+        return res.status(400).json({ error: "Senha atual incorreta" });
+      }
+
+      // Update password and remove mustChangePassword flag
+      await storage.updateUserPassword(user.id, newPassword);
+      await storage.updateUser(user.id, { mustChangePassword: false });
+
+      res.json({ message: "Senha alterada com sucesso" });
+    } catch (error) {
+      console.error("Erro ao alterar senha:", error);
+      res.status(500).json({ error: "Erro interno do servidor" });
+    }
+  });
+
   // Send custom email (admin only)
   app.post("/api/admin/send-email", requireAuthHybrid, requireAdmin, async (req, res) => {
     try {

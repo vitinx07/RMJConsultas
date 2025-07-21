@@ -125,6 +125,7 @@ export class DatabaseStorage implements IStorage {
         role: userData.role,
         isActive: userData.isActive,
         passwordHash: hashedPassword,
+        mustChangePassword: userData.generatePassword || false, // Força mudança de senha se foi gerada automaticamente
         createdBy: creatorId,
         updatedAt: new Date(),
       })
@@ -165,6 +166,7 @@ export class DatabaseStorage implements IStorage {
       .update(users)
       .set({
         passwordHash: hashedPassword,
+        mustChangePassword: true, // Forçar mudança de senha temporária
         updatedAt: new Date(),
       })
       .where(eq(users.id, userId))
@@ -249,6 +251,7 @@ export class DatabaseStorage implements IStorage {
       .update(users)
       .set({
         passwordHash: hashedPassword,
+        mustChangePassword: false, // Remover obrigação após mudança
         updatedAt: new Date(),
       })
       .where(eq(users.id, userId));
