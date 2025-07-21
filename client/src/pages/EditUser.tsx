@@ -93,7 +93,7 @@ export default function EditUser() {
 
   const deleteUserMutation = useMutation({
     mutationFn: async () => {
-      return await apiRequest(`/api/users/${id}`, {
+      return await apiRequest(`/api/usuarios/${id}`, {
         method: "DELETE",
       });
     },
@@ -124,8 +124,8 @@ export default function EditUser() {
     onSuccess: (response) => {
       toast({
         title: "Senha redefinida",
-        description: response.emailSent 
-          ? "Nova senha enviada por email." 
+        description: response.emailSent
+          ? "Nova senha enviada por email."
           : `Nova senha temporária: ${response.temporaryPassword}`,
       });
     },
@@ -156,13 +156,19 @@ export default function EditUser() {
   };
 
   const handleDeleteUser = () => {
-    if (window.confirm("Tem certeza que deseja excluir este usuário? Esta ação não pode ser desfeita.")) {
+    if (
+      window.confirm(
+        "Tem certeza que deseja excluir este usuário? Esta ação não pode ser desfeita.",
+      )
+    ) {
       deleteUserMutation.mutate();
     }
   };
 
   const handleResetPassword = () => {
-    if (window.confirm("Tem certeza que deseja redefinir a senha deste usuário?")) {
+    if (
+      window.confirm("Tem certeza que deseja redefinir a senha deste usuário?")
+    ) {
       resetPasswordMutation.mutate();
     }
   };
@@ -179,7 +185,11 @@ export default function EditUser() {
     return (
       <div className="text-center py-8">
         <p className="text-gray-500">Usuário não encontrado</p>
-        <Button onClick={() => navigate("/usuarios")} variant="outline" className="mt-4">
+        <Button
+          onClick={() => navigate("/usuarios")}
+          variant="outline"
+          className="mt-4"
+        >
           Voltar para Usuários
         </Button>
       </div>
@@ -218,7 +228,9 @@ export default function EditUser() {
                   disabled
                   className="bg-gray-50 dark:bg-gray-700"
                 />
-                <p className="text-sm text-gray-500">O nome de usuário não pode ser alterado</p>
+                <p className="text-sm text-gray-500">
+                  O nome de usuário não pode ser alterado
+                </p>
               </div>
 
               <div className="grid grid-cols-2 gap-4">
@@ -249,7 +261,9 @@ export default function EditUser() {
                   {...form.register("email")}
                 />
                 {form.formState.errors.email && (
-                  <p className="text-sm text-red-600">{form.formState.errors.email.message}</p>
+                  <p className="text-sm text-red-600">
+                    {form.formState.errors.email.message}
+                  </p>
                 )}
               </div>
 
@@ -257,7 +271,12 @@ export default function EditUser() {
                 <Label htmlFor="role">Função</Label>
                 <Select
                   value={form.watch("role")}
-                  onValueChange={(value) => form.setValue("role", value as "administrator" | "gerente" | "vendedor")}
+                  onValueChange={(value) =>
+                    form.setValue(
+                      "role",
+                      value as "administrator" | "gerente" | "vendedor",
+                    )
+                  }
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Selecione a função" />
@@ -274,7 +293,9 @@ export default function EditUser() {
                 <Switch
                   id="isActive"
                   checked={form.watch("isActive")}
-                  onCheckedChange={(checked) => form.setValue("isActive", checked)}
+                  onCheckedChange={(checked) =>
+                    form.setValue("isActive", checked)
+                  }
                 />
                 <Label htmlFor="isActive">Usuário ativo</Label>
               </div>
@@ -332,7 +353,8 @@ export default function EditUser() {
             <div className="space-y-2">
               <h3 className="font-medium text-red-600">Zona de Perigo</h3>
               <p className="text-sm text-gray-600">
-                Exclua permanentemente este usuário. Esta ação não pode ser desfeita.
+                Exclua permanentemente este usuário. Esta ação não pode ser
+                desfeita.
               </p>
               <Button
                 onClick={handleDeleteUser}
