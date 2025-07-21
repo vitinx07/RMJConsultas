@@ -1,23 +1,35 @@
-import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useState, useEffect } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { 
-  Clock, 
-  CheckCircle, 
-  XCircle, 
-  AlertTriangle, 
-  Search, 
-  UserCog,
-  Calendar,
-  User
-} from "lucide-react";
-import { SelectClientMarker, ClientMarkerStatus } from "@shared/schema";
+import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
-import { formatCPF } from "@/lib/utils";
+import { Navbar } from "@/components/navbar";
+import { 
+  UserCog, 
+  Search, 
+  Plus, 
+  Calendar,
+  User,
+  MapPin,
+  Clock,
+  AlertCircle,
+  CheckCircle,
+  XCircle,
+  Edit2,
+  Trash2,
+  Filter,
+  Download,
+  Bell,
+  Users
+} from "lucide-react";
 import { ClientMarkerDialog } from "@/components/ClientMarkerDialog";
+import { UnmarkedClientsDialog } from "@/components/UnmarkedClientsDialog";
+import { useAuth } from "@/hooks/useAuth";
+import { SelectClientMarker, ClientMarkerStatus } from "@shared/schema";
+import { formatCPF } from "@/lib/utils";
 
 const statusConfig = {
   em_negociacao: {
@@ -75,19 +87,25 @@ function ClientMarkersPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 dark:from-slate-900 dark:to-slate-800">
-      <main className="container mx-auto px-4 py-8 pt-20">
+    <div className="min-h-screen bg-background">
+      <Navbar />
+      <div className="container mx-auto p-6 pt-20 space-y-6">
         {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-foreground mb-2">
-            Marcações de Clientes
-          </h1>
-          <p className="text-muted-foreground">
-            Gerencie o status das negociações com os clientes
-          </p>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-2">
+              <UserCog className="w-6 h-6 text-primary" />
+              <h1 className="text-3xl font-bold">Marcações de Clientes</h1>
+            </div>
+          </div>
+
+          <div>
+          </div>
         </div>
 
         {/* Search */}
+        <Card className="w-full">
+          {/* Search */}
         <Card className="mb-6">
           <CardContent className="pt-6">
             <div className="relative">
@@ -100,6 +118,7 @@ function ClientMarkersPage() {
               />
             </div>
           </CardContent>
+        </Card>
         </Card>
 
         {/* Loading State */}
@@ -163,7 +182,7 @@ function ClientMarkersPage() {
                       </Button>
                     </div>
                   </CardHeader>
-                  
+
                   <CardContent>
                     <div className="space-y-3">
                       <div className="flex items-center gap-2">
@@ -213,7 +232,7 @@ function ClientMarkersPage() {
                 {Object.entries(statusConfig).map(([status, config]) => {
                   const count = markers.filter(m => m.status === status).length;
                   const Icon = config.icon;
-                  
+
                   return (
                     <div key={status} className="text-center">
                       <div className="flex items-center justify-center mb-2">
@@ -238,7 +257,7 @@ function ClientMarkersPage() {
             existingMarker={selectedMarker}
           />
         )}
-      </main>
+      </div>
     </div>
   );
 }
