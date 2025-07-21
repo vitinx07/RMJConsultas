@@ -2,12 +2,17 @@ import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 
-import { Search, Download, Calendar, User, AlertTriangle, DollarSign } from "lucide-react";
+import { Search, Eye, FileText, Calendar, User, AlertTriangle, DollarSign, CreditCard, Building2, Phone, Download } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+// import { BankIcon } from "@/components/BankIcon";
 
 // Função auxiliar para formatação de moeda
 const formatCurrency = (value: number): string => {
@@ -24,8 +29,233 @@ const formatCPF = (cpf: string): string => {
   return padded.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
 };
 
+// Componente para exibir detalhes completos da consulta
+function ConsultationDetails({ consultation, onExportPDF }: { consultation: any, onExportPDF: (consultation: any, benefit: any) => void }) {
+  const [selectedBenefitIndex, setSelectedBenefitIndex] = useState<number>(0);
+  
+  const resultData = consultation.resultData;
+  const benefits = Array.isArray(resultData) ? resultData : [resultData];
+  const currentBenefit = benefits[selectedBenefitIndex];
+
+  if (!currentBenefit) {
+    return <div className="text-center py-8">Dados da consulta não encontrados</div>;
+  }
+
+  return (
+    <div className="space-y-6">
+      {/* Seletor de Benefício se houver múltiplos */}
+      {benefits.length > 1 && (
+        <div>
+          <label className="text-sm font-medium mb-2 block">Selecionar Benefício:</label>
+          <Select value={selectedBenefitIndex.toString()} onValueChange={(value) => setSelectedBenefitIndex(parseInt(value))}>
+            <SelectTrigger>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {benefits.map((benefit: any, index: number) => (
+                <SelectItem key={index} value={index.toString()}>
+                  {benefit.Beneficiario?.Beneficio} - {benefit.Beneficiario?.Nome}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      )}
+
+      {/* Botão de Exportar PDF */}
+      <div className="flex justify-end">
+        <Button onClick={() => onExportPDF(consultation, currentBenefit)} className="flex items-center gap-2">
+          <Download className="h-4 w-4" />
+          Exportar PDF Completo
+        </Button>
+      </div>
+
+      {/* Detalhes do Beneficiário */}
+      <Accordion type="multiple" defaultValue={["beneficiario", "financeiro"]} className="w-full">
+        <AccordionItem value="beneficiario">
+          <AccordionTrigger className="flex items-center gap-2">
+            <User className="h-4 w-4" />
+            Dados do Beneficiário
+          </AccordionTrigger>
+          <AccordionContent>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="text-sm font-medium text-muted-foreground">Nome</label>
+                <p className="text-sm">{currentBenefit.Beneficiario?.Nome || 'N/A'}</p>
+              </div>
+              <div>
+                <label className="text-sm font-medium text-muted-foreground">CPF</label>
+                <p className="text-sm font-mono">{consultation.cpf || formatCPF(consultation.searchValue)}</p>
+              </div>
+              <div>
+                <label className="text-sm font-medium text-muted-foreground">Data de Nascimento</label>
+                <p className="text-sm">{currentBenefit.Beneficiario?.DataNascimento || 'N/A'}</p>
+              </div>
+              <div>
+                <label className="text-sm font-medium text-muted-foreground">RG</label>
+                <p className="text-sm">{currentBenefit.Beneficiario?.Rg || 'N/A'}</p>
+              </div>
+              <div>
+                <label className="text-sm font-medium text-muted-foreground">Sexo</label>
+                <p className="text-sm">{currentBenefit.Beneficiario?.Sexo || 'N/A'}</p>
+              </div>
+              <div>
+                <label className="text-sm font-medium text-muted-foreground">Nome da Mãe</label>
+                <p className="text-sm">{currentBenefit.Beneficiario?.NomeMae || 'N/A'}</p>
+              </div>
+            </div>
+          </AccordionContent>
+        </AccordionItem>
+
+        <AccordionItem value="beneficio">
+          <AccordionTrigger className="flex items-center gap-2">
+            <CreditCard className="h-4 w-4" />
+            Dados do Benefício
+          </AccordionTrigger>
+          <AccordionContent>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="text-sm font-medium text-muted-foreground">Número do Benefício</label>
+                <p className="text-sm font-mono">{currentBenefit.Beneficiario?.Beneficio || 'N/A'}</p>
+              </div>
+              <div>
+                <label className="text-sm font-medium text-muted-foreground">Espécie</label>
+                <p className="text-sm">{currentBenefit.Beneficiario?.Especie || 'N/A'}</p>
+              </div>
+              <div>
+                <label className="text-sm font-medium text-muted-foreground">Situação</label>
+                <Badge variant={currentBenefit.Beneficiario?.Situacao === 'ATIVO' ? 'default' : 'secondary'}>
+                  {currentBenefit.Beneficiario?.Situacao || 'N/A'}
+                </Badge>
+              </div>
+              <div>
+                <label className="text-sm font-medium text-muted-foreground">DIB (Data Início)</label>
+                <p className="text-sm">{currentBenefit.Beneficiario?.DIB || 'N/A'}</p>
+              </div>
+            </div>
+          </AccordionContent>
+        </AccordionItem>
+
+        <AccordionItem value="financeiro">
+          <AccordionTrigger className="flex items-center gap-2">
+            <DollarSign className="h-4 w-4" />
+            Informações Financeiras
+          </AccordionTrigger>
+          <AccordionContent>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="text-sm font-medium text-muted-foreground">Valor do Benefício</label>
+                <p className="text-sm font-semibold text-green-600">
+                  {currentBenefit.ResumoFinanceiro ? formatCurrency(currentBenefit.ResumoFinanceiro.ValorBeneficio) : 'N/A'}
+                </p>
+              </div>
+              <div>
+                <label className="text-sm font-medium text-muted-foreground">Margem Disponível Empréstimo</label>
+                <p className="text-sm font-semibold text-blue-600">
+                  {currentBenefit.ResumoFinanceiro ? formatCurrency(currentBenefit.ResumoFinanceiro.MargemDisponivelEmprestimo) : 'N/A'}
+                </p>
+              </div>
+              <div>
+                <label className="text-sm font-medium text-muted-foreground">Margem Disponível RMC</label>
+                <p className="text-sm">{currentBenefit.ResumoFinanceiro ? formatCurrency(currentBenefit.ResumoFinanceiro.MargemDisponivelRmc) : 'N/A'}</p>
+              </div>
+              <div>
+                <label className="text-sm font-medium text-muted-foreground">Margem Disponível RCC</label>
+                <p className="text-sm">{currentBenefit.ResumoFinanceiro ? formatCurrency(currentBenefit.ResumoFinanceiro.MargemDisponivelRcc) : 'N/A'}</p>
+              </div>
+            </div>
+          </AccordionContent>
+        </AccordionItem>
+
+        <AccordionItem value="emprestimos">
+          <AccordionTrigger className="flex items-center gap-2">
+            <Building2 className="h-4 w-4" />
+            Contratos de Empréstimo
+          </AccordionTrigger>
+          <AccordionContent>
+            {currentBenefit.ContratosEmprestimo && currentBenefit.ContratosEmprestimo.length > 0 ? (
+              <div className="space-y-4">
+                {currentBenefit.ContratosEmprestimo.map((contrato: any, index: number) => (
+                  <div key={index} className="border rounded-lg p-4">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Building2 className="h-4 w-4 text-blue-600" />
+                      <h4 className="font-medium">{contrato.NomeBanco}</h4>
+                    </div>
+                    <div className="grid grid-cols-2 gap-2 text-sm">
+                      <div>Contrato: {contrato.NumeroContrato}</div>
+                      <div>Valor: {formatCurrency(contrato.ValorEmprestimo)}</div>
+                      <div>Saldo Devedor: {formatCurrency(contrato.SaldoDevedor)}</div>
+                      <div>Parcelas: {contrato.ParcelasPagas}/{contrato.TotalParcelas}</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-muted-foreground">Nenhum contrato de empréstimo encontrado</p>
+            )}
+          </AccordionContent>
+        </AccordionItem>
+
+        <AccordionItem value="cartoes">
+          <AccordionTrigger className="flex items-center gap-2">
+            <CreditCard className="h-4 w-4" />
+            Informações de Cartão
+          </AccordionTrigger>
+          <AccordionContent>
+            {currentBenefit.InformacoesCartao && currentBenefit.InformacoesCartao.length > 0 ? (
+              <div className="space-y-4">
+                {currentBenefit.InformacoesCartao.map((cartao: any, index: number) => (
+                  <div key={index} className="border rounded-lg p-4">
+                    <div className="flex items-center gap-2 mb-2">
+                      <CreditCard className="h-4 w-4 text-green-600" />
+                      <h4 className="font-medium">{cartao.NomeBanco}</h4>
+                      <Badge variant="outline">{cartao.TipoCartao}</Badge>
+                    </div>
+                    <div className="grid grid-cols-2 gap-2 text-sm">
+                      <div>Limite Total: {formatCurrency(cartao.LimiteCartao)}</div>
+                      <div>Limite Usado: {formatCurrency(cartao.LimiteUsado)}</div>
+                      <div>Limite Disponível: {formatCurrency(cartao.LimiteDisponivel)}</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-muted-foreground">Nenhuma informação de cartão encontrada</p>
+            )}
+          </AccordionContent>
+        </AccordionItem>
+
+        <AccordionItem value="contato">
+          <AccordionTrigger className="flex items-center gap-2">
+            <Phone className="h-4 w-4" />
+            Dados de Contato
+          </AccordionTrigger>
+          <AccordionContent>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="text-sm font-medium text-muted-foreground">CEP</label>
+                <p className="text-sm">{currentBenefit.Beneficiario?.Cep || 'N/A'}</p>
+              </div>
+              <div>
+                <label className="text-sm font-medium text-muted-foreground">Telefone</label>
+                <p className="text-sm">{currentBenefit.Beneficiario?.Telefone || 'N/A'}</p>
+              </div>
+              <div>
+                <label className="text-sm font-medium text-muted-foreground">Email</label>
+                <p className="text-sm">{currentBenefit.Beneficiario?.Email || 'N/A'}</p>
+              </div>
+            </div>
+          </AccordionContent>
+        </AccordionItem>
+      </Accordion>
+    </div>
+  );
+}
+
 export function ConsultationHistory() {
   const [selectedPeriod, setSelectedPeriod] = useState<string>('30');
+  const [searchFilter, setSearchFilter] = useState('');
+  const [selectedConsultation, setSelectedConsultation] = useState<any>(null);
 
   // Query para buscar consultas
   const { data: consultations, isLoading } = useQuery({
@@ -39,40 +269,102 @@ export function ConsultationHistory() {
     }
   });
 
-  const exportToCSV = () => {
-    if (!consultations || consultations.length === 0) return;
+  // Filtrar consultas baseado na busca
+  const filteredConsultations = consultations?.filter((consultation: any) =>
+    consultation.beneficiaryName?.toLowerCase().includes(searchFilter.toLowerCase()) ||
+    consultation.cpf?.includes(searchFilter.replace(/\D/g, '')) ||
+    consultation.benefitNumber?.includes(searchFilter)
+  ) || [];
 
-    const headers = [
-      'Data da Consulta',
-      'CPF',
-      'Nome do Beneficiário',
-      'Número do Benefício',
-      'Valor do Benefício',
-      'Margem Disponível',
-      'Status do Empréstimo',
-      'Tipo de Consulta'
-    ];
+  const generatePDF = (consultation: any, benefit: any) => {
+    const resultData = consultation.resultData;
+    if (!resultData) return;
 
-    const csvData = consultations.map((consultation: any) => [
-      format(new Date(consultation.createdAt), 'dd/MM/yyyy HH:mm', { locale: ptBR }),
-      consultation.cpf || formatCPF(consultation.searchValue),
-      consultation.beneficiaryName || 'N/A',
-      consultation.benefitNumber || 'N/A',
-      consultation.benefitValue ? formatCurrency(consultation.benefitValue) : 'N/A',
-      consultation.availableMargin ? formatCurrency(consultation.availableMargin) : 'N/A',
-      consultation.loanBlocked ? 'Bloqueado' : 'Liberado',
-      consultation.searchType === 'cpf' ? 'Por CPF' : 'Por Benefício'
-    ]);
+    // Criar conteúdo do PDF
+    const pdfContent = `
+=================================================================
+                    RELATÓRIO COMPLETO DE CONSULTA INSS
+=================================================================
 
-    const csvContent = [
-      headers.join(','),
-      ...csvData.map((row: any[]) => row.map((cell: any) => `"${cell}"`).join(','))
-    ].join('\n');
+Data da Consulta: ${format(new Date(consultation.createdAt), 'dd/MM/yyyy HH:mm', { locale: ptBR })}
 
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+DADOS DO BENEFICIÁRIO
+=================================================================
+Nome: ${benefit.Beneficiario?.Nome || 'N/A'}
+CPF: ${consultation.cpf || formatCPF(consultation.searchValue)}
+Data de Nascimento: ${benefit.Beneficiario?.DataNascimento || 'N/A'}
+RG: ${benefit.Beneficiario?.Rg || 'N/A'}
+Sexo: ${benefit.Beneficiario?.Sexo || 'N/A'}
+Nome da Mãe: ${benefit.Beneficiario?.NomeMae || 'N/A'}
+
+DADOS DO BENEFÍCIO
+=================================================================
+Número do Benefício: ${benefit.Beneficiario?.Beneficio || 'N/A'}
+Espécie: ${benefit.Beneficiario?.Especie || 'N/A'}
+Situação: ${benefit.Beneficiario?.Situacao || 'N/A'}
+DIB (Data Início): ${benefit.Beneficiario?.DIB || 'N/A'}
+DDB (Data Desligamento): ${benefit.Beneficiario?.DDB || 'N/A'}
+
+INFORMAÇÕES FINANCEIRAS
+=================================================================
+Valor do Benefício: ${benefit.ResumoFinanceiro ? formatCurrency(benefit.ResumoFinanceiro.ValorBeneficio) : 'N/A'}
+Base de Cálculo: ${benefit.ResumoFinanceiro ? formatCurrency(benefit.ResumoFinanceiro.BaseCalculo) : 'N/A'}
+Margem Disponível Empréstimo: ${benefit.ResumoFinanceiro ? formatCurrency(benefit.ResumoFinanceiro.MargemDisponivelEmprestimo) : 'N/A'}
+Margem Disponível RMC: ${benefit.ResumoFinanceiro ? formatCurrency(benefit.ResumoFinanceiro.MargemDisponivelRmc) : 'N/A'}
+Margem Disponível RCC: ${benefit.ResumoFinanceiro ? formatCurrency(benefit.ResumoFinanceiro.MargemDisponivelRcc) : 'N/A'}
+Total Empréstimos: ${benefit.ResumoFinanceiro ? formatCurrency(benefit.ResumoFinanceiro.TotalEmprestimos) : 'N/A'}
+Possui Cartão: ${benefit.ResumoFinanceiro?.PossuiCartao ? 'SIM' : 'NÃO'}
+
+STATUS DE EMPRÉSTIMO
+=================================================================
+Bloqueado para Empréstimo: ${benefit.Beneficiario?.BloqueadoEmprestimo === 'SIM' ? 'SIM' : 'NÃO'}
+${benefit.Beneficiario?.MotivoBloqueio ? `Motivo do Bloqueio: ${benefit.Beneficiario.MotivoBloqueio}` : ''}
+
+DADOS DE CONTATO E ENDEREÇO
+=================================================================
+CEP: ${benefit.Beneficiario?.Cep || 'N/A'}
+Telefone: ${benefit.Beneficiario?.Telefone || 'N/A'}
+Email: ${benefit.Beneficiario?.Email || 'N/A'}
+
+CONTRATOS DE EMPRÉSTIMO ATIVOS
+=================================================================
+${benefit.ContratosEmprestimo && benefit.ContratosEmprestimo.length > 0 ? 
+  benefit.ContratosEmprestimo.map((contrato: any, index: number) => `
+Contrato ${index + 1}:
+  Número: ${contrato.NumeroContrato}
+  Banco: ${contrato.NomeBanco}
+  Valor: ${formatCurrency(contrato.ValorEmprestimo)}
+  Saldo Devedor: ${formatCurrency(contrato.SaldoDevedor)}
+  Parcelas Pagas: ${contrato.ParcelasPagas}/${contrato.TotalParcelas}
+  Taxa de Juros: ${contrato.TaxaJuros}%
+  `).join('\n') : 'Nenhum contrato de empréstimo encontrado'
+}
+
+INFORMAÇÕES DE CARTÃO RMC/RCC
+=================================================================
+${benefit.InformacoesCartao && benefit.InformacoesCartao.length > 0 ?
+  benefit.InformacoesCartao.map((cartao: any, index: number) => `
+Cartão ${index + 1}:
+  Banco: ${cartao.NomeBanco}
+  Tipo: ${cartao.TipoCartao}
+  Número: ${cartao.NumeroCartao?.replace(/(\d{4})(\d{4})(\d{4})(\d{4})/, '**** **** **** $4')}
+  Limite: ${formatCurrency(cartao.LimiteCartao)}
+  Limite Usado: ${formatCurrency(cartao.LimiteUsado)}
+  Limite Disponível: ${formatCurrency(cartao.LimiteDisponivel)}
+  `).join('\n') : 'Nenhum cartão encontrado'
+}
+
+=================================================================
+Relatório gerado em: ${format(new Date(), 'dd/MM/yyyy HH:mm', { locale: ptBR })}
+Sistema MULTI CORBAN - Consulta de Benefícios INSS
+=================================================================
+    `;
+
+    // Criar e baixar arquivo PDF (simulado como TXT para simplicidade)
+    const blob = new Blob([pdfContent], { type: 'text/plain;charset=utf-8;' });
     const link = document.createElement('a');
     link.href = URL.createObjectURL(blob);
-    link.download = `consultas_${format(new Date(), 'dd-MM-yyyy')}.csv`;
+    link.download = `relatorio_completo_${benefit.Beneficiario?.Nome?.replace(/\s+/g, '_')}_${benefit.Beneficiario?.Beneficio}_${format(new Date(), 'dd-MM-yyyy')}.txt`;
     link.click();
   };
 
@@ -83,7 +375,7 @@ export function ConsultationHistory() {
           <Search className="h-5 w-5 text-primary" />
           Histórico de Consultas
         </CardTitle>
-        <div className="flex justify-between items-center">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
           <div className="flex gap-2">
             <Button
               variant={selectedPeriod === '7' ? 'default' : 'outline'}
@@ -108,15 +400,17 @@ export function ConsultationHistory() {
             </Button>
           </div>
           
-          <Button 
-            onClick={exportToCSV}
-            disabled={!consultations || consultations.length === 0}
-            variant="outline"
-            size="sm"
-          >
-            <Download className="h-4 w-4 mr-2" />
-            Exportar CSV
-          </Button>
+          <div className="flex gap-2 items-center">
+            <Input
+              placeholder="Buscar por nome, CPF ou benefício..."
+              value={searchFilter}
+              onChange={(e) => setSearchFilter(e.target.value)}
+              className="w-64"
+            />
+            <Badge variant="outline">
+              {filteredConsultations.length} registros
+            </Badge>
+          </div>
         </div>
       </CardHeader>
       <CardContent>
@@ -125,7 +419,7 @@ export function ConsultationHistory() {
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
             <p className="mt-2 text-muted-foreground">Carregando consultas...</p>
           </div>
-        ) : consultations && consultations.length > 0 ? (
+        ) : filteredConsultations && filteredConsultations.length > 0 ? (
           <div className="rounded-md border">
             <Table>
               <TableHeader>
@@ -137,10 +431,11 @@ export function ConsultationHistory() {
                   <TableHead>Valor</TableHead>
                   <TableHead>Margem</TableHead>
                   <TableHead>Status</TableHead>
+                  <TableHead>Ações</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {consultations.map((consultation: any) => (
+                {filteredConsultations.map((consultation: any) => (
                   <TableRow key={consultation.id}>
                     <TableCell>
                       <div className="flex items-center gap-2">
@@ -195,6 +490,35 @@ export function ConsultationHistory() {
                           Liberado
                         </Badge>
                       )}
+                    </TableCell>
+                    <TableCell>
+                      <Dialog>
+                        <DialogTrigger asChild>
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            onClick={() => setSelectedConsultation(consultation)}
+                          >
+                            <Eye className="h-4 w-4 mr-1" />
+                            Ver Detalhes
+                          </Button>
+                        </DialogTrigger>
+                        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+                          <DialogHeader>
+                            <DialogTitle className="flex items-center gap-2">
+                              <FileText className="h-5 w-5" />
+                              Detalhes Completos da Consulta
+                            </DialogTitle>
+                          </DialogHeader>
+                          
+                          {selectedConsultation && selectedConsultation.resultData && (
+                            <ConsultationDetails 
+                              consultation={selectedConsultation}
+                              onExportPDF={generatePDF}
+                            />
+                          )}
+                        </DialogContent>
+                      </Dialog>
                     </TableCell>
                   </TableRow>
                 ))}
