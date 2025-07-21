@@ -331,6 +331,25 @@ export class DatabaseStorage implements IStorage {
     return consultation;
   }
 
+  async getConsultations(days: number = 30, userId?: string): Promise<SelectConsultation[]> {
+    const cutoffDate = new Date();
+    cutoffDate.setDate(cutoffDate.getDate() - days);
+    
+    let query = db
+      .select()
+      .from(consultations)
+      .where(gte(consultations.createdAt, cutoffDate));
+    
+    // Filtrar por usuário se fornecido
+    if (userId) {
+      query = query.where(eq(consultations.userId, userId));
+    }
+    
+    return await query
+      .orderBy(desc(consultations.createdAt))
+      .limit(100);
+  }
+
   async getConsultationsByUser(userId: string, limit: number = 50): Promise<Consultation[]> {
     return await db
       .select()

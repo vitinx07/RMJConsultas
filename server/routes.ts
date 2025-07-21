@@ -901,9 +901,42 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/consultations", requireAuthHybrid, requireAnyRole, async (req, res) => {
     try {
       const userId = req.user!.id;
-      const limit = parseInt(req.query.limit as string) || 50;
-      const consultations = await storage.getConsultationsByUser(userId, limit);
-      res.json(consultations);
+      const period = req.query.period ? parseInt(req.query.period as string) : 30;
+      const consultations = await storage.getConsultations(period, userId);
+      
+      // Enriquecer dados com informações do resultData para melhor exibição
+      const enrichedConsultations = consultations.map(consultation => {
+        const resultData = consultation.resultData;
+        let enrichedData = { ...consultation };
+        
+        if (resultData) {
+          // Se resultData é um array, pegar o primeiro item
+          const firstBenefit = Array.isArray(resultData) ? resultData[0] : resultData;
+          
+          if (firstBenefit && firstBenefit.Beneficiario) {
+            // Usar dados já salvos nas colunas normalizadas, mas fallback para resultData se necessário
+            if (!enrichedData.beneficiaryName) {
+              enrichedData.beneficiaryName = firstBenefit.Beneficiario.Nome;
+            }
+            if (!enrichedData.benefitNumber) {
+              enrichedData.benefitNumber = firstBenefit.Beneficiario.Beneficio;
+            }
+            if (!enrichedData.benefitValue && firstBenefit.ResumoFinanceiro) {
+              enrichedData.benefitValue = firstBenefit.ResumoFinanceiro.ValorBeneficio;
+            }
+            if (!enrichedData.availableMargin && firstBenefit.ResumoFinanceiro) {
+              enrichedData.availableMargin = firstBenefit.ResumoFinanceiro.MargemDisponivelEmprestimo;
+            }
+            if (enrichedData.loanBlocked === null || enrichedData.loanBlocked === undefined) {
+              enrichedData.loanBlocked = firstBenefit.Beneficiario?.BloqueadoEmprestimo === 'SIM' || firstBenefit.Beneficiario?.BloqueadoEmprestimo === 'S';
+            }
+          }
+        }
+        
+        return enrichedData;
+      });
+      
+      res.json(enrichedConsultations);
     } catch (error) {
       console.error("Erro ao buscar histórico de consultas:", error);
       res.status(500).json({ error: "Erro ao carregar histórico" });
