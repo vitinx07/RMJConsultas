@@ -25,6 +25,9 @@ class BrevoEmailService implements EmailService {
 
   constructor() {
     // HTTP implementation - no initialization needed
+    if (!this.apiKey) {
+      console.warn('⚠️ BREVO_API_KEY não configurada - funcionalidade de email desabilitada');
+    }
   }
 
   private async sendEmail(emailData: {
@@ -37,6 +40,11 @@ class BrevoEmailService implements EmailService {
     tags?: string[];
     attachment?: { name: string; content: string }[];
   }): Promise<boolean> {
+    if (!this.apiKey) {
+      console.error('❌ BREVO_API_KEY não configurada');
+      return false;
+    }
+    
     try {
       const response = await fetch(this.apiUrl, {
         method: 'POST',

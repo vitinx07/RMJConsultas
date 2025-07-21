@@ -51,11 +51,9 @@ export default function Login() {
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-4">
           <div className="flex justify-center">
-            <img 
-              src={logoPath} 
-              alt="RMJ Consultas Logo" 
-              className="w-20 h-20 object-cover rounded-full border-2 border-primary/20"
-            />
+            <div className="w-20 h-20 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center border-2 border-primary/20">
+              <span className="text-white font-bold text-2xl">RMJ</span>
+            </div>
           </div>
           <CardTitle className="text-2xl font-bold text-center">
             RMJ Consultas
