@@ -285,8 +285,11 @@ class BrevoEmailService implements EmailService {
               }
               .logo-container {
                 position: relative;
-                z-index: 2;
+                z-index: 10;
                 margin-bottom: 20px;
+                display: flex;
+                justify-content: center;
+                align-items: center;
               }
               .logo {
                 background: linear-gradient(135deg, #1f2937 0%, #374151 100%);
@@ -294,12 +297,12 @@ class BrevoEmailService implements EmailService {
                 width: 80px;
                 height: 80px;
                 border-radius: 50%;
-                display: inline-flex;
+                display: flex;
                 align-items: center;
                 justify-content: center;
                 font-size: 28px;
                 font-weight: 900;
-                margin-bottom: 15px;
+                margin: 0 auto 15px auto;
                 box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
                 border: 4px solid rgba(255, 255, 255, 0.2);
                 position: relative;
@@ -321,21 +324,23 @@ class BrevoEmailService implements EmailService {
                 to { transform: rotate(360deg); }
               }
               .header h1 {
-                margin: 0;
+                margin: 10px 0 5px 0;
                 font-size: 32px;
                 font-weight: 800;
                 position: relative;
-                z-index: 2;
+                z-index: 10;
                 text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
                 letter-spacing: -0.5px;
+                text-align: center;
               }
               .header p {
-                margin: 8px 0 0 0;
+                margin: 0;
                 opacity: 0.95;
                 font-size: 18px;
                 position: relative;
-                z-index: 2;
+                z-index: 10;
                 font-weight: 500;
+                text-align: center;
               }
               .divider {
                 border: none;
@@ -344,6 +349,7 @@ class BrevoEmailService implements EmailService {
                 margin: 0;
                 background-size: 200% 100%;
                 animation: gradientShift 3s ease infinite;
+                width: 100%;
               }
               @keyframes gradientShift {
                 0%, 100% { background-position: 0% 50%; }
@@ -368,6 +374,7 @@ class BrevoEmailService implements EmailService {
               .content-header {
                 display: flex;
                 align-items: center;
+                justify-content: flex-start;
                 margin-bottom: 25px;
                 position: relative;
                 z-index: 1;
@@ -383,6 +390,7 @@ class BrevoEmailService implements EmailService {
                 justify-content: center;
                 margin-right: 15px;
                 box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
+                flex-shrink: 0;
               }
               .content-title {
                 color: #1e293b;
@@ -390,6 +398,7 @@ class BrevoEmailService implements EmailService {
                 font-size: 24px;
                 font-weight: 700;
                 letter-spacing: -0.3px;
+                line-height: 1.3;
               }
               .message-content {
                 background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
@@ -403,6 +412,8 @@ class BrevoEmailService implements EmailService {
                 color: #334155;
                 position: relative;
                 box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+                word-wrap: break-word;
+                overflow-wrap: break-word;
               }
               .message-content::before {
                 content: '';
@@ -423,11 +434,12 @@ class BrevoEmailService implements EmailService {
                 border-left: 4px solid #3b82f6;
                 position: relative;
                 z-index: 1;
+                text-align: left;
               }
               .footer {
                 background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
                 color: #94a3b8;
-                padding: 35px 35px;
+                padding: 35px;
                 text-align: center;
                 font-size: 14px;
                 position: relative;
@@ -447,17 +459,20 @@ class BrevoEmailService implements EmailService {
                 font-weight: 800;
                 margin-bottom: 10px;
                 text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+                text-align: center;
               }
               .footer-subtitle {
                 color: #cbd5e1;
                 font-weight: 600;
                 margin: 0 0 8px 0;
+                text-align: center;
               }
               .footer-disclaimer {
                 color: #64748b;
                 font-size: 12px;
                 margin: 8px 0 0 0;
                 opacity: 0.8;
+                text-align: center;
               }
               @media (max-width: 600px) {
                 body { padding: 10px; }
@@ -478,6 +493,14 @@ class BrevoEmailService implements EmailService {
                   width: 70px;
                   height: 70px;
                   font-size: 24px;
+                }
+                .content-header {
+                  flex-direction: column;
+                  text-align: center;
+                }
+                .email-icon {
+                  margin-right: 0;
+                  margin-bottom: 10px;
                 }
               }
             </style>
