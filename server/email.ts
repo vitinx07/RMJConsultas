@@ -5,8 +5,15 @@ export interface EmailService {
   sendPasswordEmail(to: string, password: string, username: string): Promise<boolean>;
   sendWelcomeEmail(to: string, username: string): Promise<boolean>;
   sendPasswordResetEmail(to: string, username: string, newPassword: string): Promise<boolean>;
-  sendCustomEmail(to: string, subject: string, message: string, isHtml?: boolean): Promise<boolean>;
+  sendCustomEmail(to: string, subject: string, message: string, isHtml?: boolean, attachments?: EmailAttachment[]): Promise<boolean>;
   sendPasswordResetLink(to: string, username: string, resetToken: string): Promise<boolean>;
+}
+
+// Email attachment interface
+export interface EmailAttachment {
+  name: string;
+  content: string; // Base64 encoded content
+  contentType?: string;
 }
 
 // Brevo implementation using HTTP API (stable and working)
@@ -28,6 +35,7 @@ class BrevoEmailService implements EmailService {
     textContent?: string;
     replyTo?: { email: string };
     tags?: string[];
+    attachment?: { name: string; content: string }[];
   }): Promise<boolean> {
     try {
       const response = await fetch(this.apiUrl, {
@@ -226,7 +234,7 @@ class BrevoEmailService implements EmailService {
     return await this.sendEmail(emailData);
   }
 
-  async sendCustomEmail(to: string, subject: string, message: string, isHtml: boolean = false): Promise<boolean> {
+  async sendCustomEmail(to: string, subject: string, message: string, isHtml: boolean = false, attachments?: EmailAttachment[]): Promise<boolean> {
     console.log(`📧 Enviando email personalizado para ${to} via Brevo`);
 
     let finalContent;
@@ -539,6 +547,16 @@ ${message}
       `;
     }
 
+    // Process attachments if provided
+    let processedAttachments;
+    if (attachments && attachments.length > 0) {
+      processedAttachments = attachments.map(att => ({
+        name: att.name,
+        content: att.content
+      }));
+      console.log(`📎 ${attachments.length} anexo(s) processado(s) para envio`);
+    }
+
     const emailData = {
       subject: subject,
       sender: {
@@ -550,7 +568,8 @@ ${message}
         name: to.split('@')[0] 
       }],
       htmlContent: finalContent,
-      tags: ['custom-email', 'admin-sent']
+      tags: ['custom-email', 'admin-sent'],
+      ...(processedAttachments && { attachment: processedAttachments })
     };
 
     return await this.sendEmail(emailData);

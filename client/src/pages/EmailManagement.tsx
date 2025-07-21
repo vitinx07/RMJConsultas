@@ -13,7 +13,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
-import { Mail, Send, Users, UserCheck, AlertCircle, ArrowLeft, Shield } from "lucide-react";
+import { Mail, Send, Users, UserCheck, AlertCircle, ArrowLeft, Shield, Paperclip, Upload, X } from "lucide-react";
 import { Link } from "wouter";
 import { useAuth } from "@/hooks/useAuth";
 
@@ -42,6 +42,8 @@ export default function EmailManagement() {
   const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
   const [selectAll, setSelectAll] = useState(false);
   const { user: currentUser } = useAuth();
+  const [attachments, setAttachments] = useState<File[]>([]);
+  const [isProcessingFiles, setIsProcessingFiles] = useState(false);
 
   // Check if user is admin
   if (!currentUser || currentUser.role !== "administrator") {
@@ -85,12 +87,12 @@ export default function EmailManagement() {
     mutationFn: async (data: any) => {
       console.log("Fazendo requisição para:", "/api/admin/send-email");
       console.log("Dados enviados:", data);
-      
+
       const response = await apiRequest("/api/admin/send-email", {
         method: "POST",
         body: JSON.stringify(data),
       });
-      
+
       console.log("Resposta recebida:", response);
       return response;
     },
@@ -101,22 +103,23 @@ export default function EmailManagement() {
         description: `${response.message || `${response.totalSent || 0} de ${response.totalRequested || 0} emails enviados`}`,
         variant: "default",
       });
-      
+
       // Resetar formulário
       form.reset();
       setSelectedUsers([]);
       setSelectAll(false);
+      setAttachments([]);
     },
     onError: (error: any) => {
       console.error("Erro detalhado:", error);
-      
+
       let errorMessage = "Erro desconhecido ao enviar emails";
       let errorTitle = "Erro no Envio";
-      
+
       if (error?.message) {
         errorMessage = error.message;
       }
-      
+
       if (error?.status === 400) {
         errorTitle = "Dados Inválidos";
         errorMessage = error.message || "Verifique os dados informados";
@@ -127,7 +130,7 @@ export default function EmailManagement() {
         errorTitle = "Erro do Servidor";
         errorMessage = "Erro interno do servidor. Tente novamente em alguns minutos.";
       }
-      
+
       toast({
         title: `❌ ${errorTitle}`,
         description: errorMessage,
@@ -148,7 +151,7 @@ export default function EmailManagement() {
       setSelectedUsers(newSelectedUsers);
       setSelectAll(false);
     }
-    
+
     // Sincronizar com o formulário
     form.setValue("recipients", newSelectedUsers);
   };
@@ -163,24 +166,38 @@ export default function EmailManagement() {
       newSelectedUsers = [];
       setSelectedUsers(newSelectedUsers);
     }
-    
+
     // Sincronizar com o formulário
     form.setValue("recipients", newSelectedUsers);
+  };
+
+  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setIsProcessingFiles(true);
+    const files = Array.from(event.target.files || []);
+    setAttachments(files);
+    setIsProcessingFiles(false);
+  };
+
+  const removeAttachment = (index: number) => {
+    const newAttachments = [...attachments];
+    newAttachments.splice(index, 1);
+    setAttachments(newAttachments);
   };
 
   const onSubmit = (data: EmailFormData) => {
     console.log("=== ONSUBMIT EXECUTADO ===");
     console.log("Dados do formulário:", data);
     console.log("Usuários selecionados:", selectedUsers);
-    
+
     // Usar os recipients do formulário (que agora está sincronizado)
     const emailData = {
       recipients: data.recipients.length > 0 ? data.recipients : selectedUsers,
       subject: data.subject.trim(),
       message: data.message.trim(),
       isHtml: data.isHtml || false,
+      attachments: attachments.length > 0 ? attachments : undefined,
     };
-    
+
     console.log("Dados finais do email:", emailData);
     sendEmailMutation.mutate(emailData);
   };
@@ -330,6 +347,77 @@ export default function EmailManagement() {
                 <Label htmlFor="isHtml">Enviar como HTML</Label>
               </div>
 
+              {/* File Upload Section */}
+              <div className="space-y-4">
+                <div className="flex items-center gap-2">
+                  <Paperclip className="h-4 w-4 text-primary" />
+                  <Label className="text-base font-medium">Anexos</Label>
+                  <Badge variant="secondary" className="text-xs">
+                    Máx: 25MB por arquivo
+                  </Badge>
+                </div>
+
+                <div className="space-y-3">
+                  {/* File Input */}
+                  <div className="relative">
+                    <input
+                      type="file"
+                      multiple
+                      onChange={handleFileUpload}
+                      disabled={isProcessingFiles}
+                      className="hidden"
+                      id="file-upload"
+                      accept=".pdf,.doc,.docx,.txt,.jpg,.jpeg,.png,.gif,.zip,.rar,.xlsx,.xls,.ppt,.pptx"
+                    />
+                    <label
+                      htmlFor="file-upload"
+                      className="flex items-center justify-center gap-2 p-4 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-primary hover:bg-gray-50 transition-colors"
+                    >
+                      <Upload className="h-5 w-5 text-gray-500" />
+                      <span className="text-sm text-gray-600">
+                        {isProcessingFiles ? "Processando arquivos..." : "Clique para selecionar arquivos ou arraste aqui"}
+                      </span>
+                    </label>
+                  </div>
+
+                  {/* Attachments List */}
+                  {attachments.length > 0 && (
+                    <div className="space-y-2">
+                      <Label className="text-sm font-medium text-gray-700">
+                        Arquivos selecionados ({attachments.length})
+                      </Label>
+                      <div className="space-y-2 max-h-32 overflow-y-auto">
+                        {attachments.map((attachment, index) => (
+                          <div
+                            key={index}
+                            className="flex items-center justify-between p-2 bg-gray-50 rounded-md border"
+                          >
+                            <div className="flex items-center gap-2 flex-1 min-w-0">
+                              <Paperclip className="h-4 w-4 text-gray-500 flex-shrink-0" />
+                              <span className="text-sm truncate" title={attachment.name}>
+                                {attachment.name}
+                              </span>
+                              <Badge variant="outline" className="text-xs flex-shrink-0">
+                                {(attachment.size / 1024 / 1024).toFixed(1)}MB
+                              </Badge>
+                            </div>
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => removeAttachment(index)}
+                              className="text-red-500 hover:text-red-700 flex-shrink-0"
+                            >
+                              <X className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+
               <Button
                 type="submit"
                 disabled={
@@ -361,21 +449,21 @@ export default function EmailManagement() {
                     <span>Selecione pelo menos um destinatário para enviar o email</span>
                   </p>
                 )}
-                
+
                 {selectedUsers.length > 0 && !form.watch("subject")?.trim() && (
                   <p className="text-sm text-orange-600 text-center flex items-center justify-center space-x-1">
                     <AlertCircle className="w-4 h-4" />
                     <span>Digite o assunto do email</span>
                   </p>
                 )}
-                
+
                 {selectedUsers.length > 0 && form.watch("subject")?.trim() && !form.watch("message")?.trim() && (
                   <p className="text-sm text-orange-600 text-center flex items-center justify-center space-x-1">
                     <AlertCircle className="w-4 h-4" />
                     <span>Digite a mensagem do email</span>
                   </p>
                 )}
-                
+
                 {selectedUsers.length > 0 && form.watch("subject")?.trim() && form.watch("message")?.trim() && !sendEmailMutation.isPending && (
                   <p className="text-sm text-green-600 text-center flex items-center justify-center space-x-1">
                     <UserCheck className="w-4 h-4" />

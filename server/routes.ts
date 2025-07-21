@@ -1,3 +1,4 @@
+typescript
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import express from "express";
@@ -25,7 +26,7 @@ import { emailService } from "./email";
 export async function registerRoutes(app: Express): Promise<Server> {
   // Configure Express for Replit deployment
   app.set('trust proxy', 1); // Trust first proxy (Replit's proxy)
-  
+
   // Configure session store
   const pgStore = connectPg(session);
   const sessionStore = new pgStore({
@@ -80,7 +81,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/auth/login", async (req, res) => {
     try {
       const { username, password } = loginSchema.parse(req.body);
-      
+
       const user = await storage.validateCredentials(username, password);
       if (!user) {
         return res.status(401).json({ error: "Credenciais inválidas" });
@@ -88,19 +89,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Save session and wait for it to be stored
       req.session.userId = user.id;
-      
+
       // Generate JWT token as backup
       const token = generateJWT(user);
-      
+
       // Force session save and add explicit logging for deployment
       req.session.save((err) => {
         if (err) {
           console.error("❌ Erro ao salvar sessão:", err);
           return res.status(500).json({ error: "Erro ao salvar sessão" });
         }
-        
+
         console.log(`✅ Session saved - UserID: ${user.id}, SessionID: ${req.sessionID}`);
-        
+
         // Return user without password plus JWT token
         const { passwordHash, ...userWithoutPassword } = user;
         res.json({
@@ -132,7 +133,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!user) {
         return res.status(404).json({ error: "Usuário não encontrado" });
       }
-      
+
       const { passwordHash, ...userWithoutPassword } = user;
       res.json(userWithoutPassword);
     } catch (error) {
@@ -157,7 +158,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { id } = req.params;
       const user = await storage.getUserById(id);
-      
+
       if (!user) {
         return res.status(404).json({ error: "Usuário não encontrado" });
       }
@@ -173,7 +174,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/users", requireAuthHybrid, requireAdmin, async (req, res) => {
     try {
       const userData = createUserSchema.parse(req.body);
-      
+
       // Check if username already exists
       const existingUser = await storage.getUserByUsername(userData.username);
       if (existingUser) {
@@ -182,7 +183,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const newUser = await storage.createUser(userData, req.user!.id);
       const { passwordHash, ...userWithoutPassword } = newUser;
-      
+
       // Return success with password info if generated
       let responseMessage = "Usuário criado com sucesso";
       if (userData.generatePassword) {
@@ -191,7 +192,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           responseMessage += " e enviada por email";
         }
       }
-      
+
       res.status(201).json({
         message: responseMessage,
         user: userWithoutPassword,
@@ -207,7 +208,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { id } = req.params;
       const userData = updateUserSchema.parse(req.body);
-      
+
       const updatedUser = await storage.updateUser(id, userData);
       if (!updatedUser) {
         return res.status(404).json({ error: "Usuário não encontrado" });
@@ -227,7 +228,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.delete("/api/users/:id", requireAuthHybrid, requireAdmin, async (req, res) => {
     try {
       const { id } = req.params;
-      
+
       // Prevent admin from deleting themselves
       if (id === req.user!.id) {
         return res.status(400).json({ error: "Não é possível deletar seu próprio usuário" });
@@ -250,9 +251,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { id } = req.params;
       const { newPassword } = req.body;
-      
+
       const result = await storage.resetUserPassword(id, newPassword);
-      
+
       res.json({
         message: "Senha redefinida com sucesso",
         emailSent: !!result.user.email,
@@ -268,24 +269,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/auth/request-reset", async (req, res) => {
     try {
       const { email } = req.body;
-      
+
       if (!email) {
         return res.status(400).json({ error: "Email é obrigatório" });
       }
-      
+
       const user = await storage.getUserByEmail(email);
       if (!user) {
         // Don't reveal if user exists - security best practice
         return res.json({ message: "Se o email estiver cadastrado, você receberá um link de redefinição." });
       }
-      
+
       const resetToken = randomBytes(32).toString('hex');
       const expiresAt = new Date(Date.now() + 60 * 60 * 1000); // 1 hora
-      
+
       await storage.createPasswordResetToken(user.id, resetToken, expiresAt);
-      
+
       const emailSent = await emailService.sendPasswordResetLink(user.email!, user.username, resetToken);
-      
+
       res.json({ 
         message: "Se o email estiver cadastrado, você receberá um link de redefinição.",
         emailSent 
@@ -300,15 +301,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/auth/reset-password", async (req, res) => {
     try {
       const { token, newPassword } = resetPasswordSchema.parse(req.body);
-      
+
       const resetToken = await storage.getPasswordResetToken(token);
       if (!resetToken || resetToken.used || resetToken.expiresAt < new Date()) {
         return res.status(400).json({ error: "Token inválido ou expirado" });
       }
-      
+
       await storage.updateUserPassword(resetToken.userId, newPassword);
       await storage.markPasswordResetTokenAsUsed(resetToken.id);
-      
+
       res.json({ message: "Senha redefinida com sucesso" });
     } catch (error) {
       console.error("Erro ao redefinir senha:", error);
@@ -319,23 +320,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Send custom email (admin only)
   app.post("/api/admin/send-email", requireAuthHybrid, requireAdmin, async (req, res) => {
     try {
-      const { recipients, subject, message, isHtml } = req.body;
-      
+      const { recipients, subject, message, isHtml, attachments } = req.body;
+
       // Validate input
       if (!recipients || !Array.isArray(recipients) || recipients.length === 0) {
         return res.status(400).json({ error: "Lista de destinatários é obrigatória" });
       }
-      
+
       if (!subject || typeof subject !== 'string') {
         return res.status(400).json({ error: "Assunto é obrigatório" });
       }
-      
+
       if (!message || typeof message !== 'string') {
         return res.status(400).json({ error: "Mensagem é obrigatória" });
       }
-      
+
       let emailsToSend = [];
-      
+
       // Check if recipients are UUIDs or emails
       for (const recipient of recipients) {
         if (typeof recipient === 'string') {
@@ -352,30 +353,45 @@ export async function registerRoutes(app: Express): Promise<Server> {
           }
         }
       }
-      
+
       if (emailsToSend.length === 0) {
         return res.status(400).json({ error: "Nenhum email válido encontrado" });
       }
-      
+
+      // Process attachments if provided
+      let processedAttachments;
+      if (attachments && Array.isArray(attachments) && attachments.length > 0) {
+        processedAttachments = attachments.filter((att: any) => 
+          att && typeof att.name === 'string' && typeof att.content === 'string'
+        );
+        console.log(`📎 ${processedAttachments.length} anexo(s) recebido(s) para processamento`);
+      }
+
       let successCount = 0;
-      const results = [];
-      
+      let errorCount = 0;
+      let errors: string[] = [];
+
+      // Send emails
       for (const email of emailsToSend) {
         try {
-          const sent = await emailService.sendCustomEmail(email, subject, message, isHtml || false);
-          if (sent) successCount++;
-          results.push({ email, sent });
-        } catch (error) {
-          console.error(`Erro ao enviar email para ${email}:`, error);
-          results.push({ email, sent: false, error: error.message });
+          const success = await emailService.sendCustomEmail(email, subject, message, isHtml, processedAttachments);
+          if (success) {
+            successCount++;
+          } else {
+            errorCount++;
+            errors.push(`Falha ao enviar para ${email}`);
+          }
+        } catch (error: any) {
+          errorCount++;
+          errors.push(`Erro ao enviar para ${email}: ${error.message}`);
         }
       }
-      
+
       res.json({
         message: `${successCount} de ${emailsToSend.length} emails enviados com sucesso`,
         totalSent: successCount,
         totalRequested: emailsToSend.length,
-        results
+        errors: errors.length > 0 ? errors : undefined,
       });
     } catch (error) {
       console.error("Erro ao enviar emails:", error);
@@ -459,7 +475,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/multicorban/cpf", requireAuthHybrid, requireAnyRole, async (req, res) => {
     try {
       const { cpf } = req.body;
-      
+
       console.log(`Consultando CPF: ${cpf}`);
       const response = await fetch("https://api.multicorban.com/cpf", {
         method: "POST",
@@ -476,9 +492,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.error(`Erro na API MULTI CORBAN: ${response.status} - ${response.statusText}`);
         const errorText = await response.text();
         console.error("Resposta de erro:", errorText);
-        
+
         const errorInfo = getErrorMessage(response.status, errorText);
-        
+
         return res.status(response.status).json({ 
           error: errorInfo.message,
           title: errorInfo.title,
@@ -488,14 +504,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const data = await response.json();
-      
+
       // Save consultation to database
       try {
         if (Array.isArray(data) && data.length > 0) {
           for (const benefit of data) {
             const beneficiary = benefit.Beneficiario;
             const financial = benefit.ResumoFinanceiro;
-            
+
             await storage.createConsultation({
               userId: req.user!.id,
               searchType: "cpf",
@@ -515,7 +531,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.error("Erro ao salvar consulta no banco:", dbError);
         // Don't fail the request, just log the error
       }
-      
+
       res.json(data);
     } catch (error) {
       console.error("Erro na consulta por CPF:", error);
@@ -530,7 +546,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/multicorban/offline", requireAuthHybrid, requireAnyRole, async (req, res) => {
     try {
       const { beneficio } = req.body;
-      
+
       console.log(`Consultando benefício: ${beneficio}`);
       const response = await fetch("https://api.multicorban.com/offline", {
         method: "POST",
@@ -547,9 +563,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.error(`Erro na API MULTI CORBAN offline: ${response.status} - ${response.statusText}`);
         const errorText = await response.text();
         console.error("Resposta de erro offline:", errorText);
-        
+
         const errorInfo = getErrorMessage(response.status, errorText);
-        
+
         return res.status(response.status).json({ 
           error: errorInfo.message,
           title: errorInfo.title,
@@ -559,13 +575,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const data = await response.json();
-      
+
       // Save consultation to database
       try {
         if (data && data.Beneficiario) {
           const beneficiary = data.Beneficiario;
           const financial = data.ResumoFinanceiro;
-          
+
           await storage.createConsultation({
             userId: req.user!.id,
             searchType: "beneficio",
@@ -584,7 +600,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.error("Erro ao salvar consulta no banco:", dbError);
         // Don't fail the request, just log the error
       }
-      
+
       res.json(data);
     } catch (error) {
       console.error("Erro na consulta offline:", error);
@@ -600,7 +616,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/banrisul/contracts", requireAuthHybrid, requireAnyRole, async (req, res) => {
     try {
       const { cpf } = req.body;
-      
+
       if (!cpf) {
         return res.status(400).json({ 
           error: "CPF é obrigatório",
@@ -611,14 +627,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       console.log(`Buscando contratos Banrisul para CPF: ${cpf}`);
       const contracts = await banrisulApi.getContracts(cpf);
-      
+
       // Filtrar apenas contratos refinanciáveis
       const refinanciableContracts = contracts.filter(contract => contract.refinanciavel);
-      
+
       res.json(refinanciableContracts);
     } catch (error) {
       console.error("Erro ao buscar contratos Banrisul:", error);
-      
+
       if (error instanceof BanrisulApiError) {
         return res.status(error.statusCode).json({
           error: error.message,
@@ -627,7 +643,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           status: error.statusCode
         });
       }
-      
+
       res.status(500).json({ 
         error: "Erro interno do servidor",
         title: "Erro de Servidor",
@@ -646,7 +662,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         dataContrato, 
         prestacao 
       } = req.body;
-      
+
       if (!cpf || !dataNascimento || !conveniada || !contrato || !dataContrato || !prestacao) {
         return res.status(400).json({ 
           error: "Todos os campos obrigatórios devem ser preenchidos",
@@ -656,23 +672,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       console.log(`Simulando refinanciamento Banrisul para contrato: ${contrato}`);
-      
+
       // Primeiro, buscar contratos da Bem Promotora para obter a conveniada correta
       try {
         const contracts = await banrisulApi.getContracts(cpf);
         console.log('Contratos encontrados na Bem Promotora:', contracts?.length || 0);
-        
+
         if (contracts && contracts.length > 0) {
           const matchingContract = contracts.find(c => 
             c.contrato === contrato || 
             String(parseInt(c.contrato)).padStart(10, '0') === contrato.replace(/\D/g, '').padStart(10, '0')
           );
-          
+
           if (matchingContract) {
             console.log('Contrato encontrado na Bem Promotora:', matchingContract);
             console.log('Conveniada código:', matchingContract.conveniada);
             console.log('Conveniada descrição:', matchingContract.conveniadaDescricao);
-            
+
             // Usar a conveniada do contrato encontrado
             const simulationPayload = {
               cpf,
@@ -685,9 +701,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
               prestacao: parseFloat(prestacao),
               retornarSomenteOperacoesViaveis: true
             };
-            
+
             const result = await banrisulApi.simulateRefinancing(simulationPayload);
-            
+
             if (!result.retorno || result.retorno.length === 0) {
               return res.status(404).json({
                 error: "Nenhuma simulação viável encontrada",
@@ -695,14 +711,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 details: result.erro || "Não foi possível encontrar opções de refinanciamento para os dados fornecidos"
               });
             }
-            
+
             return res.json(result.retorno);
           }
         }
       } catch (contractError) {
         console.log('Erro ao buscar contratos, usando conveniada fornecida:', contractError);
       }
-      
+
       // Se não encontrar o contrato, usar a conveniada fornecida
       const simulationPayload = {
         cpf,
@@ -715,9 +731,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         prestacao: parseFloat(prestacao),
         retornarSomenteOperacoesViaveis: true
       };
-      
+
       const result = await banrisulApi.simulateRefinancing(simulationPayload);
-      
+
       if (!result.retorno || result.retorno.length === 0) {
         return res.status(404).json({
           error: "Nenhuma simulação viável encontrada",
@@ -725,11 +741,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
           details: result.erro || "Não foi possível encontrar opções de refinanciamento para os dados fornecidos"
         });
       }
-      
+
       res.json(result.retorno);
     } catch (error) {
       console.error("Erro na simulação Banrisul:", error);
-      
+
       if (error instanceof BanrisulApiError) {
         return res.status(error.statusCode).json({
           error: error.message,
@@ -738,7 +754,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           status: error.statusCode
         });
       }
-      
+
       res.status(500).json({ 
         error: "Erro interno do servidor",
         title: "Erro de Servidor",
@@ -800,7 +816,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (user.role !== "administrator" && user.role !== "gerente") {
         return res.status(403).json({ error: "Acesso negado" });
       }
-      
+
       const limit = parseInt(req.query.limit as string) || 100;
       const consultations = await storage.getConsultationsByUser("", limit); // Empty string gets all
       res.json(consultations);
@@ -820,7 +836,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         ...req.body,
         userId
       });
-      
+
       const consultation = await storage.createConsultation(consultationData);
       res.status(201).json(consultation);
     } catch (error) {
@@ -834,16 +850,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { cpf, benefitNumber } = req.query;
       const userId = req.user!.id;
-      
+
       let consultation;
       if (cpf) {
-        consultation = await storage.getConsultationByCpf(cpf as string, userId);
+consultation = await storage.getConsultationByCpf(cpf as string, userId);
       } else if (benefitNumber) {
         consultation = await storage.getConsultationByBenefit(benefitNumber as string, userId);
       } else {
         return res.status(400).json({ error: "CPF ou número do benefício é obrigatório" });
       }
-      
+
       res.json({ exists: !!consultation, consultation });
     } catch (error) {
       console.error("Erro ao verificar consulta existente:", error);
@@ -870,13 +886,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         ...req.body,
         userId
       });
-      
+
       // Check if client already exists
       const existingClient = await storage.getFavoriteClientByCpf(clientData.cpf, userId);
       if (existingClient) {
         return res.status(409).json({ error: "Cliente já está nos favoritos" });
       }
-      
+
       const client = await storage.createFavoriteClient(clientData);
       res.status(201).json(client);
     } catch (error) {
@@ -889,12 +905,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { id } = req.params;
       const clientData = updateFavoriteClientSchema.parse(req.body);
-      
+
       const client = await storage.updateFavoriteClient(id, clientData);
       if (!client) {
         return res.status(404).json({ error: "Cliente não encontrado" });
       }
-      
+
       res.json(client);
     } catch (error) {
       console.error("Erro ao atualizar cliente favorito:", error);
@@ -906,11 +922,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { id } = req.params;
       const deleted = await storage.deleteFavoriteClient(id);
-      
+
       if (!deleted) {
         return res.status(404).json({ error: "Cliente não encontrado" });
       }
-      
+
       res.json({ message: "Cliente removido dos favoritos" });
     } catch (error) {
       console.error("Erro ao remover cliente favorito:", error);
@@ -946,11 +962,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { id } = req.params;
       const marked = await storage.markNotificationAsRead(id);
-      
+
       if (!marked) {
         return res.status(404).json({ error: "Notificação não encontrada" });
       }
-      
+
       res.json({ message: "Notificação marcada como lida" });
     } catch (error) {
       console.error("Erro ao marcar notificação como lida:", error);
@@ -977,7 +993,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         ...req.body,
         userId
       });
-      
+
       const monitoring = await storage.createBenefitMonitoring(monitoringData);
       res.status(201).json(monitoring);
     } catch (error) {
@@ -1000,4 +1016,4 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   const httpServer = createServer(app);
   return httpServer;
-}
+}```typescript
