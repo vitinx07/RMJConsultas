@@ -139,56 +139,43 @@ export default function EmailManagement() {
   const usersWithEmail = users.filter(user => user.email && user.isActive);
 
   const handleUserSelection = (userId: string, checked: boolean) => {
+    let newSelectedUsers;
     if (checked) {
-      setSelectedUsers(prev => [...prev, userId]);
+      newSelectedUsers = [...selectedUsers, userId];
+      setSelectedUsers(newSelectedUsers);
     } else {
-      setSelectedUsers(prev => prev.filter(id => id !== userId));
+      newSelectedUsers = selectedUsers.filter(id => id !== userId);
+      setSelectedUsers(newSelectedUsers);
       setSelectAll(false);
     }
+    
+    // Sincronizar com o formulário
+    form.setValue("recipients", newSelectedUsers);
   };
 
   const handleSelectAll = (checked: boolean) => {
     setSelectAll(checked);
+    let newSelectedUsers;
     if (checked) {
-      setSelectedUsers(usersWithEmail.map(user => user.id));
+      newSelectedUsers = usersWithEmail.map(user => user.id);
+      setSelectedUsers(newSelectedUsers);
     } else {
-      setSelectedUsers([]);
+      newSelectedUsers = [];
+      setSelectedUsers(newSelectedUsers);
     }
+    
+    // Sincronizar com o formulário
+    form.setValue("recipients", newSelectedUsers);
   };
 
   const onSubmit = (data: EmailFormData) => {
-    console.log("Enviando email:", { ...data, recipients: selectedUsers });
+    console.log("=== ONSUBMIT EXECUTADO ===");
+    console.log("Dados do formulário:", data);
+    console.log("Usuários selecionados:", selectedUsers);
     
-    if (selectedUsers.length === 0) {
-      toast({
-        title: "Erro",
-        description: "Selecione pelo menos um destinatário",
-        variant: "destructive",
-      });
-      return;
-    }
-    
-    if (!data.subject.trim()) {
-      toast({
-        title: "Erro",
-        description: "O assunto é obrigatório",
-        variant: "destructive",
-      });
-      return;
-    }
-    
-    if (!data.message.trim()) {
-      toast({
-        title: "Erro",
-        description: "A mensagem é obrigatória",
-        variant: "destructive",
-      });
-      return;
-    }
-    
-    // Enviar com os usuários selecionados
+    // Usar os recipients do formulário (que agora está sincronizado)
     const emailData = {
-      recipients: selectedUsers,
+      recipients: data.recipients.length > 0 ? data.recipients : selectedUsers,
       subject: data.subject.trim(),
       message: data.message.trim(),
       isHtml: data.isHtml || false,
@@ -307,12 +294,7 @@ export default function EmailManagement() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <form onSubmit={(e) => {
-              console.log("Form submit event triggered");
-              console.log("Form errors:", form.formState.errors);
-              console.log("Form values:", form.getValues());
-              form.handleSubmit(onSubmit)(e);
-            }} className="space-y-4">
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="subject">Assunto</Label>
                 <Input
@@ -350,46 +332,13 @@ export default function EmailManagement() {
 
               <Button
                 type="submit"
-                disabled={selectedUsers.length === 0 || sendEmailMutation.isPending || !form.watch("subject")?.trim() || !form.watch("message")?.trim()}
+                disabled={
+                  sendEmailMutation.isPending || 
+                  selectedUsers.length === 0 || 
+                  !form.watch("subject")?.trim() || 
+                  !form.watch("message")?.trim()
+                }
                 className="w-full"
-                onClick={(e) => {
-                  console.log("=== BOTÃO ENVIAR CLICADO ===");
-                  console.log("Selected users:", selectedUsers);
-                  console.log("Subject:", form.watch("subject"));
-                  console.log("Message:", form.watch("message"));
-                  console.log("Form valid:", form.formState.isValid);
-                  console.log("Form errors:", form.formState.errors);
-                  
-                  if (selectedUsers.length === 0) {
-                    e.preventDefault();
-                    toast({
-                      title: "❌ Erro de Validação",
-                      description: "Selecione pelo menos um destinatário antes de enviar",
-                      variant: "destructive",
-                    });
-                    return;
-                  }
-                  
-                  if (!form.watch("subject")?.trim()) {
-                    e.preventDefault();
-                    toast({
-                      title: "❌ Erro de Validação", 
-                      description: "O assunto é obrigatório",
-                      variant: "destructive",
-                    });
-                    return;
-                  }
-                  
-                  if (!form.watch("message")?.trim()) {
-                    e.preventDefault();
-                    toast({
-                      title: "❌ Erro de Validação",
-                      description: "A mensagem é obrigatória", 
-                      variant: "destructive",
-                    });
-                    return;
-                  }
-                }}
               >
                 {sendEmailMutation.isPending ? (
                   <div className="flex items-center space-x-2">
