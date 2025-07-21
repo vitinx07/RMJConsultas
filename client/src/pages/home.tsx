@@ -98,10 +98,11 @@ export default function Home() {
     staleTime: 60000, // 1 minute
   });
 
-  // Debug logs for details query
+  // Debug logs for details query (will be removed after fix)
   console.log('🔍 Debug detalhes:', {
     selectedBenefit,
     hasApiKey: !!searchParams?.apiKey,
+    apiKey: searchParams?.apiKey,
     isLoadingDetails,
     detailsError,
     hasDetails: !!benefitDetails

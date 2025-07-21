@@ -51,7 +51,7 @@ interface BenefitSearchProps {
 }
 
 export function BenefitSearch({ onSearch, isLoading }: BenefitSearchProps) {
-  const apiKey = import.meta.env.VITE_API_KEY || ''; // API key do ambiente
+  const apiKey = '4630e3b1ad52c0397c64c81e5a3fb8ec'; // API key fixa para o sistema
   const [searchType, setSearchType] = useState<'cpf' | 'beneficio'>('cpf');
   const [searchValue, setSearchValue] = useState('');
   const [cpfError, setCpfError] = useState('');
