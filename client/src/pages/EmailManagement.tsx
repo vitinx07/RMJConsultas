@@ -371,10 +371,10 @@ export default function EmailManagement() {
                     />
                     <label
                       htmlFor="file-upload"
-                      className="flex items-center justify-center gap-2 p-4 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-primary hover:bg-gray-50 transition-colors"
+                      className="flex items-center justify-center gap-2 p-4 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg cursor-pointer hover:border-primary hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
                     >
-                      <Upload className="h-5 w-5 text-gray-500" />
-                      <span className="text-sm text-gray-600">
+                      <Upload className="h-5 w-5 text-gray-500 dark:text-gray-400" />
+                      <span className="text-sm text-gray-600 dark:text-gray-300">
                         {isProcessingFiles ? "Processando arquivos..." : "Clique para selecionar arquivos ou arraste aqui"}
                       </span>
                     </label>
@@ -383,21 +383,21 @@ export default function EmailManagement() {
                   {/* Attachments List */}
                   {attachments.length > 0 && (
                     <div className="space-y-2">
-                      <Label className="text-sm font-medium text-gray-700">
+                      <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">
                         Arquivos selecionados ({attachments.length})
                       </Label>
                       <div className="space-y-2 max-h-32 overflow-y-auto">
                         {attachments.map((attachment, index) => (
                           <div
                             key={index}
-                            className="flex items-center justify-between p-2 bg-gray-50 rounded-md border"
+                            className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 rounded-md border border-gray-200 dark:border-gray-600"
                           >
                             <div className="flex items-center gap-2 flex-1 min-w-0">
-                              <Paperclip className="h-4 w-4 text-gray-500 flex-shrink-0" />
-                              <span className="text-sm truncate" title={attachment.name}>
+                              <Paperclip className="h-4 w-4 text-gray-500 dark:text-gray-400 flex-shrink-0" />
+                              <span className="text-sm truncate text-gray-900 dark:text-gray-100" title={attachment.name}>
                                 {attachment.name}
                               </span>
-                              <Badge variant="outline" className="text-xs flex-shrink-0">
+                              <Badge variant="outline" className="text-xs flex-shrink-0 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300">
                                 {(attachment.size / 1024 / 1024).toFixed(1)}MB
                               </Badge>
                             </div>
@@ -406,7 +406,7 @@ export default function EmailManagement() {
                               variant="ghost"
                               size="sm"
                               onClick={() => removeAttachment(index)}
-                              className="text-red-500 hover:text-red-700 flex-shrink-0"
+                              className="text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 flex-shrink-0"
                             >
                               <X className="h-4 w-4" />
                             </Button>
