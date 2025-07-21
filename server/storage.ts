@@ -697,7 +697,7 @@ export class DatabaseStorage implements IStorage {
         clientName: undefined,
         status: marker.status,
         userId: marker.userId,
-        userName: marker.userName,
+        userName: markerData.userName || marker.userName, // Usar o userName dos dados de atualização
         action: 'updated',
         notes: marker.notes,
         previousUserId: currentMarker.userId,

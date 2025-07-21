@@ -1177,20 +1177,20 @@ consultation = await storage.getConsultationByCpf(cpf as string, userId);
         });
       }
 
+      // Sempre atualizar o userName com quem está fazendo a alteração
+      const currentUserName = user.firstName && user.lastName 
+        ? `${user.firstName} ${user.lastName}` 
+        : user.username;
+
       const updateData = {
         status: req.body.status,
         notes: req.body.notes,
-        // Se quem está editando assumiu a venda, manter o usuário original mas atualizar quem assumiu
+        userName: currentUserName, // Sempre atualizar com quem está fazendo a mudança
+        // Se quem está editando assumiu a venda, manter informações de assumido
         ...(existingMarker.assumedBy === user.id ? {
           assumedBy: user.id,
-          assumedByName: user.firstName && user.lastName 
-            ? `${user.firstName} ${user.lastName}` 
-            : user.username,
-        } : {
-          userName: user.firstName && user.lastName 
-            ? `${user.firstName} ${user.lastName}` 
-            : user.username,
-        })
+          assumedByName: currentUserName,
+        } : {})
       };
 
       const marker = await storage.updateClientMarker(cpf, updateData);
