@@ -1,4 +1,3 @@
-typescript
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import express from "express";
@@ -261,7 +260,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
     } catch (error) {
       console.error("Erro ao redefinir senha:", error);
-      res.status(500).json({ error: error.message || "Erro interno do servidor" });
+      res.status(500).json({ error: error instanceof Error ? error.message : "Erro interno do servidor" });
     }
   });
 
@@ -1016,4 +1015,4 @@ consultation = await storage.getConsultationByCpf(cpf as string, userId);
 
   const httpServer = createServer(app);
   return httpServer;
-}```typescript
+}
