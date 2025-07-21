@@ -28,7 +28,7 @@ import {
   type InsertClientMarkerHistory,
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, and, desc, asc, gte, lte, sql, count, inArray, isNull, or } from "drizzle-orm";
+import { eq, and, desc, asc, gte, lte, sql, count, inArray, isNull, or, isNotNull } from "drizzle-orm";
 import bcrypt from "bcryptjs";
 import { emailService } from "./email";
 
@@ -735,6 +735,79 @@ export class DatabaseStorage implements IStorage {
     return (result.rowCount || 0) > 0;
   }
 
+  // Função auxiliar para buscar nome do cliente pelo CPF
+  async getClientNameFromCpf(cpf: string): Promise<string | null> {
+    try {
+      const consultation = await db
+        .select({
+          beneficiaryName: sql<string>`${consultations.resultData}->>'beneficiaryName'`
+        })
+        .from(consultations)
+        .where(eq(consultations.cpf, cpf))
+        .orderBy(desc(consultations.createdAt))
+        .limit(1);
+
+      return consultation[0]?.beneficiaryName || null;
+    } catch (error) {
+      console.error('Erro ao buscar nome do cliente:', error);
+      return null;
+    }
+  }
+
+  // Sistema de expiração de negociações
+  async checkExpiredNegotiations(): Promise<void> {
+    try {
+      const now = new Date();
+      
+      // Buscar marcações com status "em_negociacao" que expiraram
+      const expiredMarkers = await db
+        .select()
+        .from(clientMarkers)
+        .where(
+          and(
+            eq(clientMarkers.status, 'em_negociacao'),
+            isNotNull(clientMarkers.negotiationExpiresAt),
+            lte(clientMarkers.negotiationExpiresAt, now)
+          )
+        );
+
+      for (const marker of expiredMarkers) {
+        // Atualizar status para "zerado" por expiração
+        await db
+          .update(clientMarkers)
+          .set({
+            status: 'zerado',
+            notes: `${marker.notes ? marker.notes + ' | ' : ''}Negociação expirada automaticamente após 5 minutos`,
+            updatedAt: new Date(),
+            negotiationExpiresAt: null
+          })
+          .where(eq(clientMarkers.id, marker.id));
+
+        // Criar histórico da expiração
+        await this.createClientMarkerHistory({
+          cpf: marker.cpf,
+          clientName: undefined,
+          status: 'zerado',
+          userId: marker.userId,
+          userName: 'Sistema Automático',
+          action: 'updated',
+          notes: 'Negociação expirada automaticamente - prazo de 5 minutos esgotado',
+          previousUserId: marker.userId,
+          previousUserName: marker.userName,
+          previousStatus: 'em_negociacao',
+        });
+
+        console.log(`⏰ Negociação expirada: CPF ${marker.cpf} do operador ${marker.userName}`);
+      }
+
+      if (expiredMarkers.length > 0) {
+        console.log(`🔄 Processadas ${expiredMarkers.length} negociação(ões) expirada(s)`);
+      }
+    } catch (error) {
+      console.error('Erro ao verificar negociações expiradas:', error);
+    }
+  }
+
   async getAllClientMarkers(): Promise<SelectClientMarker[]> {
     return await db
       .select()
@@ -830,17 +903,22 @@ export class DatabaseStorage implements IStorage {
       let notificationSent = false;
       if (currentMarker.status === 'em_negociacao') {
         try {
+          // Buscar nome do cliente para notificação mais clara
+          const clientName = await this.getClientNameFromCpf(cleanCpf);
+          const clientInfo = clientName ? `${clientName} (CPF: ${cleanCpf})` : `CPF ${cleanCpf}`;
+          
           // Notificar operador anterior
           await this.createNotification({
             userId: currentMarker.userId,
             type: 'client_marker_assumed',
-            title: 'Venda Assumida',
-            message: `${newUserName} assumiu a negociação do cliente CPF ${cleanCpf}`,
+            title: 'Sua Venda Foi Assumida',
+            message: `${newUserName} assumiu a negociação do cliente ${clientInfo} enquanto você estava em negociação. Verifique o histórico para mais detalhes.`,
             cpf: cleanCpf,
             metadata: {
               assumedBy: newUserId,
               assumedByName: newUserName,
-              originalStatus: currentMarker.status
+              originalStatus: currentMarker.status,
+              clientName
             }
           });
 
@@ -854,15 +932,17 @@ export class DatabaseStorage implements IStorage {
             await this.createNotification({
               userId: admin.id,
               type: 'client_marker_assumed',
-              title: 'Venda Assumida por Operador',
-              message: `${newUserName} assumiu a negociação do cliente CPF ${cleanCpf} de ${currentMarker.userName}`,
+              title: 'Venda Assumida Durante Negociação',
+              message: `🚨 ${newUserName} assumiu a venda do cliente ${clientInfo} de ${currentMarker.userName} enquanto este estava em negociação. Situação requer atenção gerencial.`,
               cpf: cleanCpf,
               metadata: {
                 assumedBy: newUserId,
                 assumedByName: newUserName,
                 originalUserId: currentMarker.userId,
                 originalUserName: currentMarker.userName,
-                originalStatus: currentMarker.status
+                originalStatus: currentMarker.status,
+                clientName,
+                priority: 'high'
               }
             });
           }

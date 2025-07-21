@@ -192,6 +192,7 @@ export const clientMarkers = pgTable("client_markers", {
   assumedByName: varchar("assumed_by_name", { length: 100 }), // Nome de quem assumiu
   originalMarkerId: uuid("original_marker_id").references(() => users.id, { onDelete: "cascade" }), // Para notificações
   originalMarkerName: varchar("original_marker_name", { length: 100 }), // Nome do marcador original
+  negotiationExpiresAt: timestamp("negotiation_expires_at"), // Prazo para finalizar negociação (2 horas)
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 }, (table) => [

@@ -196,13 +196,28 @@ export function ClientMarkerBadge({ marker, showDetails = false, cpf }: ClientMa
 
   const config = statusConfig[marker.status as ClientMarkerStatus];
   const Icon = config.icon;
+  
+  // Verificar se a negociação está próxima do vencimento
+  const isNegotiation = marker.status === 'em_negociacao';
+  const expiresAt = marker.negotiationExpiresAt ? new Date(marker.negotiationExpiresAt) : null;
+  const now = new Date();
+  const isExpiringSoon = expiresAt && isNegotiation && (expiresAt.getTime() - now.getTime()) < 2 * 60 * 1000; // Menos de 2 minutos
+  const isExpired = expiresAt && isNegotiation && expiresAt < now;
 
   return (
     <div className="space-y-2">
       <div className="flex items-center gap-2">
-        <Badge variant={config.variant} className="flex items-center gap-1">
+        <Badge 
+          variant={config.variant} 
+          className={`flex items-center gap-1 ${isExpiringSoon ? 'animate-pulse bg-red-600' : ''} ${isExpired ? 'bg-gray-500' : ''}`}
+        >
           <Icon className="h-3 w-3" />
           {config.label}
+          {isNegotiation && expiresAt && (
+            <span className="ml-1 text-xs">
+              (⏰ {isExpired ? 'Expirado' : formatDistanceToNow(expiresAt, { locale: ptBR })})
+            </span>
+          )}
         </Badge>
         
         {cpf && (
@@ -223,6 +238,16 @@ export function ClientMarkerBadge({ marker, showDetails = false, cpf }: ClientMa
             <span className="font-medium">Operador:</span>
             <span>{marker.userName}</span>
           </div>
+          {isNegotiation && expiresAt && (
+            <div className={`flex items-center gap-1 ${isExpiringSoon ? 'text-red-600 font-medium' : 'text-muted-foreground'}`}>
+              <span className="font-medium">
+                {isExpired ? '⚠️ Expirado:' : '⏱️ Expira em:'}
+              </span>
+              <span>
+                {isExpired ? 'Negociação vencida' : formatDistanceToNow(expiresAt, { locale: ptBR })}
+              </span>
+            </div>
+          )}
           <div className="flex items-center gap-1">
             <span className="font-medium">Data:</span>
             <span>{marker.createdAt ? new Date(marker.createdAt).toLocaleString('pt-BR') : 'N/A'}</span>

@@ -1182,16 +1182,27 @@ consultation = await storage.getConsultationByCpf(cpf as string, userId);
         ? `${user.firstName} ${user.lastName}` 
         : user.username;
 
+      // Definir prazo de expiração para status "em_negociacao" (5 minutos para teste)
+      const negotiationExpiresAt = req.body.status === 'em_negociacao' 
+        ? new Date(Date.now() + 5 * 60 * 1000) // 5 minutos para teste
+        : null;
+
       const updateData = {
         status: req.body.status,
         notes: req.body.notes,
         userName: currentUserName, // Sempre atualizar com quem está fazendo a mudança
+        negotiationExpiresAt,
         // Se quem está editando assumiu a venda, manter informações de assumido
         ...(existingMarker.assumedBy === user.id ? {
           assumedBy: user.id,
           assumedByName: currentUserName,
         } : {})
       };
+
+      // Se mudando para "em_negociacao", definir expiração
+      if (req.body.status === 'em_negociacao' && existingMarker.status !== 'em_negociacao') {
+        updateData.negotiationExpiresAt = new Date(Date.now() + 5 * 60 * 1000); // 5 minutos para teste
+      }
 
       const marker = await storage.updateClientMarker(cpf, updateData);
       res.json(marker);
@@ -1311,6 +1322,35 @@ consultation = await storage.getConsultationByCpf(cpf as string, userId);
     } catch (error) {
       console.error("Erro ao buscar histórico de marcações:", error);
       res.status(500).json({ error: "Erro ao carregar histórico" });
+    }
+  });
+
+  // Configurar verificação automática de negociações expiradas (a cada 1 minuto para teste)
+  setInterval(async () => {
+    try {
+      await storage.checkExpiredNegotiations();
+    } catch (error) {
+      console.error('Erro na verificação automática de expiração:', error);
+    }
+  }, 1 * 60 * 1000); // 1 minuto para teste
+
+  // Executar verificação inicial após 30 segundos
+  setTimeout(async () => {
+    try {
+      await storage.checkExpiredNegotiations();
+    } catch (error) {
+      console.error('Erro na verificação inicial de expiração:', error);
+    }
+  }, 30 * 1000); // 30 segundos
+
+  // Endpoint para teste manual de expiração
+  app.post("/api/admin/expire-negotiations", requireAuthHybrid, requireManagerOrAdmin, async (req, res) => {
+    try {
+      await storage.checkExpiredNegotiations();
+      res.json({ message: "Verificação de expiração executada com sucesso" });
+    } catch (error) {
+      console.error("Erro na verificação manual de expiração:", error);
+      res.status(500).json({ error: "Erro ao verificar expirações" });
     }
   });
 
