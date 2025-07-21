@@ -188,6 +188,10 @@ export const clientMarkers = pgTable("client_markers", {
   userId: uuid("user_id").references(() => users.id, { onDelete: "cascade" }).notNull(),
   userName: varchar("user_name", { length: 100 }).notNull(), // Nome do usuário para exibição
   notes: text("notes"), // Observações opcionais sobre a negociação
+  assumedBy: uuid("assumed_by").references(() => users.id, { onDelete: "cascade" }), // Para tracking de assumir vendas
+  assumedByName: varchar("assumed_by_name", { length: 100 }), // Nome de quem assumiu
+  originalMarkerId: uuid("original_marker_id").references(() => users.id, { onDelete: "cascade" }), // Para notificações
+  originalMarkerName: varchar("original_marker_name", { length: 100 }), // Nome do marcador original
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 }, (table) => [
@@ -466,7 +470,8 @@ export const clientMarkerStatusSchema = z.enum([
   "em_negociacao",
   "finalizada", 
   "zerado",
-  "tem_coisa_mas_nao_quer"
+  "tem_coisa_mas_nao_quer",
+  "apenas_consulta"
 ]);
 
 export type SelectClientMarker = typeof clientMarkers.$inferSelect;

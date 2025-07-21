@@ -15,6 +15,7 @@ import { searchBenefits, getBenefitDetails, ApiError } from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
 import { Benefit } from "@shared/schema";
 import { Navbar } from "@/components/navbar";
+import { UnmarkedClientsDialog } from "@/components/UnmarkedClientsDialog";
 
 export default function Home() {
   const [searchParams, setSearchParams] = useState<{
@@ -24,24 +25,11 @@ export default function Home() {
   } | null>(null);
   
   const [selectedBenefit, setSelectedBenefit] = useState<string | null>(null);
+  const [showUnmarkedDialog, setShowUnmarkedDialog] = useState(false);
   const { user } = useAuth();
   const { toast } = useToast();
 
-  const handleLogout = async () => {
-    try {
-      await logout();
-      toast({
-        title: "Sucesso",
-        description: "Logout realizado com sucesso!",
-      });
-    } catch (error: any) {
-      toast({
-        title: "Erro",
-        description: error.message || "Erro ao fazer logout",
-        variant: "destructive",
-      });
-    }
-  };
+
 
   // Search benefits query
   const { 
@@ -72,6 +60,13 @@ export default function Home() {
   const handleSearch = (apiKey: string, searchType: 'cpf' | 'beneficio', searchValue: string) => {
     setSearchParams({ apiKey, searchType, searchValue });
     setSelectedBenefit(null);
+    
+    // Para operadores, verificar clientes não marcados após a consulta
+    if (user?.role === "operador") {
+      setTimeout(() => {
+        setShowUnmarkedDialog(true);
+      }, 2000); // Aguardar 2 segundos após a consulta
+    }
   };
 
   const handleViewDetails = (benefitNumber: string) => {
@@ -160,6 +155,15 @@ export default function Home() {
           </div>
         )}
       </main>
+
+      {/* Dialog de Clientes Não Marcados */}
+      {user?.role === "operador" && (
+        <UnmarkedClientsDialog
+          open={showUnmarkedDialog}
+          onOpenChange={setShowUnmarkedDialog}
+          onComplete={() => setShowUnmarkedDialog(false)}
+        />
+      )}
 
       {/* Footer */}
       <footer className="bg-muted/50 dark:bg-muted/20 text-muted-foreground mt-16">

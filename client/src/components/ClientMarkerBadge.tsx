@@ -32,6 +32,12 @@ const statusConfig = {
     icon: AlertTriangle,
     color: "text-red-600",
   },
+  apenas_consulta: {
+    label: "Apenas Consulta",
+    variant: "outline" as const,
+    icon: CheckCircle,
+    color: "text-blue-600",
+  },
 };
 
 export function ClientMarkerBadge({ marker, showDetails = false }: ClientMarkerBadgeProps) {

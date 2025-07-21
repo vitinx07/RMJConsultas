@@ -25,7 +25,7 @@ import {
   type ClientMarkerStatus,
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, and, desc, asc, gte, lte, sql, count, inArray } from "drizzle-orm";
+import { eq, and, desc, asc, gte, lte, sql, count, inArray, isNull } from "drizzle-orm";
 import bcrypt from "bcryptjs";
 import { emailService } from "./email";
 
@@ -641,6 +641,10 @@ export class DatabaseStorage implements IStorage {
     return marker;
   }
 
+  async getClientMarkerByCpf(cpf: string): Promise<SelectClientMarker | undefined> {
+    return this.getClientMarker(cpf);
+  }
+
   async createClientMarker(markerData: InsertClientMarker): Promise<SelectClientMarker> {
     // Remove formatação do CPF
     const cleanCpf = markerData.cpf.replace(/\D/g, '');
@@ -656,7 +660,7 @@ export class DatabaseStorage implements IStorage {
     return marker;
   }
 
-  async updateClientMarker(cpf: string, markerData: Partial<InsertClientMarker>): Promise<SelectClientMarker | undefined> {
+  async updateClientMarker(cpf: string, markerData: Partial<any>): Promise<SelectClientMarker | undefined> {
     const cleanCpf = cpf.replace(/\D/g, '');
     
     const [marker] = await db
@@ -694,6 +698,27 @@ export class DatabaseStorage implements IStorage {
       .from(clientMarkers)
       .where(eq(clientMarkers.userId, userId))
       .orderBy(desc(clientMarkers.createdAt));
+  }
+
+  async getUnmarkedClientsByUser(userId: string): Promise<any[]> {
+    // Buscar todas as consultas do usuário que não possuem marcação
+    const unmarkedClients = await db
+      .select({
+        cpf: consultations.cpf,
+        beneficiaryName: consultations.beneficiaryName,
+        benefitNumber: consultations.benefitNumber,
+        createdAt: consultations.createdAt,
+      })
+      .from(consultations)
+      .leftJoin(clientMarkers, eq(consultations.cpf, clientMarkers.cpf))
+      .where(and(
+        eq(consultations.userId, userId),
+        isNull(clientMarkers.id) // Não existe marcação para este CPF
+      ))
+      .groupBy(consultations.cpf, consultations.beneficiaryName, consultations.benefitNumber, consultations.createdAt)
+      .orderBy(desc(consultations.createdAt));
+
+    return unmarkedClients;
   }
 }
 

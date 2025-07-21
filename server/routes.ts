@@ -1188,21 +1188,16 @@ consultation = await storage.getConsultationByCpf(cpf as string, userId);
     }
   });
 
-  // Remover marcação de cliente
-  app.delete("/api/client-markers/:cpf", requireAuthHybrid, requireAnyRole, async (req, res) => {
+  // Remover marcação de cliente (apenas administradores)
+  app.delete("/api/client-markers/:cpf", requireAuthHybrid, async (req, res) => {
     try {
       const { cpf } = req.params;
       const user = req.user!;
       
-      // Verificar se a marcação existe e pertence ao usuário atual
-      const existingMarker = await storage.getClientMarker(cpf);
-      if (!existingMarker) {
-        return res.status(404).json({ error: "Marcação não encontrada" });
-      }
-      
-      if (existingMarker.userId !== user.id && user.role !== "administrator") {
+      // Apenas administradores podem remover marcações
+      if (user.role !== "administrator") {
         return res.status(403).json({ 
-          error: "Você só pode remover suas próprias marcações" 
+          error: "Acesso negado. Apenas administradores podem remover marcações." 
         });
       }
 
@@ -1238,6 +1233,73 @@ consultation = await storage.getConsultationByCpf(cpf as string, userId);
     } catch (error) {
       console.error("Erro ao buscar marcações do usuário:", error);
       res.status(500).json({ error: "Erro ao carregar suas marcações" });
+    }
+  });
+
+  // Assumir venda (operadores)
+  app.post("/api/client-markers/:cpf/assume", requireAuthHybrid, async (req, res) => {
+    try {
+      const user = req.user!;
+      if (user.role !== "operador") {
+        return res.status(403).json({ error: "Acesso negado. Apenas operadores podem assumir vendas." });
+      }
+
+      const { cpf } = req.params;
+      
+      // Buscar marcação existente
+      const existingMarker = await storage.getClientMarkerByCpf(cpf);
+      if (!existingMarker) {
+        return res.status(404).json({ error: "Marcação não encontrada" });
+      }
+
+      // Verificar se o operador não é o mesmo que fez a marcação
+      if (existingMarker.userId === user.id) {
+        return res.status(400).json({ error: "Você não pode assumir sua própria venda" });
+      }
+
+      // Atualizar marcação com informações de quem assumiu
+      const updatedMarker = await storage.updateClientMarker(cpf, {
+        assumedBy: user.id,
+        assumedByName: user.firstName || user.username,
+        originalMarkerId: existingMarker.userId,
+        originalMarkerName: existingMarker.userName,
+      });
+
+      // Criar notificação apenas se status for "em_negociacao"
+      if (existingMarker.status === "em_negociacao") {
+        await storage.createNotification({
+          userId: existingMarker.userId,
+          type: "sale_assumed",
+          title: "Venda Assumida",
+          message: `${user.firstName || user.username} assumiu a venda do cliente CPF: ${cpf}`,
+          cpf: cpf,
+          metadata: {
+            assumedBy: user.id,
+            assumedByName: user.firstName || user.username,
+            originalStatus: existingMarker.status
+          }
+        });
+      }
+
+      res.json(updatedMarker);
+    } catch (error) {
+      console.error("Error assuming sale:", error);
+      res.status(500).json({ error: "Erro interno do servidor" });
+    }
+  });
+
+  // Listar clientes não marcados pelo usuário atual (operadores)
+  app.get("/api/client-markers/unmarked", requireAuthHybrid, async (req, res) => {
+    try {
+      const user = req.user!;
+      
+      // Buscar clientes consultados pelo usuário que não foram marcados
+      const unmarkedClients = await storage.getUnmarkedClientsByUser(user.id);
+      
+      res.json(unmarkedClients);
+    } catch (error) {
+      console.error("Erro ao buscar clientes não marcados:", error);
+      res.status(500).json({ error: "Erro ao carregar clientes não marcados" });
     }
   });
 

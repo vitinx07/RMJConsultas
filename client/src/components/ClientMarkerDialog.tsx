@@ -25,6 +25,7 @@ import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { SelectClientMarker, clientMarkerStatusSchema } from "@shared/schema";
+import { useAuth } from "@/hooks/useAuth";
 
 const markerFormSchema = z.object({
   status: clientMarkerStatusSchema,
@@ -46,6 +47,7 @@ const statusOptions = [
   { value: "finalizada", label: "Finalizada" },
   { value: "zerado", label: "Zerado" },
   { value: "tem_coisa_mas_nao_quer", label: "Tem Coisa mas Não Quer Fazer" },
+  { value: "apenas_consulta", label: "Apenas Consulta" },
 ];
 
 export function ClientMarkerDialog({ 
@@ -57,7 +59,9 @@ export function ClientMarkerDialog({
 }: ClientMarkerDialogProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { user } = useAuth();
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isAssuming, setIsAssuming] = useState(false);
 
   const form = useForm<MarkerFormData>({
     resolver: zodResolver(markerFormSchema),
@@ -110,7 +114,7 @@ export function ClientMarkerDialog({
     },
   });
 
-  // Mutation para remover marcação
+  // Mutation para remover marcação (apenas administradores)
   const deleteMarkerMutation = useMutation({
     mutationFn: async () => {
       return apiRequest(`/api/client-markers/${cpf}`, {
@@ -137,6 +141,33 @@ export function ClientMarkerDialog({
     },
   });
 
+  // Mutation para assumir venda (operadores)
+  const assumeSaleMutation = useMutation({
+    mutationFn: async () => {
+      return apiRequest(`/api/client-markers/${cpf}/assume`, {
+        method: "POST",
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/client-markers"] });
+      queryClient.invalidateQueries({ queryKey: [`/api/client-markers/${cpf}`] });
+      
+      toast({
+        title: "Sucesso",
+        description: "Venda assumida com sucesso",
+      });
+      
+      onOpenChange(false);
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Erro",
+        description: error.message || "Erro ao assumir venda",
+        variant: "destructive",
+      });
+    },
+  });
+
   const onSubmit = (data: MarkerFormData) => {
     saveMarkerMutation.mutate(data);
   };
@@ -146,6 +177,18 @@ export function ClientMarkerDialog({
       deleteMarkerMutation.mutate();
     }
   };
+
+  const handleAssumeSale = () => {
+    if (window.confirm("Tem certeza que deseja assumir esta venda? O operador original será notificado.")) {
+      setIsAssuming(true);
+      assumeSaleMutation.mutate();
+    }
+  };
+
+  // Verificar permissões
+  const canDelete = user?.role === "administrator";
+  const canAssume = user?.role === "operador" && existingMarker && existingMarker.userId !== user.id;
+  const isOwnMarker = existingMarker && existingMarker.userId === user?.id;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -164,12 +207,28 @@ export function ClientMarkerDialog({
               <span className="font-medium">CPF:</span> {cpf}
             </div>
             {existingMarker && (
-              <div className="mt-2 text-xs">
-                <div>
-                  <span className="font-medium">Marcado por:</span> {existingMarker.userName}
-                </div>
-                <div>
-                  <span className="font-medium">Data:</span> {existingMarker.createdAt ? new Date(existingMarker.createdAt).toLocaleString('pt-BR') : 'N/A'}
+              <div className="mt-2 p-3 bg-red-50 dark:bg-red-950 border border-red-200 dark:border-red-800 rounded-lg">
+                <div className="text-sm text-red-800 dark:text-red-200">
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <div>
+                        <span className="font-medium">Marcado por:</span> {existingMarker.userName}
+                      </div>
+                      <div>
+                        <span className="font-medium">Data:</span> {existingMarker.createdAt ? new Date(existingMarker.createdAt).toLocaleString('pt-BR') : 'N/A'}
+                      </div>
+                      {existingMarker.assumedBy && existingMarker.assumedByName && (
+                        <div className="mt-1 text-blue-700 dark:text-blue-300">
+                          <span className="font-medium">Assumido por:</span> {existingMarker.assumedByName}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                  {existingMarker.notes && (
+                    <div className="mt-2 p-2 bg-red-100 dark:bg-red-900 rounded text-xs">
+                      <span className="font-medium">Observações:</span> {existingMarker.notes}
+                    </div>
+                  )}
                 </div>
               </div>
             )}
@@ -209,8 +268,8 @@ export function ClientMarkerDialog({
           </div>
 
             <DialogFooter className="flex justify-between">
-              <div>
-                {existingMarker && (
+              <div className="flex gap-2">
+                {existingMarker && canDelete && (
                   <Button
                     type="button"
                     variant="destructive"
@@ -218,6 +277,18 @@ export function ClientMarkerDialog({
                     disabled={deleteMarkerMutation.isPending}
                   >
                     {deleteMarkerMutation.isPending ? "Removendo..." : "Remover Marcação"}
+                  </Button>
+                )}
+                
+                {existingMarker && canAssume && existingMarker.status === "em_negociacao" && (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={handleAssumeSale}
+                    disabled={assumeSaleMutation.isPending || isAssuming}
+                    className="border-blue-300 text-blue-700 hover:bg-blue-50 dark:border-blue-600 dark:text-blue-300"
+                  >
+                    {assumeSaleMutation.isPending || isAssuming ? "Assumindo..." : "Assumir Venda"}
                   </Button>
                 )}
               </div>
