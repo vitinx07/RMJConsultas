@@ -60,9 +60,9 @@ function ClientMarkerHistoryDialog({ cpf }: { cpf: string }) {
   });
 
   return (
-    <DialogContent className="max-w-2xl">
+    <DialogContent className="max-w-3xl">
       <DialogHeader>
-        <DialogTitle>Histórico de Marcações</DialogTitle>
+        <DialogTitle>Histórico Completo de Marcações</DialogTitle>
       </DialogHeader>
       
       <div className="max-h-96 overflow-y-auto space-y-3">
@@ -73,45 +73,118 @@ function ClientMarkerHistoryDialog({ cpf }: { cpf: string }) {
             Nenhum histórico encontrado
           </div>
         ) : (
-          history.map((entry: ClientMarkerHistory) => (
-            <div key={entry.id} className="border rounded-lg p-3 space-y-2">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Badge variant="outline" className="text-xs">
-                    {actionLabels[entry.action as keyof typeof actionLabels] || entry.action}
-                  </Badge>
-                  <span className="text-sm font-medium">
-                    {statusConfig[entry.status as ClientMarkerStatus]?.label || entry.status}
-                  </span>
-                </div>
-                <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                  <Calendar className="h-3 w-3" />
-                  {entry.createdAt && formatDistanceToNow(new Date(entry.createdAt), { 
-                    addSuffix: true, 
-                    locale: ptBR 
-                  })}
-                </div>
-              </div>
+          <div className="space-y-3">
+            {history.map((entry: ClientMarkerHistory, index: number) => {
+              const isFirst = index === 0;
+              const isLast = index === history.length - 1;
               
-              <div className="flex items-center gap-1 text-sm">
-                <User className="h-3 w-3" />
-                <span className="font-medium">{entry.userName}</span>
-              </div>
-              
-              {entry.notes && (
-                <div className="text-sm text-muted-foreground">
-                  <strong>Observações:</strong> {entry.notes}
+              return (
+                <div key={entry.id} className="relative">
+                  {/* Linha conectora */}
+                  {!isLast && (
+                    <div className="absolute left-4 top-8 w-px h-6 bg-gray-300 dark:bg-gray-600"></div>
+                  )}
+                  
+                  <div className="flex items-start gap-3">
+                    {/* Avatar/Indicador com cores específicas */}
+                    <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center ${
+                      entry.action === 'created' ? 'bg-green-100 dark:bg-green-900' :
+                      entry.action === 'updated' ? 'bg-blue-100 dark:bg-blue-900' :
+                      entry.action === 'assumed' ? 'bg-orange-100 dark:bg-orange-900' :
+                      'bg-red-100 dark:bg-red-900'
+                    }`}>
+                      {entry.action === 'created' && <CheckCircle className="h-4 w-4 text-green-600 dark:text-green-400" />}
+                      {entry.action === 'updated' && <Clock className="h-4 w-4 text-blue-600 dark:text-blue-400" />}
+                      {entry.action === 'assumed' && <User className="h-4 w-4 text-orange-600 dark:text-orange-400" />}
+                      {entry.action === 'removed' && <XCircle className="h-4 w-4 text-red-600 dark:text-red-400" />}
+                    </div>
+                    
+                    {/* Conteúdo */}
+                    <div className="flex-1 min-w-0">
+                      <div className="bg-white dark:bg-gray-800 border rounded-lg p-3 shadow-sm">
+                        {/* Cabeçalho da ação */}
+                        <div className="flex items-center justify-between mb-2">
+                          <div className="flex-1">
+                            <div className="text-sm text-gray-900 dark:text-gray-100">
+                              <span className="font-bold text-blue-600 dark:text-blue-400">
+                                {entry.userName}
+                              </span>
+                              <span className="ml-1">
+                                {entry.action === 'created' && 'criou a marcação inicial'}
+                                {entry.action === 'updated' && 'atualizou o status'}
+                                {entry.action === 'assumed' && 'assumiu a venda'}
+                                {entry.action === 'removed' && 'removeu a marcação'}
+                              </span>
+                              {entry.previousUserName && entry.action === 'assumed' && (
+                                <span className="text-gray-600 dark:text-gray-400">
+                                  {' '}de <strong>{entry.previousUserName}</strong>
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                          <div className="text-xs text-muted-foreground flex items-center gap-1">
+                            <Clock className="h-3 w-3" />
+                            {entry.createdAt && formatDistanceToNow(new Date(entry.createdAt), { 
+                              addSuffix: true, 
+                              locale: ptBR 
+                            })}
+                          </div>
+                        </div>
+                        
+                        {/* Status atual */}
+                        <div className="mb-2">
+                          <span className="text-sm">
+                            <strong>Status definido:</strong>{' '}
+                            <Badge variant={statusConfig[entry.status as ClientMarkerStatus]?.variant || "outline"} className="text-xs">
+                              {statusConfig[entry.status as ClientMarkerStatus]?.label || entry.status}
+                            </Badge>
+                          </span>
+                        </div>
+                        
+                        {/* Observações */}
+                        {entry.notes && (
+                          <div className="mb-2 p-2 bg-gray-50 dark:bg-gray-700 rounded text-sm">
+                            <strong>Observações:</strong> {entry.notes}
+                          </div>
+                        )}
+                        
+                        {/* Informações de mudança */}
+                        {(entry.previousUserName || entry.previousStatus) && (
+                          <div className="text-xs text-muted-foreground border-t pt-2 mt-2">
+                            {entry.action === 'assumed' && entry.previousUserName && (
+                              <div>
+                                <strong>Assumiu de:</strong> <span className="text-gray-700 dark:text-gray-300">{entry.previousUserName}</span>
+                                {entry.previousStatus && (
+                                  <span className="ml-2">
+                                    (que tinha definido: <Badge variant="outline" className="text-xs ml-1">
+                                      {statusConfig[entry.previousStatus as ClientMarkerStatus]?.label || entry.previousStatus}
+                                    </Badge>)
+                                  </span>
+                                )}
+                              </div>
+                            )}
+                            
+                            {entry.action === 'updated' && entry.previousStatus && entry.previousStatus !== entry.status && (
+                              <div>
+                                <strong>Mudou de:</strong> 
+                                <Badge variant="outline" className="text-xs ml-1 mr-2">
+                                  {statusConfig[entry.previousStatus as ClientMarkerStatus]?.label || entry.previousStatus}
+                                </Badge>
+                                <strong>para:</strong>
+                                <Badge variant={statusConfig[entry.status as ClientMarkerStatus]?.variant || "outline"} className="text-xs ml-1">
+                                  {statusConfig[entry.status as ClientMarkerStatus]?.label || entry.status}
+                                </Badge>
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
                 </div>
-              )}
-              
-              {entry.previousUserName && (
-                <div className="text-xs text-muted-foreground">
-                  Anterior: {entry.previousUserName} 
-                  {entry.previousStatus && ` (${statusConfig[entry.previousStatus as ClientMarkerStatus]?.label || entry.previousStatus})`}
-                </div>
-              )}
-            </div>
-          ))
+              );
+            })}
+          </div>
         )}
       </div>
     </DialogContent>
