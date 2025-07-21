@@ -179,7 +179,7 @@ export function ClientMarkerDialog({
   };
 
   const handleAssumeSale = () => {
-    if (window.confirm("Tem certeza que deseja assumir esta venda? O operador original será notificado.")) {
+    if (window.confirm("Você deseja assumir essa venda?")) {
       setIsAssuming(true);
       assumeSaleMutation.mutate();
     }
@@ -280,12 +280,13 @@ export function ClientMarkerDialog({
                   </Button>
                 )}
                 
-                {canAssume && (
+                {canAssume && existingMarker?.status === "em_negociacao" && (
                   <Button
                     type="button"
                     variant="outline"
                     onClick={handleAssumeSale}
                     disabled={assumeSaleMutation.isPending}
+                    className="border-blue-300 text-blue-700 hover:bg-blue-50 dark:border-blue-600 dark:text-blue-300"
                   >
                     {assumeSaleMutation.isPending ? "Assumindo..." : "Assumir Venda"}
                   </Button>

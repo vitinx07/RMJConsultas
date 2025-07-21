@@ -28,7 +28,7 @@ import {
   type InsertClientMarkerHistory,
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, and, desc, asc, gte, lte, sql, count, inArray, isNull } from "drizzle-orm";
+import { eq, and, desc, asc, gte, lte, sql, count, inArray, isNull, or } from "drizzle-orm";
 import bcrypt from "bcryptjs";
 import { emailService } from "./email";
 
@@ -277,7 +277,7 @@ export class DatabaseStorage implements IStorage {
       .update(users)
       .set({
         passwordHash: hashedPassword,
-        passwordExpiresAt: expiryDate,
+        passwordExpiresAt: passwordExpiresAt,
         lastPasswordChange: now,
         mustChangePassword: false, // Remover obrigação após mudança
         updatedAt: now,
@@ -661,7 +661,7 @@ export class DatabaseStorage implements IStorage {
     // Criar histórico da criação
     await this.createClientMarkerHistory({
       cpf: cleanCpf,
-      clientName: markerData.clientName || undefined,
+      clientName: undefined,
       status: markerData.status,
       userId: markerData.userId,
       userName: markerData.userName,
@@ -694,7 +694,7 @@ export class DatabaseStorage implements IStorage {
     )) {
       await this.createClientMarkerHistory({
         cpf: cleanCpf,
-        clientName: marker.clientName || undefined,
+        clientName: undefined,
         status: marker.status,
         userId: marker.userId,
         userName: marker.userName,
@@ -723,7 +723,7 @@ export class DatabaseStorage implements IStorage {
     if (currentMarker && (result.rowCount || 0) > 0) {
       await this.createClientMarkerHistory({
         cpf: cleanCpf,
-        clientName: currentMarker.clientName || undefined,
+        clientName: undefined,
         status: currentMarker.status,
         userId: currentMarker.userId,
         userName: currentMarker.userName,
@@ -790,7 +790,7 @@ export class DatabaseStorage implements IStorage {
       )
       .orderBy(desc(consultations.createdAt));
 
-    return unmarkedConsultations;
+    return unmarkedConsultations.filter(item => item.lastConsultation !== null) as Array<{ cpf: string; beneficiaryName: string; lastConsultation: Date }>;
   }
 
   async assumeClientMarker(cpf: string, newUserId: string, newUserName: string): Promise<{ success: boolean; notificationSent: boolean; error?: string }> {
@@ -816,7 +816,7 @@ export class DatabaseStorage implements IStorage {
       // Criar histórico da assunção
       await this.createClientMarkerHistory({
         cpf: cleanCpf,
-        clientName: currentMarker.clientName || undefined,
+        clientName: undefined,
         status: currentMarker.status,
         userId: newUserId,
         userName: newUserName,
@@ -826,17 +826,47 @@ export class DatabaseStorage implements IStorage {
         previousStatus: currentMarker.status,
       });
 
-      // Enviar notificação apenas se o status for "em_negociacao"
+      // Enviar notificações apenas se o status for "em_negociacao"
       let notificationSent = false;
       if (currentMarker.status === 'em_negociacao') {
         try {
+          // Notificar operador anterior
           await this.createNotification({
             userId: currentMarker.userId,
             type: 'client_marker_assumed',
             title: 'Venda Assumida',
-            message: `${newUserName} assumiu a negociação do cliente CPF ${cpf}`,
+            message: `${newUserName} assumiu a negociação do cliente CPF ${cleanCpf}`,
             cpf: cleanCpf,
+            metadata: {
+              assumedBy: newUserId,
+              assumedByName: newUserName,
+              originalStatus: currentMarker.status
+            }
           });
+
+          // Notificar gerentes e administradores
+          const managersAndAdmins = await db
+            .select()
+            .from(users)
+            .where(or(eq(users.role, 'administrator'), eq(users.role, 'gerente')));
+
+          for (const admin of managersAndAdmins) {
+            await this.createNotification({
+              userId: admin.id,
+              type: 'client_marker_assumed',
+              title: 'Venda Assumida por Operador',
+              message: `${newUserName} assumiu a negociação do cliente CPF ${cleanCpf} de ${currentMarker.userName}`,
+              cpf: cleanCpf,
+              metadata: {
+                assumedBy: newUserId,
+                assumedByName: newUserName,
+                originalUserId: currentMarker.userId,
+                originalUserName: currentMarker.userName,
+                originalStatus: currentMarker.status
+              }
+            });
+          }
+          
           notificationSent = true;
         } catch (notifError) {
           console.error('Erro ao enviar notificação:', notifError);
