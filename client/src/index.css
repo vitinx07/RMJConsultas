@@ -174,3 +174,27 @@ td {
 .dark .divide-y > *:not(:first-child) {
   border-top-color: hsl(220, 40%, 25%) !important;
 }
+
+/* File attachment styles for better dark mode visibility */
+.dark .attachment-item {
+  background-color: hsl(220, 40%, 15%) !important;
+  border-color: hsl(220, 40%, 25%) !important;
+}
+
+.dark .attachment-item:hover {
+  background-color: hsl(220, 40%, 18%) !important;
+}
+
+/* Upload area styles */
+.upload-area {
+  transition: all 0.2s ease;
+}
+
+.upload-area:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.dark .upload-area:hover {
+  box-shadow: 0 4px 12px rgba(255, 255, 255, 0.05);
+}

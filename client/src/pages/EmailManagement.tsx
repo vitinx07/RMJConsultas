@@ -171,11 +171,39 @@ export default function EmailManagement() {
     form.setValue("recipients", newSelectedUsers);
   };
 
-  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     setIsProcessingFiles(true);
     const files = Array.from(event.target.files || []);
-    setAttachments(files);
-    setIsProcessingFiles(false);
+    
+    try {
+      // Processar arquivos para Base64
+      const processedFiles = await Promise.all(
+        files.map(async (file) => {
+          return new Promise<File>((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = () => {
+              // Armazenar o conteúdo Base64 no arquivo
+              (file as any).base64Content = (reader.result as string).split(',')[1];
+              resolve(file);
+            };
+            reader.onerror = reject;
+            reader.readAsDataURL(file);
+          });
+        })
+      );
+      
+      setAttachments(processedFiles);
+      console.log(`📎 ${processedFiles.length} arquivo(s) processado(s) para Base64`);
+    } catch (error) {
+      console.error('Erro ao processar arquivos:', error);
+      toast({
+        title: "Erro ao processar arquivos",
+        description: "Não foi possível processar os arquivos selecionados.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsProcessingFiles(false);
+    }
   };
 
   const removeAttachment = (index: number) => {
@@ -189,16 +217,28 @@ export default function EmailManagement() {
     console.log("Dados do formulário:", data);
     console.log("Usuários selecionados:", selectedUsers);
 
+    // Processar anexos para o formato correto
+    let processedAttachments;
+    if (attachments.length > 0) {
+      processedAttachments = attachments.map(file => ({
+        name: file.name,
+        content: (file as any).base64Content || '',
+        contentType: file.type
+      }));
+      console.log(`📎 Preparando ${processedAttachments.length} anexo(s) para envio`);
+    }
+
     // Usar os recipients do formulário (que agora está sincronizado)
     const emailData = {
       recipients: data.recipients.length > 0 ? data.recipients : selectedUsers,
       subject: data.subject.trim(),
       message: data.message.trim(),
       isHtml: data.isHtml || false,
-      attachments: attachments.length > 0 ? attachments : undefined,
+      attachments: processedAttachments,
     };
 
     console.log("Dados finais do email:", emailData);
+    console.log("Anexos processados:", processedAttachments);
     sendEmailMutation.mutate(emailData);
   };
 
@@ -371,10 +411,10 @@ export default function EmailManagement() {
                     />
                     <label
                       htmlFor="file-upload"
-                      className="flex items-center justify-center gap-2 p-4 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg cursor-pointer hover:border-primary hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+                      className="flex items-center justify-center gap-2 p-4 border-2 border-dashed border-muted-foreground/25 rounded-lg cursor-pointer hover:border-primary hover:bg-surface-hover transition-colors"
                     >
-                      <Upload className="h-5 w-5 text-gray-500 dark:text-gray-400" />
-                      <span className="text-sm text-gray-600 dark:text-gray-300">
+                      <Upload className="h-5 w-5 text-muted-foreground" />
+                      <span className="text-sm text-muted-foreground">
                         {isProcessingFiles ? "Processando arquivos..." : "Clique para selecionar arquivos ou arraste aqui"}
                       </span>
                     </label>
@@ -383,21 +423,21 @@ export default function EmailManagement() {
                   {/* Attachments List */}
                   {attachments.length > 0 && (
                     <div className="space-y-2">
-                      <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                      <Label className="text-sm font-medium text-primary">
                         Arquivos selecionados ({attachments.length})
                       </Label>
                       <div className="space-y-2 max-h-32 overflow-y-auto">
                         {attachments.map((attachment, index) => (
                           <div
                             key={index}
-                            className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 rounded-md border border-gray-200 dark:border-gray-600"
+                            className="flex items-center justify-between p-3 bg-surface hover:bg-surface-hover rounded-md border transition-colors"
                           >
                             <div className="flex items-center gap-2 flex-1 min-w-0">
-                              <Paperclip className="h-4 w-4 text-gray-500 dark:text-gray-400 flex-shrink-0" />
-                              <span className="text-sm truncate text-gray-900 dark:text-gray-100" title={attachment.name}>
+                              <Paperclip className="h-4 w-4 text-primary flex-shrink-0" />
+                              <span className="text-sm truncate text-primary font-medium" title={attachment.name}>
                                 {attachment.name}
                               </span>
-                              <Badge variant="outline" className="text-xs flex-shrink-0 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300">
+                              <Badge variant="secondary" className="text-xs flex-shrink-0">
                                 {(attachment.size / 1024 / 1024).toFixed(1)}MB
                               </Badge>
                             </div>
@@ -406,7 +446,7 @@ export default function EmailManagement() {
                               variant="ghost"
                               size="sm"
                               onClick={() => removeAttachment(index)}
-                              className="text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 flex-shrink-0"
+                              className="text-destructive hover:text-destructive/80 flex-shrink-0"
                             >
                               <X className="h-4 w-4" />
                             </Button>
