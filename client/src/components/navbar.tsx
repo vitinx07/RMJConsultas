@@ -18,6 +18,7 @@ import {
   Menu,
   X,
   UserCog,
+  Clock,
 } from "lucide-react";
 
 const roleLabels = {
@@ -150,6 +151,19 @@ export function Navbar() {
                     >
                       <UserCog className="h-4 w-4 mr-2" />
                       Marcações
+                    </Button>
+                  </Link>
+                )}
+
+                {(user.role === "administrator" || user.role === "gerente") && (
+                  <Link href="/negotiations-control">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className={getNavButtonClass("/negotiations-control")}
+                    >
+                      <Clock className="h-4 w-4 mr-2" />
+                      Controle
                     </Button>
                   </Link>
                 )}

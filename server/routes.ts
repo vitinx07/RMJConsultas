@@ -1182,9 +1182,10 @@ consultation = await storage.getConsultationByCpf(cpf as string, userId);
         ? `${user.firstName} ${user.lastName}` 
         : user.username;
 
-      // Definir prazo de expiração para status "em_negociacao" (5 minutos para teste)
+      // Definir prazo de expiração para status "em_negociacao"
+      const negotiationDurationHours = req.body.negotiationDurationHours || 2; // Padrão 2 horas
       const negotiationExpiresAt = req.body.status === 'em_negociacao' 
-        ? new Date(Date.now() + 5 * 60 * 1000) // 5 minutos para teste
+        ? new Date(Date.now() + negotiationDurationHours * 60 * 60 * 1000)
         : null;
 
       const updateData = {
@@ -1192,6 +1193,7 @@ consultation = await storage.getConsultationByCpf(cpf as string, userId);
         notes: req.body.notes,
         userName: currentUserName, // Sempre atualizar com quem está fazendo a mudança
         negotiationExpiresAt,
+        negotiationDurationHours,
         // Se quem está editando assumiu a venda, manter informações de assumido
         ...(existingMarker.assumedBy === user.id ? {
           assumedBy: user.id,
@@ -1201,7 +1203,8 @@ consultation = await storage.getConsultationByCpf(cpf as string, userId);
 
       // Se mudando para "em_negociacao", definir expiração
       if (req.body.status === 'em_negociacao' && existingMarker.status !== 'em_negociacao') {
-        updateData.negotiationExpiresAt = new Date(Date.now() + 5 * 60 * 1000); // 5 minutos para teste
+        updateData.negotiationExpiresAt = new Date(Date.now() + negotiationDurationHours * 60 * 60 * 1000);
+        updateData.negotiationDurationHours = negotiationDurationHours;
       }
 
       const marker = await storage.updateClientMarker(cpf, updateData);
@@ -1351,6 +1354,17 @@ consultation = await storage.getConsultationByCpf(cpf as string, userId);
     } catch (error) {
       console.error("Erro na verificação manual de expiração:", error);
       res.status(500).json({ error: "Erro ao verificar expirações" });
+    }
+  });
+
+  // Dashboard de controle para gerentes/administradores - clientes em negociação
+  app.get("/api/admin/negotiations-control", requireAuthHybrid, requireManagerOrAdmin, async (req, res) => {
+    try {
+      const activeNegotiations = await storage.getActiveNegotiations();
+      res.json(activeNegotiations);
+    } catch (error) {
+      console.error("Erro ao obter controle de negociações:", error);
+      res.status(500).json({ error: "Erro ao carregar controle de negociações" });
     }
   });
 

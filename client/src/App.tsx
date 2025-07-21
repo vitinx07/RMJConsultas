@@ -20,6 +20,7 @@ import ChangePassword from "@/pages/ChangePassword";
 import EditUser from "@/pages/EditUser";
 import PasswordExpiryDemo from "@/pages/PasswordExpiryDemo";
 import ClientMarkers from "@/pages/client-markers";
+import NegotiationsControl from "@/pages/negotiations-control";
 import NotFound from "@/pages/not-found";
 import PasswordExpiryAlert from "@/components/PasswordExpiryAlert";
 
@@ -91,6 +92,8 @@ function Router() {
         <Route path="/usuarios/emails" component={EmailManagement} />
         <Route path="/marcacoes" component={ClientMarkers} />
         <Route path="/admin/marcacoes" component={ClientMarkers} />
+        <Route path="/negotiations-control" component={NegotiationsControl} />
+        <Route path="/admin/negotiations" component={NegotiationsControl} />
         <Route path="/change-password" component={ChangePassword} />
         <Route component={NotFound} />
       </Switch>

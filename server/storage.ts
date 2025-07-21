@@ -87,6 +87,12 @@ export interface IStorage {
   deleteClientMarker(cpf: string): Promise<boolean>;
   getAllClientMarkers(): Promise<SelectClientMarker[]>;
   getClientMarkersByUser(userId: string): Promise<SelectClientMarker[]>;
+  
+  // Verificar negociações expiradas
+  checkExpiredNegotiations(): Promise<void>;
+  
+  // Dashboard para gerentes/administradores
+  getActiveNegotiations(): Promise<any>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -777,7 +783,7 @@ export class DatabaseStorage implements IStorage {
           .update(clientMarkers)
           .set({
             status: 'zerado',
-            notes: `${marker.notes ? marker.notes + ' | ' : ''}Negociação expirada automaticamente após 5 minutos`,
+            notes: `${marker.notes ? marker.notes + ' | ' : ''}Negociação expirada automaticamente após ${marker.negotiationDurationHours || 2} hora(s)`,
             updatedAt: new Date(),
             negotiationExpiresAt: null
           })
@@ -791,7 +797,7 @@ export class DatabaseStorage implements IStorage {
           userId: marker.userId,
           userName: 'Sistema Automático',
           action: 'updated',
-          notes: 'Negociação expirada automaticamente - prazo de 5 minutos esgotado',
+          notes: `Negociação expirada automaticamente - prazo de ${marker.negotiationDurationHours || 2} hora(s) esgotado`,
           previousUserId: marker.userId,
           previousUserName: marker.userName,
           previousStatus: 'em_negociacao',
@@ -805,6 +811,84 @@ export class DatabaseStorage implements IStorage {
       }
     } catch (error) {
       console.error('Erro ao verificar negociações expiradas:', error);
+    }
+  }
+
+  // Dashboard de controle para gerentes/administradores  
+  async getActiveNegotiations(): Promise<Array<{
+    cpf: string;
+    clientName: string | null;
+    operatorName: string;
+    assumedByName: string | null;
+    createdAt: Date;
+    negotiationExpiresAt: Date | null;
+    negotiationDurationHours: number | null;
+    notes: string | null;
+    timeRemaining: string | null;
+    isExpired: boolean;
+  }>> {
+    try {
+      const negotiations = await db
+        .select()
+        .from(clientMarkers)
+        .where(eq(clientMarkers.status, 'em_negociacao'))
+        .orderBy(asc(clientMarkers.negotiationExpiresAt));
+
+      const result = [];
+      for (const negotiation of negotiations) {
+        // Buscar nome do cliente - implementação simples
+        let clientName = null;
+        try {
+          // Buscar consulta mais recente para obter nome do cliente
+          const [recentConsultation] = await db
+            .select()
+            .from(consultations)
+            .where(eq(consultations.cpf, negotiation.cpf))
+            .orderBy(desc(consultations.createdAt))
+            .limit(1);
+          
+          if (recentConsultation?.clientName) {
+            clientName = recentConsultation.clientName;
+          }
+        } catch (error) {
+          console.log('Erro ao buscar nome do cliente:', error);
+        }
+        
+        // Calcular tempo restante
+        const now = new Date();
+        const expiresAt = negotiation.negotiationExpiresAt;
+        let timeRemaining = null;
+        let isExpired = false;
+        
+        if (expiresAt) {
+          const timeDiff = expiresAt.getTime() - now.getTime();
+          isExpired = timeDiff <= 0;
+          
+          if (!isExpired) {
+            const hours = Math.floor(timeDiff / (1000 * 60 * 60));
+            const minutes = Math.floor((timeDiff % (1000 * 60 * 60)) / (1000 * 60));
+            timeRemaining = `${hours}h ${minutes}m`;
+          }
+        }
+
+        result.push({
+          cpf: negotiation.cpf,
+          clientName,
+          operatorName: negotiation.userName,
+          assumedByName: negotiation.assumedByName,
+          createdAt: negotiation.createdAt,
+          negotiationExpiresAt: negotiation.negotiationExpiresAt,
+          negotiationDurationHours: negotiation.negotiationDurationHours,
+          notes: negotiation.notes,
+          timeRemaining,
+          isExpired
+        });
+      }
+
+      return result;
+    } catch (error) {
+      console.error('Erro ao buscar negociações ativas:', error);
+      return [];
     }
   }
 

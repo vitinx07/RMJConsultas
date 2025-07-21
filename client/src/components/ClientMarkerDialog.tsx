@@ -30,6 +30,7 @@ import { useAuth } from "@/hooks/useAuth";
 const markerFormSchema = z.object({
   status: clientMarkerStatusSchema,
   notes: z.string().optional(),
+  negotiationDurationHours: z.number().min(1).max(24).default(2),
 });
 
 type MarkerFormData = z.infer<typeof markerFormSchema>;
@@ -68,6 +69,7 @@ export function ClientMarkerDialog({
     defaultValues: {
       status: existingMarker?.status as any || "em_negociacao",
       notes: existingMarker?.notes || "",
+      negotiationDurationHours: existingMarker?.negotiationDurationHours || 2,
     },
   });
 
@@ -258,6 +260,31 @@ export function ClientMarkerDialog({
               </SelectContent>
             </Select>
           </div>
+
+          {form.watch("status") === "em_negociacao" && (
+            <div className="space-y-2">
+              <Label htmlFor="negotiationDuration">Prazo para Negociação (horas)</Label>
+              <Select 
+                value={form.watch("negotiationDurationHours")?.toString()} 
+                onValueChange={(value) => form.setValue("negotiationDurationHours", parseInt(value))}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione o prazo" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="1">1 hora</SelectItem>
+                  <SelectItem value="2">2 horas</SelectItem>
+                  <SelectItem value="4">4 horas</SelectItem>
+                  <SelectItem value="8">8 horas</SelectItem>
+                  <SelectItem value="12">12 horas</SelectItem>
+                  <SelectItem value="24">24 horas</SelectItem>
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-muted-foreground">
+                A negociação será automaticamente alterada para "Zerado" após este prazo
+              </p>
+            </div>
+          )}
 
           <div className="space-y-2">
             <Label htmlFor="notes">Observações (opcional)</Label>
