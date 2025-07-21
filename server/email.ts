@@ -20,7 +20,7 @@ export interface EmailAttachment {
 class BrevoEmailService implements EmailService {
   private fromEmail: string = 'cavalcantisilvav@gmail.com';
   private fromName: string = 'Vitor Cavalcanti';
-  private apiKey: string = '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';
+  private apiKey: string = process.env.BREVO_API_KEY || '';
   private apiUrl: string = 'https://api.brevo.com/v3/smtp/email';
 
   constructor() {
