@@ -181,13 +181,37 @@ function ConsultationDetails({ consultation, onExportPDF }: { consultation: any,
             Contratos de Empréstimo
           </AccordionTrigger>
           <AccordionContent>
-            {currentBenefit.ContratosEmprestimo && currentBenefit.ContratosEmprestimo.length > 0 ? (
+            {/* Primeiro verifica se há dados em Emprestimos */}
+            {currentBenefit.Emprestimos && currentBenefit.Emprestimos.length > 0 ? (
+              <div className="space-y-4">
+                {currentBenefit.Emprestimos.map((contrato: any, index: number) => (
+                  <div key={index} className="border rounded-lg p-4">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Building2 className="h-4 w-4 text-blue-600" />
+                      <h4 className="font-medium">{contrato.NomeBanco}</h4>
+                    </div>
+                    <div className="grid grid-cols-2 gap-2 text-sm">
+                      <div>Contrato: {contrato.Contrato}</div>
+                      <div>Valor: {formatCurrency(contrato.ValorEmprestimo)}</div>
+                      <div>Valor Parcela: {formatCurrency(contrato.ValorParcela)}</div>
+                      <div>Quitação: {contrato.Quitacao}</div>
+                      <div>Prazo: {contrato.Prazo}</div>
+                      <div>Parcelas Restantes: {contrato.ParcelasRestantes}</div>
+                      <div>Taxa: {contrato.Taxa}%</div>
+                      <div>Data Averbação: {contrato.DataAverbacao}</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : 
+            /* Fallback para estruturas alternativas */
+            currentBenefit.ContratosEmprestimo && currentBenefit.ContratosEmprestimo.length > 0 ? (
               <div className="space-y-4">
                 {currentBenefit.ContratosEmprestimo.map((contrato: any, index: number) => (
                   <div key={index} className="border rounded-lg p-4">
                     <div className="flex items-center gap-2 mb-2">
                       <Building2 className="h-4 w-4 text-blue-600" />
-                      <h4 className="font-medium">{contrato.NomeBanco}</h4>
+                      <h4 className="font-medium">{contrato.NomeBanco || contrato.Banco}</h4>
                     </div>
                     <div className="grid grid-cols-2 gap-2 text-sm">
                       <div>Contrato: {contrato.NumeroContrato || contrato.Contrato}</div>
@@ -213,14 +237,53 @@ function ConsultationDetails({ consultation, onExportPDF }: { consultation: any,
             Informações de Cartão
           </AccordionTrigger>
           <AccordionContent>
-            {currentBenefit.InformacoesCartao && currentBenefit.InformacoesCartao.length > 0 ? (
+            {/* Primeiro verifica RMC (Cartão de Crédito) */}
+            {(currentBenefit.Rmc && currentBenefit.Rmc.length > 0) || (currentBenefit.RCC && currentBenefit.RCC.length > 0) ? (
+              <div className="space-y-4">
+                {/* Cartões RMC */}
+                {currentBenefit.Rmc && currentBenefit.Rmc.map((cartao: any, index: number) => (
+                  <div key={`rmc-${index}`} className="border rounded-lg p-4">
+                    <div className="flex items-center gap-2 mb-2">
+                      <CreditCard className="h-4 w-4 text-green-600" />
+                      <h4 className="font-medium">{cartao.Banco}</h4>
+                      <Badge variant="outline">RMC</Badge>
+                    </div>
+                    <div className="grid grid-cols-2 gap-2 text-sm">
+                      <div>Contrato: {cartao.Contrato}</div>
+                      <div>Valor: {formatCurrency(cartao.Valor)}</div>
+                      <div>Valor Parcela: {formatCurrency(cartao.ValorParcela)}</div>
+                      <div>Data Inclusão: {cartao.Data_inclusao}</div>
+                    </div>
+                  </div>
+                ))}
+                
+                {/* Cartões RCC */}
+                {currentBenefit.RCC && currentBenefit.RCC.map((cartao: any, index: number) => (
+                  <div key={`rcc-${index}`} className="border rounded-lg p-4">
+                    <div className="flex items-center gap-2 mb-2">
+                      <CreditCard className="h-4 w-4 text-blue-600" />
+                      <h4 className="font-medium">{cartao.Banco}</h4>
+                      <Badge variant="outline">RCC</Badge>
+                    </div>
+                    <div className="grid grid-cols-2 gap-2 text-sm">
+                      <div>Contrato: {cartao.Contrato}</div>
+                      <div>Valor: {formatCurrency(cartao.Valor)}</div>
+                      <div>Valor Parcela: {formatCurrency(cartao.ValorParcela)}</div>
+                      <div>Data Inclusão: {cartao.Data_inclusao}</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : 
+            /* Fallback para estruturas alternativas */
+            currentBenefit.InformacoesCartao && currentBenefit.InformacoesCartao.length > 0 ? (
               <div className="space-y-4">
                 {currentBenefit.InformacoesCartao.map((cartao: any, index: number) => (
                   <div key={index} className="border rounded-lg p-4">
                     <div className="flex items-center gap-2 mb-2">
                       <CreditCard className="h-4 w-4 text-green-600" />
-                      <h4 className="font-medium">{cartao.NomeBanco}</h4>
-                      <Badge variant="outline">{cartao.TipoCartao}</Badge>
+                      <h4 className="font-medium">{cartao.NomeBanco || cartao.Banco}</h4>
+                      <Badge variant="outline">{cartao.TipoCartao || cartao.Tipo}</Badge>
                     </div>
                     <div className="grid grid-cols-2 gap-2 text-sm">
                       <div>Limite Total: {formatCurrency(cartao.LimiteCartao || cartao.Limite)}</div>
@@ -228,6 +291,23 @@ function ConsultationDetails({ consultation, onExportPDF }: { consultation: any,
                       <div>Limite Disponível: {formatCurrency(cartao.LimiteDisponivel || cartao.Disponivel)}</div>
                       {cartao.ValorFatura && <div>Valor Fatura: {formatCurrency(cartao.ValorFatura)}</div>}
                       {cartao.NumeroCartao && <div>Cartão: {cartao.NumeroCartao?.replace(/(\d{4})(\d{4})(\d{4})(\d{4})/, '**** **** **** $4')}</div>}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : currentBenefit.DadosCartao && currentBenefit.DadosCartao.length > 0 ? (
+              <div className="space-y-4">
+                {currentBenefit.DadosCartao.map((cartao: any, index: number) => (
+                  <div key={index} className="border rounded-lg p-4">
+                    <div className="flex items-center gap-2 mb-2">
+                      <CreditCard className="h-4 w-4 text-green-600" />
+                      <h4 className="font-medium">{cartao.Banco}</h4>
+                      <Badge variant="outline">{cartao.Tipo}</Badge>
+                    </div>
+                    <div className="grid grid-cols-2 gap-2 text-sm">
+                      <div>Limite: {formatCurrency(cartao.Limite)}</div>
+                      <div>Disponível: {formatCurrency(cartao.Disponivel)}</div>
+                      <div>Fatura: {formatCurrency(cartao.ValorFatura)}</div>
                     </div>
                   </div>
                 ))}
@@ -438,13 +518,41 @@ Sistema MULTI CORBAN - Consulta de Benefícios INSS
               <div class="info-item"><strong>Margem Disponível RMC:</strong> ${benefit.ResumoFinanceiro ? formatCurrency(benefit.ResumoFinanceiro.MargemDisponivelRmc) : 'N/A'}</div>
               <div class="info-item"><strong>Margem Disponível RCC:</strong> ${benefit.ResumoFinanceiro ? formatCurrency(benefit.ResumoFinanceiro.MargemDisponivelRcc) : 'N/A'}</div>
               <div class="info-item"><strong>Total Empréstimos:</strong> ${benefit.ResumoFinanceiro ? formatCurrency(benefit.ResumoFinanceiro.TotalEmprestimos) : 'N/A'}</div>
-              <div class="info-item"><strong>Bloqueado Empréstimo:</strong> ${benefit.Beneficiario?.BloqueadoEmprestimo === 'SIM' ? '❌ SIM' : '✅ NÃO'}</div>
+              <div class="info-item"><strong>Bloqueado Empréstimo:</strong> ${benefit.Beneficiario?.BloqueadoEmprestimo === 'S' ? '❌ SIM' : '✅ NÃO'}</div>
               <div class="info-item"><strong>Possui Cartão:</strong> ${benefit.ResumoFinanceiro?.PossuiCartao ? '✅ SIM' : '❌ NÃO'}</div>
             </div>
           </div>
         </div>
 
-        ${benefit.ContratosEmprestimo && benefit.ContratosEmprestimo.length > 0 ? `
+        ${(benefit.Emprestimos && benefit.Emprestimos.length > 0) ? `
+        <div class="section">
+          <h3>📋 Contratos de Empréstimo</h3>
+          <table>
+            <thead>
+              <tr>
+                <th>Contrato</th>
+                <th>Banco</th>
+                <th>Valor</th>
+                <th>Valor Parcela</th>
+                <th>Quitação</th>
+                <th>Taxa</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${benefit.Emprestimos.map((contrato) => `
+              <tr>
+                <td>${contrato.Contrato}</td>
+                <td>${contrato.NomeBanco}</td>
+                <td>${formatCurrency(contrato.ValorEmprestimo)}</td>
+                <td>${formatCurrency(contrato.ValorParcela)}</td>
+                <td>${contrato.Quitacao}</td>
+                <td>${contrato.Taxa}%</td>
+              </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        </div>
+        ` : (benefit.ContratosEmprestimo && benefit.ContratosEmprestimo.length > 0) ? `
         <div class="section">
           <h3>📋 Contratos de Empréstimo</h3>
           <table>
@@ -461,12 +569,12 @@ Sistema MULTI CORBAN - Consulta de Benefícios INSS
             <tbody>
               ${benefit.ContratosEmprestimo.map((contrato) => `
               <tr>
-                <td>${contrato.NumeroContrato}</td>
-                <td>${contrato.NomeBanco}</td>
-                <td>${formatCurrency(contrato.ValorEmprestimo)}</td>
+                <td>${contrato.NumeroContrato || contrato.Contrato}</td>
+                <td>${contrato.NomeBanco || contrato.Banco}</td>
+                <td>${formatCurrency(contrato.ValorEmprestimo || contrato.Valor)}</td>
                 <td>${formatCurrency(contrato.SaldoDevedor)}</td>
-                <td>${contrato.ParcelasPagas}/${contrato.TotalParcelas}</td>
-                <td>${contrato.TaxaJuros}%</td>
+                <td>${contrato.ParcelasPagas ? `${contrato.ParcelasPagas}/${contrato.TotalParcelas}` : 'N/A'}</td>
+                <td>${contrato.TaxaJuros ? `${contrato.TaxaJuros}%` : 'N/A'}</td>
               </tr>
               `).join('')}
             </tbody>
@@ -474,7 +582,42 @@ Sistema MULTI CORBAN - Consulta de Benefícios INSS
         </div>
         ` : ''}
 
-        ${benefit.InformacoesCartao && benefit.InformacoesCartao.length > 0 ? `
+        ${((benefit.Rmc && benefit.Rmc.length > 0) || (benefit.RCC && benefit.RCC.length > 0)) ? `
+        <div class="section">
+          <h3>💳 Informações de Cartão</h3>
+          <table>
+            <thead>
+              <tr>
+                <th>Banco</th>
+                <th>Tipo</th>
+                <th>Contrato</th>
+                <th>Valor</th>
+                <th>Valor Parcela</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${(benefit.Rmc || []).map((cartao) => `
+              <tr>
+                <td>${cartao.Banco}</td>
+                <td>RMC</td>
+                <td>${cartao.Contrato}</td>
+                <td>${formatCurrency(cartao.Valor)}</td>
+                <td>${formatCurrency(cartao.ValorParcela)}</td>
+              </tr>
+              `).join('')}
+              ${(benefit.RCC || []).map((cartao) => `
+              <tr>
+                <td>${cartao.Banco}</td>
+                <td>RCC</td>
+                <td>${cartao.Contrato}</td>
+                <td>${formatCurrency(cartao.Valor)}</td>
+                <td>${formatCurrency(cartao.ValorParcela)}</td>
+              </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        </div>
+        ` : (benefit.InformacoesCartao && benefit.InformacoesCartao.length > 0) ? `
         <div class="section">
           <h3>💳 Informações de Cartão</h3>
           <table>
@@ -490,10 +633,10 @@ Sistema MULTI CORBAN - Consulta de Benefícios INSS
             <tbody>
               ${benefit.InformacoesCartao.map((cartao) => `
               <tr>
-                <td>${cartao.Banco}</td>
-                <td>${cartao.Tipo}</td>
-                <td>${formatCurrency(cartao.Limite)}</td>
-                <td>${formatCurrency(cartao.Disponivel)}</td>
+                <td>${cartao.Banco || cartao.NomeBanco}</td>
+                <td>${cartao.Tipo || cartao.TipoCartao}</td>
+                <td>${formatCurrency(cartao.Limite || cartao.LimiteCartao)}</td>
+                <td>${formatCurrency(cartao.Disponivel || cartao.LimiteDisponivel)}</td>
                 <td>${formatCurrency(cartao.ValorFatura)}</td>
               </tr>
               `).join('')}

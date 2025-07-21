@@ -113,7 +113,7 @@ export function BenefitDetails({ benefit }: BenefitDetailsProps) {
             <div class="info-item"><strong>Cidade/UF:</strong> ${Beneficiario.Cidade} - ${Beneficiario.UF}</div>
             <div class="info-item"><strong>CEP:</strong> ${Beneficiario.CEP}</div>
             <div class="info-item"><strong>Situação:</strong> ${Beneficiario.Situacao}</div>
-            <div class="info-item"><strong>Bloqueado para Empréstimo:</strong> ${Beneficiario.BloqueadoEmprestimo === '1' ? 'SIM' : 'NÃO'}</div>
+            <div class="info-item"><strong>Bloqueado para Empréstimo:</strong> ${Beneficiario.BloqueadoEmprestimo === 'S' ? 'SIM' : 'NÃO'}</div>
             <div class="info-item"><strong>Espécie:</strong> ${Beneficiario.Especie} - ${getBenefitSpeciesName(Beneficiario.Especie)}</div>
           </div>
         </div>
