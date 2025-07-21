@@ -75,13 +75,13 @@ export function UnmarkedClientsDialog({
               Clientes Não Marcados
             </DialogTitle>
             <DialogDescription>
-              Você possui {unmarkedClients.length} clientes consultados que ainda não foram marcados. 
+              Você possui {unmarkedClients?.length || 0} clientes consultados que ainda não foram marcados. 
               É obrigatório marcar todos os clientes para definir o status da negociação.
             </DialogDescription>
           </DialogHeader>
 
           <div className="space-y-4">
-            {unmarkedClients.length === 0 ? (
+            {(unmarkedClients?.length || 0) === 0 ? (
               <div className="text-center py-6">
                 <div className="text-green-600 dark:text-green-400 text-lg font-medium">
                   ✓ Todos os clientes foram marcados!
@@ -96,7 +96,7 @@ export function UnmarkedClientsDialog({
             ) : (
               <>
                 <div className="max-h-96 overflow-y-auto space-y-3">
-                  {unmarkedClients.map((client: any) => (
+                  {(unmarkedClients || []).map((client: any) => (
                     <div key={client.cpf} className="border rounded-lg p-4 bg-yellow-50 dark:bg-yellow-950 border-yellow-200 dark:border-yellow-800">
                       <div className="flex justify-between items-start">
                         <div className="flex-1">
@@ -144,7 +144,7 @@ export function UnmarkedClientsDialog({
                       <Button
                         variant="outline"
                         onClick={handleContinueWithoutMarking}
-                        disabled={unmarkedClients.length > 0}
+                        disabled={(unmarkedClients?.length || 0) > 0}
                       >
                         Continuar Sem Marcar
                       </Button>
