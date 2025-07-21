@@ -89,10 +89,22 @@ export default function Home() {
     error: detailsError 
   } = useQuery({
     queryKey: ['benefit-details', selectedBenefit, searchParams?.apiKey],
-    queryFn: () => getBenefitDetails(searchParams!.apiKey, selectedBenefit!),
+    queryFn: () => {
+      console.log('🔍 Fazendo query de detalhes para:', selectedBenefit, 'com API key:', searchParams?.apiKey);
+      return getBenefitDetails(searchParams!.apiKey, selectedBenefit!);
+    },
     enabled: !!selectedBenefit && !!searchParams?.apiKey,
     retry: false,
     staleTime: 60000, // 1 minute
+  });
+
+  // Debug logs for details query
+  console.log('🔍 Debug detalhes:', {
+    selectedBenefit,
+    hasApiKey: !!searchParams?.apiKey,
+    isLoadingDetails,
+    detailsError,
+    hasDetails: !!benefitDetails
   });
   const handleSearch = async (apiKey: string, searchType: 'cpf' | 'beneficio', searchValue: string) => {
     // Formatar CPF se necessário
@@ -137,6 +149,8 @@ export default function Home() {
   };
 
   const handleViewDetails = (benefitNumber: string) => {
+    console.log('🔍 Clicando em Ver Detalhes para benefício:', benefitNumber);
+    console.log('🔍 SearchParams atual:', searchParams);
     setSelectedBenefit(benefitNumber);
   };
 
