@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+
 import { Search, Download, Calendar, User, AlertTriangle, DollarSign } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { format } from "date-fns";
@@ -65,7 +66,7 @@ export function ConsultationHistory() {
 
     const csvContent = [
       headers.join(','),
-      ...csvData.map(row => row.map(cell => `"${cell}"`).join(','))
+      ...csvData.map((row: any[]) => row.map((cell: any) => `"${cell}"`).join(','))
     ].join('\n');
 
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });

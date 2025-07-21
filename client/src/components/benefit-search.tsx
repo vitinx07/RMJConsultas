@@ -57,26 +57,30 @@ export function BenefitSearch({ onSearch, isLoading }: BenefitSearchProps) {
   const [cpfError, setCpfError] = useState('');
   const { toast } = useToast();
 
-  const handleCPFChange = (value: string) => {
-    if (searchType === 'cpf') {
-      const cleaned = cleanCPF(value);
-      if (cleaned.length <= 11) {
-        const formatted = cleaned.length <= 11 ? formatCPF(cleaned) : value;
+  const handleInputChange = (value: string) => {
+    setSearchValue(value);
+    setCpfError(''); // Limpar erro quando usuário digita
+  };
+
+  const handleCPFBlur = () => {
+    if (searchType === 'cpf' && searchValue) {
+      const cleaned = cleanCPF(searchValue);
+      if (cleaned.length > 0) {
+        // Formatar CPF quando sair do campo
+        const formatted = formatCPF(cleaned);
         setSearchValue(formatted);
         
-        // Validar CPF se tem 11 dígitos
+        // Validar CPF
         if (cleaned.length === 11) {
           if (!isValidCPF(cleaned)) {
             setCpfError('CPF inválido');
           } else {
             setCpfError('');
           }
-        } else {
-          setCpfError('');
+        } else if (cleaned.length > 0) {
+          setCpfError('CPF deve ter 11 dígitos');
         }
       }
-    } else {
-      setSearchValue(value);
     }
   };
 
@@ -159,7 +163,8 @@ export function BenefitSearch({ onSearch, isLoading }: BenefitSearchProps) {
                   type="text"
                   placeholder={searchType === 'cpf' ? 'Digite o CPF' : 'Digite o número do benefício'}
                   value={searchValue}
-                  onChange={(e) => handleCPFChange(e.target.value)}
+                  onChange={(e) => handleInputChange(e.target.value)}
+                  onBlur={handleCPFBlur}
                   onKeyPress={handleKeyPress}
                   className={`mt-2 ${cpfError ? 'border-red-500' : ''}`}
                 />
@@ -170,7 +175,9 @@ export function BenefitSearch({ onSearch, isLoading }: BenefitSearchProps) {
                   </Alert>
                 )}
                 {searchType === 'cpf' && searchValue && !cpfError && cleanCPF(searchValue).length === 11 && (
-                  <p className="text-sm text-green-600 mt-1">✓ CPF válido</p>
+                  <p className="text-sm text-green-600 mt-1 flex items-center gap-1">
+                    <span className="text-green-500">✓</span> CPF válido
+                  </p>
                 )}
               </div>
               <Button 
