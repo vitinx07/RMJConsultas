@@ -126,6 +126,12 @@ export class DatabaseStorage implements IStorage {
         isActive: userData.isActive,
         passwordHash: hashedPassword,
         mustChangePassword: userData.generatePassword || false, // Força mudança de senha se foi gerada automaticamente
+        passwordExpiresAt: userData.generatePassword ? new Date() : (() => {
+          const expiry = new Date();
+          expiry.setDate(expiry.getDate() + 30);
+          return expiry;
+        })(), // Se senha gerada, expira imediatamente, senão 30 dias
+        lastPasswordChange: new Date(),
         createdBy: creatorId,
         updatedAt: new Date(),
       })
@@ -246,13 +252,21 @@ export class DatabaseStorage implements IStorage {
 
   async updateUserPassword(userId: string, newPassword: string): Promise<void> {
     const hashedPassword = await bcrypt.hash(newPassword, 10);
+    const now = new Date();
+    
+    // Calcula nova data de expiração (30 dias a partir de agora)
+    const passwordExpiresAt = new Date();
+    passwordExpiresAt.setDate(passwordExpiresAt.getDate() + 30);
     
     await db
       .update(users)
       .set({
         passwordHash: hashedPassword,
+        passwordExpiresAt: passwordExpiresAt,
+        passwordCreatedAt: now,
+        lastPasswordChange: now,
         mustChangePassword: false, // Remover obrigação após mudança
-        updatedAt: new Date(),
+        updatedAt: now,
       })
       .where(eq(users.id, userId));
   }
@@ -273,7 +287,12 @@ export class DatabaseStorage implements IStorage {
       .from(passwordResetTokens)
       .where(eq(passwordResetTokens.token, token));
     
-    return resetToken;
+    return resetToken ? {
+      id: resetToken.id,
+      userId: resetToken.userId,
+      used: resetToken.used || false,
+      expiresAt: resetToken.expiresAt
+    } : undefined;
   }
 
   async markPasswordResetTokenAsUsed(tokenId: string): Promise<void> {
@@ -590,8 +609,8 @@ export class DatabaseStorage implements IStorage {
       topUsers: topUsersResult.map(user => ({
         userId: user.userId,
         username: user.username,
-        firstName: user.firstName,
-        lastName: user.lastName,
+        firstName: user.firstName || undefined,
+        lastName: user.lastName || undefined,
         consultationCount: user.consultationCount,
       })),
       marginDistribution: [], // Implement if needed

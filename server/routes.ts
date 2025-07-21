@@ -71,6 +71,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     console.error("❌ Erro ao criar usuário administrador:", error);
   }
 
+  // Inicializar serviço de expiração de senhas
+  const { passwordExpiryService } = await import("./password-expiry");
+  passwordExpiryService.startPeriodicCheck();
+
   // Health check endpoint
   app.get("/api/health", (req, res) => {
     res.json({ status: "ok", timestamp: new Date().toISOString() });
@@ -335,9 +339,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: "Senha atual incorreta" });
       }
 
-      // Update password and remove mustChangePassword flag
+      // Update password and remove mustChangePassword flag + set new expiry
       await storage.updateUserPassword(user.id, newPassword);
-      await storage.updateUser(user.id, { mustChangePassword: false });
+      
+      // Set new password expiry and clear temporary flags
+      const { passwordExpiryService } = await import("./password-expiry");
+      await passwordExpiryService.setNewPasswordExpiry(user.id);
 
       res.json({ message: "Senha alterada com sucesso" });
     } catch (error) {
@@ -345,6 +352,69 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ error: "Erro interno do servidor" });
     }
   });
+
+  // Password expiry status route
+  app.get("/api/auth/password-status", requireAuthHybrid, async (req, res) => {
+    try {
+      const user = await storage.getUserById(req.user!.id);
+      if (!user) {
+        return res.status(404).json({ error: "Usuário não encontrado" });
+      }
+
+      const { passwordExpiryService } = await import("./password-expiry");
+      const daysUntilExpiry = passwordExpiryService.getDaysUntilExpiry(user.passwordExpiresAt);
+      const isExpired = passwordExpiryService.isPasswordExpired(user.passwordExpiresAt);
+      const shouldShowWarning = passwordExpiryService.shouldShowExpiryWarning(user.passwordExpiresAt);
+      const warningMessage = passwordExpiryService.getExpiryWarningMessage(user.passwordExpiresAt);
+
+      res.json({
+        passwordExpiresAt: user.passwordExpiresAt,
+        daysUntilExpiry,
+        isExpired,
+        shouldShowWarning,
+        warningMessage,
+        mustChangePassword: user.mustChangePassword || false
+      });
+    } catch (error) {
+      console.error("Erro ao verificar status da senha:", error);
+      res.status(500).json({ error: "Erro interno do servidor" });
+    }
+  });
+
+  // Simulate password expiry for testing (development only)
+  if (process.env.NODE_ENV === 'development') {
+    app.post("/api/auth/simulate-expiry", requireAuthHybrid, async (req, res) => {
+      try {
+        const { daysToExpiry } = req.body;
+        
+        if (typeof daysToExpiry !== 'number' || daysToExpiry < 0 || daysToExpiry > 365) {
+          return res.status(400).json({ error: "Dias para expiração deve ser entre 0 e 365" });
+        }
+
+        const userId = req.user!.id;
+        const expiryDate = new Date();
+        expiryDate.setDate(expiryDate.getDate() + daysToExpiry);
+
+        await db
+          .update(users)
+          .set({
+            passwordExpiresAt: expiryDate,
+            mustChangePassword: daysToExpiry === 0,
+            updatedAt: new Date()
+          })
+          .where(eq(users.id, userId));
+
+        res.json({ 
+          message: `Senha configurada para expirar em ${daysToExpiry} dia(s)`,
+          expiresAt: expiryDate,
+          mustChangePassword: daysToExpiry === 0
+        });
+      } catch (error) {
+        console.error("Erro ao simular expiração:", error);
+        res.status(500).json({ error: "Erro interno do servidor" });
+      }
+    });
+  }
 
   // Send custom email (admin only)
   app.post("/api/admin/send-email", requireAuthHybrid, requireAdmin, async (req, res) => {

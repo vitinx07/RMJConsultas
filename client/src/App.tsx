@@ -18,7 +18,9 @@ import ResetPassword from "@/pages/ResetPassword";
 import ForgotPassword from "@/pages/ForgotPassword";
 import ChangePassword from "@/pages/ChangePassword";
 import EditUser from "@/pages/EditUser";
+import PasswordExpiryDemo from "@/pages/PasswordExpiryDemo";
 import NotFound from "@/pages/not-found";
+import PasswordExpiryAlert from "@/components/PasswordExpiryAlert";
 
 function Router() {
   const { isAuthenticated, isLoading, error, user } = useAuth();
@@ -69,6 +71,10 @@ function Router() {
   return (
     <div className="relative">
       <ThemeToggle />
+      {/* Alerta de expiração de senha */}
+      <div className="fixed top-4 left-1/2 transform -translate-x-1/2 z-50 w-full max-w-2xl px-4">
+        <PasswordExpiryAlert passwordExpiresAt={user?.passwordExpiresAt} />
+      </div>
       <Switch>
         <Route path="/" component={Home} />
         <Route path="/dashboard" component={Dashboard} />

@@ -141,6 +141,8 @@ export const users = pgTable("users", {
   lastName: varchar("last_name", { length: 50 }),
   isActive: boolean("is_active").default(true),
   mustChangePassword: boolean("must_change_password").default(false),
+  passwordExpiresAt: timestamp("password_expires_at"),
+  lastPasswordChange: timestamp("last_password_change").defaultNow(),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
   createdBy: uuid("created_by"),
@@ -306,6 +308,8 @@ export const userSchema = z.object({
   lastName: z.string().optional(),
   isActive: z.boolean(),
   mustChangePassword: z.boolean().optional(),
+  passwordExpiresAt: z.date().optional(),
+  lastPasswordChange: z.date().optional(),
   createdAt: z.date(),
   updatedAt: z.date(),
   createdBy: z.string().uuid().optional(),
@@ -351,6 +355,8 @@ export const updateUserSchema = z.object({
   role: z.enum(["administrator", "gerente", "operador"]).optional(),
   isActive: z.boolean().optional(),
   mustChangePassword: z.boolean().optional(),
+  passwordExpiresAt: z.date().optional(),
+  lastPasswordChange: z.date().optional(),
 });
 
 // New schemas for dashboard and CRM features
