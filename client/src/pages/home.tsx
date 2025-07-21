@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
 import { University, AlertCircle, Loader2 } from "lucide-react";
-import logoPath from "@assets/rmj_1751973121690.jpeg";
+// Logo removido durante limpeza de arquivos
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
