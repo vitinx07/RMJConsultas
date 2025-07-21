@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -60,7 +59,7 @@ export default function EditUser() {
             <p className="text-muted-foreground mb-4">
               Apenas administradores podem editar usuários.
             </p>
-            <Link href="/user-management">
+            <Link href="/usuarios">
               <Button variant="outline">
                 <ArrowLeft className="h-4 w-4 mr-2" />
                 Voltar para Usuários
@@ -139,7 +138,7 @@ export default function EditUser() {
       ...data,
       email: data.email === "" ? undefined : data.email,
     };
-    
+
     updateUserMutation.mutate(submitData);
   };
 
@@ -154,7 +153,7 @@ export default function EditUser() {
             <p className="text-muted-foreground mb-4">
               ID do usuário não fornecido.
             </p>
-            <Link href="/user-management">
+            <Link href="/usuarios">
               <Button variant="outline">
                 <ArrowLeft className="h-4 w-4 mr-2" />
                 Voltar para Usuários
@@ -188,7 +187,7 @@ export default function EditUser() {
             <p className="text-muted-foreground mb-4">
               Não foi possível carregar os dados do usuário.
             </p>
-            <Link href="/user-management">
+            <Link href="/usuarios">
               <Button variant="outline">
                 <ArrowLeft className="h-4 w-4 mr-2" />
                 Voltar para Usuários
