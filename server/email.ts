@@ -229,6 +229,155 @@ class BrevoEmailService implements EmailService {
   async sendCustomEmail(to: string, subject: string, message: string, isHtml: boolean = false): Promise<boolean> {
     console.log(`📧 Enviando email personalizado para ${to} via Brevo`);
     
+    let finalContent;
+    
+    if (isHtml) {
+      // Se já é HTML, mantém o conteúdo original
+      finalContent = message;
+    } else {
+      // Se é texto simples, cria um template HTML profissional
+      finalContent = `
+        <html>
+          <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <style>
+              body { 
+                font-family: 'Roboto', Arial, sans-serif; 
+                line-height: 1.6; 
+                color: #1f2937; 
+                margin: 0; 
+                padding: 0; 
+                background-color: #f8fafc;
+              }
+              .container { 
+                max-width: 600px; 
+                margin: 0 auto; 
+                background-color: #ffffff;
+                border-radius: 12px;
+                overflow: hidden;
+                box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+              }
+              .header { 
+                background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+                color: white; 
+                padding: 30px 20px; 
+                text-align: center;
+                position: relative;
+              }
+              .header::before {
+                content: '';
+                position: absolute;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="25" cy="25" r="1" fill="white" opacity="0.1"/><circle cx="75" cy="75" r="1" fill="white" opacity="0.1"/><circle cx="50" cy="10" r="0.5" fill="white" opacity="0.1"/><circle cx="20" cy="80" r="0.5" fill="white" opacity="0.1"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>');
+                pointer-events: none;
+              }
+              .logo-container {
+                position: relative;
+                z-index: 1;
+                margin-bottom: 15px;
+              }
+              .logo {
+                width: 80px;
+                height: 80px;
+                background: white;
+                border-radius: 50%;
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+                font-weight: bold;
+                font-size: 24px;
+                color: #2563eb;
+              }
+              .header h1 { 
+                margin: 0; 
+                font-size: 28px; 
+                font-weight: 700;
+                position: relative;
+                z-index: 1;
+              }
+              .header p { 
+                margin: 8px 0 0 0; 
+                font-size: 16px; 
+                opacity: 0.9;
+                position: relative;
+                z-index: 1;
+              }
+              .content { 
+                padding: 40px 30px; 
+                background-color: #ffffff;
+              }
+              .message-content {
+                background-color: #f8fafc;
+                padding: 25px;
+                border-radius: 8px;
+                border-left: 4px solid #2563eb;
+                margin: 20px 0;
+                white-space: pre-wrap;
+                font-size: 16px;
+                line-height: 1.8;
+              }
+              .footer { 
+                padding: 25px 30px; 
+                text-align: center; 
+                font-size: 14px; 
+                color: #64748b;
+                background-color: #f1f5f9;
+                border-top: 1px solid #e2e8f0;
+              }
+              .footer-logo {
+                font-weight: 600;
+                color: #2563eb;
+                margin-bottom: 8px;
+              }
+              .divider {
+                height: 2px;
+                background: linear-gradient(90deg, #2563eb 0%, #60a5fa 100%);
+                margin: 0;
+                border: none;
+              }
+              @media (max-width: 600px) {
+                .container { margin: 10px; }
+                .content { padding: 25px 20px; }
+                .header { padding: 25px 20px; }
+                .header h1 { font-size: 24px; }
+              }
+            </style>
+          </head>
+          <body>
+            <div class="container">
+              <div class="header">
+                <div class="logo-container">
+                  <div class="logo">RMJ</div>
+                </div>
+                <h1>RMJ Consultas</h1>
+                <p>Sistema de Benefícios INSS</p>
+              </div>
+              <hr class="divider">
+              <div class="content">
+                <h2 style="color: #2563eb; margin-top: 0; font-size: 22px;">📧 Mensagem Personalizada</h2>
+                <div class="message-content">
+${message}
+                </div>
+                <p style="margin-bottom: 0; color: #64748b; font-size: 14px;">
+                  <strong>Assunto:</strong> ${subject}
+                </p>
+              </div>
+              <div class="footer">
+                <div class="footer-logo">RMJ Consultas</div>
+                <p style="margin: 0;">Sistema Profissional de Benefícios INSS</p>
+                <p style="margin: 5px 0 0 0; font-size: 12px;">Este é um email automático enviado pelo administrador do sistema.</p>
+              </div>
+            </div>
+          </body>
+        </html>
+      `;
+    }
+    
     const emailData = {
       subject: subject,
       sender: {
@@ -239,7 +388,7 @@ class BrevoEmailService implements EmailService {
         email: to, 
         name: to.split('@')[0] 
       }],
-      [isHtml ? 'htmlContent' : 'textContent']: message,
+      htmlContent: finalContent,
       tags: ['custom-email', 'admin-sent']
     };
 
