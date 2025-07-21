@@ -4,7 +4,16 @@ interface BankIconProps {
 }
 
 export function BankIcon({ bankCode, className = "w-6 h-6" }: BankIconProps) {
-  const normalizedCode = bankCode.padStart(3, '0');
+  // Verificação de segurança para bankCode
+  if (!bankCode) {
+    return (
+      <div className={`${className} rounded-full bg-gray-300 dark:bg-gray-600 flex items-center justify-center`}>
+        <span className="text-xs font-bold text-gray-600 dark:text-gray-300">?</span>
+      </div>
+    );
+  }
+  
+  const normalizedCode = String(bankCode).padStart(3, '0');
   
   // Mapeamento de códigos de banco para classes CSS dos ícones
   const bankIconClasses: { [key: string]: string } = {
