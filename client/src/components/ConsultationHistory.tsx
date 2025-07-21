@@ -518,7 +518,7 @@ Sistema MULTI CORBAN - Consulta de Benefícios INSS
               <div class="info-item"><strong>Margem Disponível RMC:</strong> ${benefit.ResumoFinanceiro ? formatCurrency(benefit.ResumoFinanceiro.MargemDisponivelRmc) : 'N/A'}</div>
               <div class="info-item"><strong>Margem Disponível RCC:</strong> ${benefit.ResumoFinanceiro ? formatCurrency(benefit.ResumoFinanceiro.MargemDisponivelRcc) : 'N/A'}</div>
               <div class="info-item"><strong>Total Empréstimos:</strong> ${benefit.ResumoFinanceiro ? formatCurrency(benefit.ResumoFinanceiro.TotalEmprestimos) : 'N/A'}</div>
-              <div class="info-item"><strong>Bloqueado Empréstimo:</strong> ${benefit.Beneficiario?.BloqueadoEmprestimo === 'S' ? '❌ SIM' : '✅ NÃO'}</div>
+              <div class="info-item"><strong>Bloqueado Empréstimo:</strong> ${benefit.Beneficiario?.BloqueadoEmprestimo === 'SIM' ? '❌ SIM' : '✅ NÃO'}</div>
               <div class="info-item"><strong>Possui Cartão:</strong> ${benefit.ResumoFinanceiro?.PossuiCartao ? '✅ SIM' : '❌ NÃO'}</div>
             </div>
           </div>

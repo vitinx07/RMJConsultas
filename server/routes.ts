@@ -622,7 +622,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
               beneficiaryName: beneficiary.Nome,
               benefitValue: financial.ValorBeneficio,
               availableMargin: financial.MargemDisponivelEmprestimo,
-              loanBlocked: beneficiary.BloqueadoEmprestimo === "S",
+              loanBlocked: beneficiary.BloqueadoEmprestimo === "SIM",
               blockReason: beneficiary.MotivoBloqueio,
               resultData: benefit,
             });
@@ -692,7 +692,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             beneficiaryName: beneficiary.Nome,
             benefitValue: financial.ValorBeneficio,
             availableMargin: financial.MargemDisponivelEmprestimo,
-            loanBlocked: beneficiary.BloqueadoEmprestimo === "S",
+            loanBlocked: beneficiary.BloqueadoEmprestimo === "SIM",
             blockReason: beneficiary.MotivoBloqueio,
             resultData: data,
           });
