@@ -62,8 +62,8 @@ class BrevoEmailService implements EmailService {
         return false;
       }
 
-      const result = await response.json();
-      console.log('✅ Email enviado via Brevo:', result.messageId);
+      const result = await response.json() as { messageId?: string };
+      console.log('✅ Email enviado via Brevo:', result.messageId || 'ID não retornado');
       return true;
     } catch (error: any) {
       console.error('❌ Erro ao enviar email via Brevo:', error.message);
