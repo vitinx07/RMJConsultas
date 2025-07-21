@@ -10,7 +10,6 @@ import { Card, CardContent } from "@/components/ui/card";
 import { BenefitSearch } from "@/components/benefit-search";
 import { BenefitCard } from "@/components/benefit-card";
 import { BenefitDetails } from "@/components/benefit-details";
-import { BenefitSelector } from "@/components/BenefitSelector";
 import { ErrorDisplay } from "@/components/error-display";
 import { searchBenefits, getBenefitDetails, ApiError } from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
@@ -184,17 +183,8 @@ export default function Home() {
           </Alert>
         )}
 
-        {/* Benefits Results - New Selector Interface for CPF */}
-        {benefits && benefits.length > 0 && searchParams?.searchType === 'cpf' && (
-          <BenefitSelector 
-            benefits={benefits}
-            cpf={searchParams.searchValue}
-            onBenefitSelect={handleViewDetails}
-          />
-        )}
-
-        {/* Benefits Results - Original Cards for benefit search */}
-        {benefits && benefits.length > 0 && searchParams?.searchType === 'beneficio' && (
+        {/* Benefits Results - Cards with markings */}
+        {benefits && benefits.length > 0 && (
           <div className="mt-8">
             <div className="grid gap-6 md:grid-cols-2">
               {benefits.map((benefit, index) => (
