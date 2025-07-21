@@ -193,7 +193,7 @@ export function BenefitDetails({ benefit }: BenefitDetailsProps) {
 
         ${RCC ? `
         <div class="section">
-          <h3>RCC - Reserva de Margem Consignável</h3>
+          <h3>RCC - Reserva de Margem Consignável (Benefício) </h3>
           <div class="personal-info">
             <div class="info-item"><strong>Banco:</strong> ${RCC.Banco} ${RCC.NomeBanco ? `- ${RCC.NomeBanco}` : ''}</div>
             <div class="info-item"><strong>Contrato:</strong> ${RCC.Contrato}</div>
@@ -806,13 +806,13 @@ export function BenefitDetails({ benefit }: BenefitDetailsProps) {
             </AccordionItem>
           )}
 
-          {/* RCC - Reserva de Margem Consignável */}
+          {/* RCC - Reserva de Margem Consignável (Benefício) */}
           {RCC && (
             <AccordionItem value="rcc" className="border-b">
               <AccordionTrigger className="px-4 py-4 hover:bg-muted/30">
                 <span className="flex items-center gap-2 font-medium">
                   <CreditCard className="h-4 w-4" />
-                  RCC - Reserva de Margem Consignável
+                  RCC - Reserva de Margem Consignável (Benefício)
                 </span>
               </AccordionTrigger>
               <AccordionContent className="px-4 pb-4 bg-muted/20">
