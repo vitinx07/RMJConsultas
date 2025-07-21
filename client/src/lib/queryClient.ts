@@ -22,7 +22,16 @@ function getAuthHeaders() {
 export async function apiRequest(url: string, options: RequestInit = {}) {
   const res = await fetch(url, {
     ...options,
+    headers: {
+      'Content-Type': 'application/json',
+      ...getAuthHeaders(),
+      ...options.headers,
+    },
+    credentials: 'include',
   });
+
+  await throwIfResNotOk(res);
+  return await res.json();
 }
 
 type UnauthorizedBehavior = "returnNull" | "throw";

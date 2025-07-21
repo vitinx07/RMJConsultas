@@ -109,12 +109,10 @@ export default function EditUser() {
         throw new Error("ID do usuário não fornecido");
       }
 
-      const response = await apiRequest(`/api/users/${userId}`, {
+      return await apiRequest(`/api/users/${userId}`, {
         method: "PUT",
         body: JSON.stringify(data),
       });
-
-      return response;
     },
     onSuccess: (response) => {
       toast({
