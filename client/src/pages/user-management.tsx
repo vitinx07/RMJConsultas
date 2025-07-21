@@ -19,13 +19,13 @@ import type { User as UserType, CreateUser } from "@shared/schema";
 const roleLabels = {
   administrator: "Administrador",
   gerente: "Gerente", 
-  vendedor: "Vendedor"
+  operador: "Operador"
 };
 
 const roleIcons = {
   administrator: ShieldCheck,
   gerente: Shield,
-  vendedor: User
+  operador: User
 };
 
 const roleColors = {

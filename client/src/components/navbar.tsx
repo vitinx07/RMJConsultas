@@ -22,13 +22,13 @@ import {
 const roleLabels = {
   administrator: "Administrador",
   gerente: "Gerente",
-  vendedor: "Vendedor",
+  operador: "Operador",
 };
 
 const roleIcons = {
   administrator: ShieldCheck,
   gerente: Shield,
-  vendedor: User,
+  operador: User,
 };
 
 export function Navbar() {

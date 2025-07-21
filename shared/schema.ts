@@ -136,7 +136,7 @@ export const users = pgTable("users", {
   username: varchar("username", { length: 50 }).unique().notNull(),
   email: varchar("email", { length: 100 }).unique(),
   passwordHash: text("password_hash").notNull(),
-  role: varchar("role", { length: 20 }).notNull().default("vendedor"), // administrator, gerente, vendedor
+  role: varchar("role", { length: 20 }).notNull().default("operador"), // administrator, gerente, operador
   firstName: varchar("first_name", { length: 50 }),
   lastName: varchar("last_name", { length: 50 }),
   isActive: boolean("is_active").default(true),
@@ -300,7 +300,7 @@ export const userSchema = z.object({
   id: z.string().uuid(),
   username: z.string().min(3, "Username deve ter pelo menos 3 caracteres"),
   email: z.string().email("Email inválido").optional(),
-  role: z.enum(["administrator", "gerente", "vendedor"]),
+  role: z.enum(["administrator", "gerente", "operador"]),
   firstName: z.string().optional(),
   lastName: z.string().optional(),
   isActive: z.boolean(),
@@ -346,7 +346,7 @@ export const updateUserSchema = z.object({
   firstName: z.string().optional(),
   lastName: z.string().optional(),
   email: z.string().email().optional(),
-  role: z.enum(["administrator", "gerente", "vendedor"]).optional(),
+  role: z.enum(["administrator", "gerente", "operador"]).optional(),
   isActive: z.boolean().optional(),
 });
 
