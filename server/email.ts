@@ -18,8 +18,8 @@ export interface EmailAttachment {
 
 // Brevo implementation using HTTP API (stable and working)
 class BrevoEmailService implements EmailService {
-  private fromEmail: string = 'cavalcantisilvav@gmail.com';
-  private fromName: string = 'Vitor Cavalcanti';
+  private fromEmail: string = 'suporte@rmjconsultas.com.br';
+  private fromName: string = 'Suporte RMJ';
   private apiKey: string = process.env.BREVO_API_KEY || '';
   private apiUrl: string = 'https://api.brevo.com/v3/smtp/email';
 
