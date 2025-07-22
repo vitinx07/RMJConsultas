@@ -255,6 +255,7 @@ export default function EmailManagement() {
       subject: data.subject.trim(),
       message: data.message.trim(),
       isHtml: data.isHtml || false,
+      senderOption: data.senderOption || "suporte",
       attachments: processedAttachments,
     };
 
@@ -272,29 +273,30 @@ export default function EmailManagement() {
   }
 
   return (
-    <div className="container mx-auto p-6 space-y-6">
-      {/* Navbar */}
-      <div className="flex justify-between items-center">
-        <div className="flex items-center space-x-4">
+    <div className="container mx-auto p-4 lg:p-6 space-y-4 lg:space-y-6">
+      {/* Navbar - Responsivo */}
+      <div className="flex flex-col lg:flex-row lg:justify-between lg:items-center gap-4">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
           <Link href="/usuarios">
-            <Button variant="outline" size="sm" className="flex items-center gap-2">
+            <Button variant="outline" size="sm" className="flex items-center gap-2 w-fit">
               <ArrowLeft className="h-4 w-4" />
-              Voltar para Usuários
+              <span className="hidden sm:inline">Voltar para Usuários</span>
+              <span className="sm:hidden">Voltar</span>
             </Button>
           </Link>
-          <div className="flex items-center space-x-2">
-            <Mail className="w-6 h-6 text-blue-600" />
-            <h1 className="text-3xl font-bold">Gerenciamento de Emails</h1>
+          <div className="flex items-center gap-2">
+            <Mail className="w-5 h-5 lg:w-6 lg:h-6 text-blue-600" />
+            <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold">Gerenciamento de Emails</h1>
           </div>
         </div>
 
-        <div className="flex items-center space-x-4">
+        <div className="flex items-center gap-4">
           {currentUser && (
             <div className="text-right">
-              <p className="text-sm font-medium">
+              <p className="text-xs sm:text-sm font-medium">
                 Logado como: {currentUser.firstName || currentUser.username}
               </p>
-              <div className="flex items-center justify-end space-x-1">
+              <div className="flex items-center justify-end gap-1">
                 <Shield className="h-3 w-3" />
                 <span className="text-xs text-muted-foreground">
                   Administrador
@@ -305,16 +307,16 @@ export default function EmailManagement() {
         </div>
       </div>
 
-      <div className="grid md:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 lg:gap-6">
         {/* Seleção de Destinatários */}
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center space-x-2">
-              <Users className="w-5 h-5" />
+            <CardTitle className="flex items-center gap-2 text-base lg:text-lg">
+              <Users className="w-4 h-4 lg:w-5 lg:h-5" />
               <span>Selecionar Destinatários</span>
             </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-4">
+          <CardContent className="space-y-3 lg:space-y-4">
             <div className="flex items-center space-x-2">
               <Checkbox
                 id="selectAll"
@@ -326,24 +328,24 @@ export default function EmailManagement() {
               </Label>
             </div>
 
-            <div className="space-y-2 max-h-96 overflow-y-auto">
+            <div className="space-y-2 max-h-80 lg:max-h-96 overflow-y-auto">
               {usersWithEmail.map(user => (
-                <div key={user.id} className="flex items-center space-x-2 p-2 rounded-lg border">
+                <div key={user.id} className="flex items-center gap-2 p-2 lg:p-3 rounded-lg border">
                   <Checkbox
                     id={user.id}
                     checked={selectedUsers.includes(user.id)}
                     onCheckedChange={(checked) => handleUserSelection(user.id, checked as boolean)}
                   />
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center space-x-2">
-                      <Label htmlFor={user.id} className="font-medium">
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
+                      <Label htmlFor={user.id} className="font-medium text-sm lg:text-base">
                         {user.firstName} {user.lastName}
                       </Label>
-                      <Badge variant="outline" className="text-xs">
+                      <Badge variant="outline" className="text-xs w-fit">
                         {user.role}
                       </Badge>
                     </div>
-                    <p className="text-sm text-gray-600 truncate">{user.email}</p>
+                    <p className="text-xs sm:text-sm text-gray-600 truncate">{user.email}</p>
                   </div>
                 </div>
               ))}
@@ -366,65 +368,66 @@ export default function EmailManagement() {
         {/* Composição da Mensagem */}
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center space-x-2">
-              <Send className="w-5 h-5" />
+            <CardTitle className="flex items-center gap-2 text-base lg:text-lg">
+              <Send className="w-4 h-4 lg:w-5 lg:h-5" />
               <span>Compor Mensagem</span>
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-3 lg:space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="subject">Assunto</Label>
+                <Label htmlFor="subject" className="text-sm font-medium">Assunto</Label>
                 <Input
                   id="subject"
                   placeholder="Digite o assunto do email"
+                  className="text-sm"
                   {...form.register("subject")}
                 />
                 {form.formState.errors.subject && (
-                  <p className="text-sm text-red-600">{form.formState.errors.subject.message}</p>
+                  <p className="text-xs sm:text-sm text-red-600">{form.formState.errors.subject.message}</p>
                 )}
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="senderOption">Remetente</Label>
+                <Label htmlFor="senderOption" className="text-sm font-medium">Remetente</Label>
                 <Select
                   value={form.watch("senderOption")}
                   onValueChange={(value) => form.setValue("senderOption", value)}
                 >
-                  <SelectTrigger>
+                  <SelectTrigger className="text-sm">
                     <SelectValue placeholder="Selecione o remetente" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="suporte">
                       <div className="flex flex-col">
-                        <span className="font-medium">Suporte RMJ</span>
+                        <span className="font-medium text-sm">Suporte RMJ</span>
                         <span className="text-xs text-muted-foreground">suporte@rmjconsultas.com.br</span>
                       </div>
                     </SelectItem>
                     <SelectItem value="vitor">
                       <div className="flex flex-col">
-                        <span className="font-medium">Vitor Cavalcanti</span>
+                        <span className="font-medium text-sm">Vitor Cavalcanti</span>
                         <span className="text-xs text-muted-foreground">cavalcantisilvav@gmail.com</span>
                       </div>
                     </SelectItem>
                   </SelectContent>
                 </Select>
                 {form.formState.errors.senderOption && (
-                  <p className="text-sm text-red-600">{form.formState.errors.senderOption.message}</p>
+                  <p className="text-xs sm:text-sm text-red-600">{form.formState.errors.senderOption.message}</p>
                 )}
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="message">Mensagem</Label>
+                <Label htmlFor="message" className="text-sm font-medium">Mensagem</Label>
                 <textarea
                   id="message"
                   placeholder="Digite sua mensagem..."
-                  rows={8}
-                  className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                  rows={6}
+                  className="flex min-h-[120px] lg:min-h-[160px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 resize-none"
                   {...form.register("message")}
                 />
                 {form.formState.errors.message && (
-                  <p className="text-sm text-red-600">{form.formState.errors.message.message}</p>
+                  <p className="text-xs sm:text-sm text-red-600">{form.formState.errors.message.message}</p>
                 )}
               </div>
 
