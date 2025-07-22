@@ -71,50 +71,6 @@
   body {
     @apply font-roboto antialiased bg-background text-foreground;
     font-family: 'Roboto', sans-serif;
-    /* Melhor adaptação a diferentes zooms */
-    min-width: 280px;
-    overflow-x: auto;
-  }
-
-  /* Garantir responsividade em todos os tamanhos */
-  .container {
-    width: 100%;
-    max-width: none;
-    padding-left: clamp(1rem, 2.5vw, 2rem);
-    padding-right: clamp(1rem, 2.5vw, 2rem);
-  }
-
-  /* Ajustes de breakpoints mais refinados */
-  @media (min-width: 640px) {
-    .container {
-      max-width: 640px;
-      margin-left: auto;
-      margin-right: auto;
-    }
-  }
-
-  @media (min-width: 768px) {
-    .container {
-      max-width: 768px;
-    }
-  }
-
-  @media (min-width: 1024px) {
-    .container {
-      max-width: 1024px;
-    }
-  }
-
-  @media (min-width: 1280px) {
-    .container {
-      max-width: 1280px;
-    }
-  }
-
-  @media (min-width: 1536px) {
-    .container {
-      max-width: 1400px;
-    }
   }
 
   .text-primary {

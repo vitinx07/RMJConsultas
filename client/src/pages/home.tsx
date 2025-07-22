@@ -147,7 +147,7 @@ export default function Home() {
       <Navbar />
 
       {/* Main Content */}
-      <main className="w-full px-2 sm:px-4 lg:px-6 max-w-7xl mx-auto py-4 sm:py-6 lg:py-8 pt-16 sm:pt-20">
+      <main className="container mx-auto px-4 py-8 pt-20">
         <BenefitSearch 
           onSearch={handleSearch} 
           isLoading={isSearching} 
@@ -165,10 +165,10 @@ export default function Home() {
 
         {/* Loading Indicator */}
         {isSearching && (
-          <Card className="mt-4 sm:mt-6 lg:mt-8">
-            <CardContent className="flex items-center justify-center py-6 sm:py-8">
-              <Loader2 className="h-6 w-6 sm:h-8 sm:w-8 animate-spin text-primary mr-3" />
-              <span className="text-fluid-sm sm:text-fluid-base text-muted-foreground">Consultando dados...</span>
+          <Card className="mt-8">
+            <CardContent className="flex items-center justify-center py-8">
+              <Loader2 className="h-8 w-8 animate-spin text-primary mr-3" />
+              <span className="text-muted-foreground">Consultando dados...</span>
             </CardContent>
           </Card>
         )}
@@ -185,8 +185,8 @@ export default function Home() {
 
         {/* Benefits Results - Cards with markings */}
         {benefits && benefits.length > 0 && (
-          <div className="mt-4 sm:mt-6 lg:mt-8">
-            <div className="grid gap-4 sm:gap-6 grid-auto-fit-350 lg:grid-cols-2 xl:grid-cols-3">
+          <div className="mt-8">
+            <div className="grid gap-6 md:grid-cols-2">
               {benefits.map((benefit, index) => (
                 <BenefitCard
                   key={`${benefit.Beneficiario.Beneficio}-${index}`}
@@ -233,13 +233,13 @@ export default function Home() {
       )}
 
       {/* Footer */}
-      <footer className="bg-muted/50 dark:bg-muted/20 text-muted-foreground mt-8 sm:mt-12 lg:mt-16">
-        <div className="w-full px-2 sm:px-4 lg:px-6 max-w-7xl mx-auto py-6 sm:py-8">
+      <footer className="bg-muted/50 dark:bg-muted/20 text-muted-foreground mt-16">
+        <div className="container mx-auto px-4 py-8">
           <div className="text-center">
-            <p className="text-fluid-sm opacity-75">
+            <p className="text-sm opacity-75">
               © 2025 RMJ Consultas - Sistema de Consulta de Benefícios INSS
             </p>
-            <p className="text-xs opacity-50 mt-1 sm:mt-2">
+            <p className="text-xs opacity-50 mt-2">
               Desenvolvido por Vitor Cavalcanti
             </p>
           </div>
