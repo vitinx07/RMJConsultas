@@ -70,23 +70,26 @@ export function Navbar() {
   return (
     <>
       <nav className="bg-primary text-primary-foreground shadow-lg fixed top-0 left-0 right-0 z-50">
-        <div className="container mx-auto px-4">
-          <div className="flex items-center justify-between h-14">
-            <div className="flex items-center space-x-4">
-              <div className="flex items-center space-x-3">
-                <University className="h-7 w-7" />
-                <div>
-                  <h1 className="text-lg font-bold">RMJ Consultas</h1>
-                  <p className="text-xs opacity-90">
+        <div className="w-full px-2 sm:px-4 lg:px-6">
+          <div className="flex items-center justify-between h-12 sm:h-14">
+            <div className="flex items-center gap-2 sm:gap-4">
+              <div className="flex items-center gap-2 sm:gap-3">
+                <University className="h-5 w-5 sm:h-6 sm:w-6 lg:h-7 lg:w-7" />
+                <div className="hidden sm:block">
+                  <h1 className="text-sm sm:text-base lg:text-lg font-bold">RMJ Consultas</h1>
+                  <p className="text-xs opacity-90 hidden lg:block">
                     Sistema de Benefícios INSS
                   </p>
+                </div>
+                <div className="sm:hidden">
+                  <h1 className="text-sm font-bold">RMJ</h1>
                 </div>
               </div>
             </div>
 
-            <div className="flex items-center space-x-4">
+            <div className="flex items-center gap-2 lg:gap-4">
               {/* Desktop Navigation */}
-              <nav className="hidden lg:flex items-center space-x-1">
+              <nav className="hidden lg:flex items-center gap-1">
                 <Link href="/">
                   <Button
                     variant="ghost"

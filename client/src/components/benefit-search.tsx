@@ -122,40 +122,40 @@ export function BenefitSearch({ onSearch, isLoading }: BenefitSearchProps) {
     <div className="space-y-6">
       {/* Search Section */}
       <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Search className="h-5 w-5 text-primary" />
+        <CardHeader className="spacing-fluid-sm">
+          <CardTitle className="flex items-center gap-2 text-fluid-lg sm:text-fluid-xl">
+            <Search className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
             Consulta de Benefícios
           </CardTitle>
-          <CardDescription>
+          <CardDescription className="text-fluid-sm">
             Selecione o tipo de busca e informe os dados para consultar os benefícios
           </CardDescription>
         </CardHeader>
-        <CardContent>
-          <div className="space-y-6">
+        <CardContent className="spacing-fluid-sm sm:spacing-fluid-md">
+          <div className="space-y-4 sm:space-y-6">
             {/* Search Type Toggle */}
             <div>
-              <Label className="text-base font-medium">Tipo de Consulta</Label>
+              <Label className="text-fluid-base font-medium">Tipo de Consulta</Label>
               <RadioGroup 
                 value={searchType} 
                 onValueChange={(value) => setSearchType(value as 'cpf' | 'beneficio')}
-                className="flex flex-col sm:flex-row gap-4 mt-2"
+                className="flex flex-col sm:flex-row gap-3 sm:gap-4 lg:gap-6 mt-2"
               >
-                <div className="flex items-center space-x-2">
+                <div className="flex items-center gap-2">
                   <RadioGroupItem value="cpf" id="cpf" />
-                  <Label htmlFor="cpf">Consultar por CPF</Label>
+                  <Label htmlFor="cpf" className="text-fluid-sm sm:text-fluid-base">Consultar por CPF</Label>
                 </div>
-                <div className="flex items-center space-x-2">
+                <div className="flex items-center gap-2">
                   <RadioGroupItem value="beneficio" id="beneficio" />
-                  <Label htmlFor="beneficio">Consultar por Número do Benefício</Label>
+                  <Label htmlFor="beneficio" className="text-fluid-sm sm:text-fluid-base">Consultar por Número do Benefício</Label>
                 </div>
               </RadioGroup>
             </div>
 
             {/* Search Input */}
-            <div className="flex flex-col md:flex-row gap-4 items-end">
+            <div className="flex flex-col lg:flex-row gap-3 sm:gap-4 lg:items-end">
               <div className="flex-1">
-                <Label htmlFor="searchInput">
+                <Label htmlFor="searchInput" className="text-fluid-sm sm:text-fluid-base font-medium">
                   {searchType === 'cpf' ? 'CPF' : 'Número do Benefício'}
                 </Label>
                 <Input
@@ -166,16 +166,16 @@ export function BenefitSearch({ onSearch, isLoading }: BenefitSearchProps) {
                   onChange={(e) => handleInputChange(e.target.value)}
                   onBlur={handleCPFBlur}
                   onKeyPress={handleKeyPress}
-                  className={`mt-2 ${cpfError ? 'border-red-500' : ''}`}
+                  className={`mt-2 text-fluid-sm sm:text-fluid-base ${cpfError ? 'border-red-500' : ''}`}
                 />
                 {searchType === 'cpf' && cpfError && (
                   <Alert variant="destructive" className="mt-2">
                     <AlertTriangle className="h-4 w-4" />
-                    <AlertDescription>{cpfError}</AlertDescription>
+                    <AlertDescription className="text-fluid-sm">{cpfError}</AlertDescription>
                   </Alert>
                 )}
                 {searchType === 'cpf' && searchValue && !cpfError && cleanCPF(searchValue).length === 11 && (
-                  <p className="text-sm text-green-600 mt-1 flex items-center gap-1">
+                  <p className="text-fluid-sm text-green-600 mt-1 flex items-center gap-1">
                     <span className="text-green-500">✓</span> CPF válido
                   </p>
                 )}
@@ -183,7 +183,7 @@ export function BenefitSearch({ onSearch, isLoading }: BenefitSearchProps) {
               <Button 
                 onClick={handleSearch}
                 disabled={isLoading}
-                className="flex items-center gap-2 bg-primary hover:bg-primary/90"
+                className="flex items-center gap-2 bg-primary hover:bg-primary/90 text-fluid-sm sm:text-fluid-base px-4 sm:px-6 py-2 sm:py-3 h-auto lg:h-10"
               >
                 <Search className="h-4 w-4" />
                 {isLoading ? 'Consultando...' : 'Consultar'}
