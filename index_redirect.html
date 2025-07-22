@@ -4,96 +4,196 @@
     <meta charset="UTF-8">
     <title>RMJ Consultas - Sistema de Benefícios INSS</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='50' fill='%233b82f6'/><text x='50' y='60' text-anchor='middle' fill='white' font-size='30' font-weight='bold' font-family='Arial'>RMJ</text></svg>">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        html, body { height: 100%; overflow: hidden; }
+        
+        /* Força o domínio a aparecer sempre */
+        body::before {
+            content: "";
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+        }
+        
+        /* Tela de carregamento */
+        #loading-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
             background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
             color: white;
-            height: 100vh;
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            overflow: hidden;
+            z-index: 9999;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
         }
-        .container { text-align: center; max-width: 400px; padding: 20px; }
+        
         .logo {
             width: 100px; height: 100px;
             background: white; border-radius: 50%;
             display: flex; align-items: center; justify-content: center;
             font-size: 28px; font-weight: bold; color: #3b82f6;
-            margin: 0 auto 30px; box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            margin-bottom: 30px; box-shadow: 0 10px 30px rgba(0,0,0,0.3);
         }
+        
         h1 { font-size: 32px; margin-bottom: 10px; font-weight: 700; }
         .subtitle { font-size: 18px; opacity: 0.9; margin-bottom: 40px; }
+        
         .loading {
-            width: 50px; height: 50px; margin: 20px auto;
+            width: 50px; height: 50px; margin: 20px 0;
             border: 4px solid rgba(255,255,255,0.3);
             border-top: 4px solid white; border-radius: 50%;
             animation: spin 1s linear infinite;
         }
         @keyframes spin { to { transform: rotate(360deg); } }
+        
         .status { font-size: 16px; opacity: 0.8; margin: 20px 0; }
-        .manual-link {
-            display: inline-block; margin-top: 20px; padding: 12px 24px;
-            background: rgba(255,255,255,0.2); border-radius: 8px;
-            color: white; text-decoration: none; transition: all 0.3s;
+        
+        /* Container da aplicação */
+        #app-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: none;
+            z-index: 1000;
         }
-        .manual-link:hover { background: rgba(255,255,255,0.3); transform: translateY(-2px); }
-        #frame-container { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 1000; }
-        iframe { width: 100%; height: 100%; border: none; }
+        
+        /* Iframe da aplicação */
+        #app-frame {
+            width: 100%;
+            height: 100%;
+            border: none;
+            display: block;
+        }
+        
+        /* Interceptador de navegação - mantém o domínio */
+        .domain-preserver {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 10001;
+        }
     </style>
 </head>
 <body>
-    <div class="container" id="loading-screen">
+    <!-- Tela de carregamento -->
+    <div id="loading-screen">
         <div class="logo">RMJ</div>
         <h1>RMJ Consultas</h1>
         <p class="subtitle">Sistema de Benefícios INSS</p>
         <div class="loading"></div>
-        <p class="status">Carregando sistema...</p>
-        <a href="https://rmjcorban.replit.app" class="manual-link" id="manual-link">
-            Acesso direto ao sistema
-        </a>
+        <p class="status">Inicializando sistema...</p>
     </div>
 
-    <div id="frame-container">
-        <iframe id="app-frame" src="https://rmjcorban.replit.app"></iframe>
+    <!-- Container da aplicação -->
+    <div id="app-container">
+        <iframe id="app-frame" src=""></iframe>
     </div>
+
+    <!-- Preservador de domínio -->
+    <div class="domain-preserver"></div>
 
     <script>
-        // Método 1: Tentar carregar em iframe primeiro (mantém domínio)
-        setTimeout(() => {
-            const frameContainer = document.getElementById('frame-container');
+        // Função para preservar o domínio na URL
+        function preserveDomain() {
+            // Manter sempre https://rmjconsultas.com.br na barra de endereços
+            if (window.location.href !== 'https://rmjconsultas.com.br/') {
+                history.replaceState(null, 'RMJ Consultas', 'https://rmjconsultas.com.br/');
+            }
+        }
+
+        // Interceptar mudanças de URL
+        function interceptNavigation() {
+            // Interceptar pushState e replaceState
+            const originalPushState = history.pushState;
+            const originalReplaceState = history.replaceState;
+            
+            history.pushState = function(...args) {
+                preserveDomain();
+                return originalPushState.apply(history, args);
+            };
+            
+            history.replaceState = function(...args) {
+                preserveDomain();
+                return originalReplaceState.apply(history, args);
+            };
+            
+            // Interceptar popstate
+            window.addEventListener('popstate', preserveDomain);
+            
+            // Interceptar mudanças de hash
+            window.addEventListener('hashchange', preserveDomain);
+        }
+
+        // Carregar aplicação
+        function loadApplication() {
             const loadingScreen = document.getElementById('loading-screen');
+            const appContainer = document.getElementById('app-container');
             const iframe = document.getElementById('app-frame');
             
-            // Mostrar iframe após 2 segundos
-            frameContainer.style.display = 'block';
-            loadingScreen.style.display = 'none';
+            // Configurar iframe
+            iframe.src = 'https://rmjcorban.replit.app';
             
-            // Método 2: Fallback - redirecionamento após 5 segundos se iframe não carregar
-            setTimeout(() => {
-                // Se ainda estiver no domínio original, fazer redirecionamento
-                if (window.location.hostname.includes('rmjconsultas.com.br')) {
-                    // Usar replace para não adicionar ao histórico
-                    window.location.replace('https://rmjcorban.replit.app');
-                }
-            }, 5000);
+            // Listener para quando iframe carregar
+            iframe.onload = function() {
+                // Ocultar tela de carregamento
+                loadingScreen.style.display = 'none';
+                appContainer.style.display = 'block';
+                
+                // Preservar domínio
+                preserveDomain();
+                
+                // Configurar title
+                document.title = 'RMJ Consultas - Sistema de Benefícios INSS';
+                
+                console.log('✅ Sistema carregado com sucesso em rmjconsultas.com.br');
+            };
             
-        }, 2000);
+            // Fallback em caso de erro
+            iframe.onerror = function() {
+                console.log('⚠️ Erro no iframe, redirecionando...');
+                window.location.replace('https://rmjcorban.replit.app');
+            };
+        }
 
-        // Método 3: Detectar clique no link manual
-        document.getElementById('manual-link').addEventListener('click', function(e) {
-            e.preventDefault();
-            window.location.replace('https://rmjcorban.replit.app');
+        // Inicialização
+        document.addEventListener('DOMContentLoaded', function() {
+            // Configurar interceptação de navegação
+            interceptNavigation();
+            
+            // Preservar domínio inicial
+            preserveDomain();
+            
+            // Carregar aplicação após 1.5 segundos
+            setTimeout(loadApplication, 1500);
+            
+            // Verificar domínio a cada 2 segundos
+            setInterval(preserveDomain, 2000);
         });
 
-        // Método 4: Listener para mensagens do iframe (se houver problemas de CORS)
-        window.addEventListener('message', function(event) {
-            if (event.origin === 'https://rmjcorban.replit.app') {
-                // Iframe carregou com sucesso
-                console.log('Sistema carregado com sucesso');
+        // Interceptar tentativas de mudança de URL
+        Object.defineProperty(window, 'location', {
+            get: function() {
+                return {
+                    href: 'https://rmjconsultas.com.br/',
+                    hostname: 'rmjconsultas.com.br',
+                    protocol: 'https:',
+                    host: 'rmjconsultas.com.br'
+                };
             }
         });
     </script>
