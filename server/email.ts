@@ -242,7 +242,7 @@ class BrevoEmailService implements EmailService {
     return await this.sendEmail(emailData);
   }
 
-  async sendCustomEmail(to: string, subject: string, message: string, isHtml: boolean = false, attachments?: EmailAttachment[]): Promise<boolean> {
+  async sendCustomEmail(to: string, subject: string, message: string, isHtml: boolean = false, attachments?: EmailAttachment[], customSender?: { name: string; email: string }): Promise<boolean> {
     console.log(`📧 Enviando email personalizado para ${to} via Brevo`);
 
     let finalContent;
@@ -483,8 +483,8 @@ ${message}
     const emailData = {
       subject: subject,
       sender: {
-        name: this.fromName,
-        email: this.fromEmail
+        name: customSender?.name || this.fromName,
+        email: customSender?.email || this.fromEmail
       },
       to: [{ 
         email: to, 

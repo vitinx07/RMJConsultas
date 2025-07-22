@@ -11,6 +11,7 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { Mail, Send, Users, UserCheck, AlertCircle, ArrowLeft, Shield, Paperclip, Upload, X } from "lucide-react";
@@ -22,6 +23,7 @@ const emailSchema = z.object({
   subject: z.string().min(1, "Assunto é obrigatório").max(200, "Assunto muito longo"),
   message: z.string().min(1, "Mensagem é obrigatória").max(5000, "Mensagem muito longa"),
   isHtml: z.boolean().default(false),
+  senderOption: z.string().default("suporte"),
 });
 
 type EmailFormData = z.infer<typeof emailSchema>;
@@ -76,6 +78,7 @@ export default function EmailManagement() {
       subject: "",
       message: "",
       isHtml: false,
+      senderOption: "suporte",
     },
   });
 
@@ -86,11 +89,27 @@ export default function EmailManagement() {
   const sendEmailMutation = useMutation({
     mutationFn: async (data: any) => {
       console.log("Fazendo requisição para:", "/api/admin/send-email");
-      console.log("Dados enviados:", data);
+      
+      // Determinar o remetente com base na seleção
+      let customSender = undefined;
+      if (data.senderOption === "vitor") {
+        customSender = {
+          name: "Vitor Cavalcanti",
+          email: "cavalcantisilvav@gmail.com"
+        };
+      }
+      // Se for "suporte", usar o padrão (deixar undefined para usar valores padrão)
+      
+      const requestData = {
+        ...data,
+        customSender
+      };
+      
+      console.log("Dados enviados:", requestData);
 
       const response = await apiRequest("/api/admin/send-email", {
         method: "POST",
-        body: JSON.stringify(data),
+        body: JSON.stringify(requestData),
       });
 
       console.log("Resposta recebida:", response);
@@ -109,6 +128,8 @@ export default function EmailManagement() {
       setSelectedUsers([]);
       setSelectAll(false);
       setAttachments([]);
+      // Resetar o seletor de remetente para o padrão
+      form.setValue("senderOption", "suporte");
     },
     onError: (error: any) => {
       console.error("Erro detalhado:", error);
@@ -361,6 +382,35 @@ export default function EmailManagement() {
                 />
                 {form.formState.errors.subject && (
                   <p className="text-sm text-red-600">{form.formState.errors.subject.message}</p>
+                )}
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="senderOption">Remetente</Label>
+                <Select
+                  value={form.watch("senderOption")}
+                  onValueChange={(value) => form.setValue("senderOption", value)}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione o remetente" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="suporte">
+                      <div className="flex flex-col">
+                        <span className="font-medium">Suporte RMJ</span>
+                        <span className="text-xs text-muted-foreground">suporte@rmjconsultas.com.br</span>
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="vitor">
+                      <div className="flex flex-col">
+                        <span className="font-medium">Vitor Cavalcanti</span>
+                        <span className="text-xs text-muted-foreground">cavalcantisilvav@gmail.com</span>
+                      </div>
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+                {form.formState.errors.senderOption && (
+                  <p className="text-sm text-red-600">{form.formState.errors.senderOption.message}</p>
                 )}
               </div>
 

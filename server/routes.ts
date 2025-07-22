@@ -423,7 +423,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Send custom email (admin only)
   app.post("/api/admin/send-email", requireAuthHybrid, requireAdmin, async (req, res) => {
     try {
-      const { recipients, subject, message, isHtml, attachments } = req.body;
+      const { recipients, subject, message, isHtml, attachments, customSender } = req.body;
 
       // Validate input
       if (!recipients || !Array.isArray(recipients) || recipients.length === 0) {
@@ -477,7 +477,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Send emails
       for (const email of emailsToSend) {
         try {
-          const success = await emailService.sendCustomEmail(email, subject, message, isHtml, processedAttachments);
+          const success = await emailService.sendCustomEmail(email, subject, message, isHtml, processedAttachments, customSender);
           if (success) {
             successCount++;
           } else {
