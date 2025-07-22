@@ -2,38 +2,100 @@
 <html>
 <head>
     <meta charset="UTF-8">
-    <title>RMJ Consultas - Redirecionando...</title>
-    <script>
-        // Redirecionamento via JavaScript para manter o domínio
-        window.location.replace('https://rmjcorban.replit.app');
-    </script>
-    <meta http-equiv="refresh" content="0;url=https://rmjcorban.replit.app">
+    <title>RMJ Consultas - Sistema de Benefícios INSS</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
-            font-family: Arial, sans-serif;
-            text-align: center;
-            padding: 50px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
             color: white;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
         }
+        .container { text-align: center; max-width: 400px; padding: 20px; }
+        .logo {
+            width: 100px; height: 100px;
+            background: white; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 28px; font-weight: bold; color: #3b82f6;
+            margin: 0 auto 30px; box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+        h1 { font-size: 32px; margin-bottom: 10px; font-weight: 700; }
+        .subtitle { font-size: 18px; opacity: 0.9; margin-bottom: 40px; }
         .loading {
-            display: inline-block;
-            width: 40px;
-            height: 40px;
-            border: 3px solid #ffffff30;
-            border-radius: 50%;
-            border-top-color: #ffffff;
-            animation: spin 1s ease-in-out infinite;
+            width: 50px; height: 50px; margin: 20px auto;
+            border: 4px solid rgba(255,255,255,0.3);
+            border-top: 4px solid white; border-radius: 50%;
+            animation: spin 1s linear infinite;
         }
-        @keyframes spin {
-            to { transform: rotate(360deg); }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .status { font-size: 16px; opacity: 0.8; margin: 20px 0; }
+        .manual-link {
+            display: inline-block; margin-top: 20px; padding: 12px 24px;
+            background: rgba(255,255,255,0.2); border-radius: 8px;
+            color: white; text-decoration: none; transition: all 0.3s;
         }
+        .manual-link:hover { background: rgba(255,255,255,0.3); transform: translateY(-2px); }
+        #frame-container { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 1000; }
+        iframe { width: 100%; height: 100%; border: none; }
     </style>
 </head>
 <body>
-    <h1>RMJ Consultas</h1>
-    <p>Carregando sistema...</p>
-    <div class="loading"></div>
-    <p><a href="https://rmjcorban.replit.app" style="color: white;">Clique aqui se não for redirecionado automaticamente</a></p>
+    <div class="container" id="loading-screen">
+        <div class="logo">RMJ</div>
+        <h1>RMJ Consultas</h1>
+        <p class="subtitle">Sistema de Benefícios INSS</p>
+        <div class="loading"></div>
+        <p class="status">Carregando sistema...</p>
+        <a href="https://rmjcorban.replit.app" class="manual-link" id="manual-link">
+            Acesso direto ao sistema
+        </a>
+    </div>
+
+    <div id="frame-container">
+        <iframe id="app-frame" src="https://rmjcorban.replit.app"></iframe>
+    </div>
+
+    <script>
+        // Método 1: Tentar carregar em iframe primeiro (mantém domínio)
+        setTimeout(() => {
+            const frameContainer = document.getElementById('frame-container');
+            const loadingScreen = document.getElementById('loading-screen');
+            const iframe = document.getElementById('app-frame');
+            
+            // Mostrar iframe após 2 segundos
+            frameContainer.style.display = 'block';
+            loadingScreen.style.display = 'none';
+            
+            // Método 2: Fallback - redirecionamento após 5 segundos se iframe não carregar
+            setTimeout(() => {
+                // Se ainda estiver no domínio original, fazer redirecionamento
+                if (window.location.hostname.includes('rmjconsultas.com.br')) {
+                    // Usar replace para não adicionar ao histórico
+                    window.location.replace('https://rmjcorban.replit.app');
+                }
+            }, 5000);
+            
+        }, 2000);
+
+        // Método 3: Detectar clique no link manual
+        document.getElementById('manual-link').addEventListener('click', function(e) {
+            e.preventDefault();
+            window.location.replace('https://rmjcorban.replit.app');
+        });
+
+        // Método 4: Listener para mensagens do iframe (se houver problemas de CORS)
+        window.addEventListener('message', function(event) {
+            if (event.origin === 'https://rmjcorban.replit.app') {
+                // Iframe carregou com sucesso
+                console.log('Sistema carregado com sucesso');
+            }
+        });
+    </script>
 </body>
 </html>
