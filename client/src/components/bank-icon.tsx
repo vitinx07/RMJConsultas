@@ -62,6 +62,10 @@ export function BankIcon({ bankCode, className = "w-6 h-6" }: BankIconProps) {
 
     "359":
       "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRkYql2Zl9Ti5Cz6E5CCuoEB0unbErHje6WsQ&s", //Banco Zema
+
+    "422": "https://gestao.sistemacorban.com.br/imagens/0422.5c21f943.svg", //Banco Safra
+
+    "001": "https://gestao.sistemacorban.com.br/imagens/0001.e743891b.svg", //Banco Safra
   };
 
   // Mapeamento de códigos de banco para classes CSS dos ícones
