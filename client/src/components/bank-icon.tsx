@@ -15,6 +15,11 @@ export function BankIcon({ bankCode, className = "w-6 h-6" }: BankIconProps) {
   
   const normalizedCode = String(bankCode).padStart(3, '0');
   
+  // Mapeamento de códigos de banco para ícones externos (imagens)
+  const bankExternalIcons: { [key: string]: string } = {
+    '254': 'https://logodownload.org/wp-content/uploads/2020/02/banco-pine-logo-4.png', // Banco Pine
+  };
+
   // Mapeamento de códigos de banco para classes CSS dos ícones
   const bankIconClasses: { [key: string]: string } = {
     '001': 'ibb-banco-brasil',      // Banco do Brasil
@@ -64,15 +69,37 @@ export function BankIcon({ bankCode, className = "w-6 h-6" }: BankIconProps) {
     '925': '#065F46',     // BNDES
     '329': '#06B6D4',     // Banco 329
     'ZEMA': '#F59E0B',    // ZEMA CFI
+    '254': '#1E40AF',     // Banco Pine
   };
   
   const iconClass = bankIconClasses[normalizedCode];
+  const externalIcon = bankExternalIcons[normalizedCode];
   const fallbackColor = bankColors[normalizedCode] || '#6B7280';
   
   // Detecta se é um ícone pequeno (para tabela) ou maior (para outros contextos)
   const isSmallIcon = className.includes('w-4') || className.includes('h-4');
   
-  // PRIORIDADE: Ícones CSS da fonte
+  // PRIORIDADE 1: Ícones externos (imagens)
+  if (externalIcon) {
+    return (
+      <div className={`${className} flex items-center justify-center`}>
+        <img 
+          src={externalIcon}
+          alt={`Banco ${normalizedCode}`}
+          className={`${className} object-contain rounded-sm`}
+          title={`Banco ${normalizedCode}`}
+          onError={(e) => {
+            // Se a imagem falhar, mostrar fallback
+            const target = e.target as HTMLImageElement;
+            target.style.display = 'none';
+            target.parentElement!.innerHTML = `<div class="rounded-full flex items-center justify-center ${className}" style="background-color: ${fallbackColor}"><span class="font-bold text-white text-xs">B</span></div>`;
+          }}
+        />
+      </div>
+    );
+  }
+  
+  // PRIORIDADE 2: Ícones CSS da fonte
   if (iconClass) {
     return (
       <div className={`${className} flex items-center justify-center`}>

@@ -117,6 +117,7 @@ export function getBankName(code: string): string {
     '745': 'Banco Citibank',
     '748': 'Banco Cooperativo Sicredi',
     '756': 'Banco Cooperativo do Brasil',
+    '254': 'Banco Pine',
   };
 
   return bankMap[code] || `Banco ${code}`;
