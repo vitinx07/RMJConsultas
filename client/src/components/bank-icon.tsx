@@ -17,7 +17,23 @@ export function BankIcon({ bankCode, className = "w-6 h-6" }: BankIconProps) {
   
   // Mapeamento de códigos de banco para ícones externos (imagens)
   const bankExternalIcons: { [key: string]: string } = {
-    '254': 'https://logodownload.org/wp-content/uploads/2020/02/banco-pine-logo-4.png', // Banco Pine
+    '254': 'https://logodownload.org/wp-content/uploads/2020/02/banco-pine-logo-4.png', //Banco pine
+    
+    '626': 'https://cdn.brandfetch.io/idGbjRMvXY/w/400/h/400/theme/dark/icon.jpeg?c=1dxbfHSJFAPEGdCLU4o5B', //Banco C6
+    
+    '707': 'https://play-lh.googleusercontent.com/uaDvaAZW8Ls995RWP6ER_F6P8MGCuHE8bmMSRApbakgQ_BJDcm-XJdiu1vXa8ZKO=w240-h480-rw', //Banco Daycoval
+    
+    '935': 'https://evef.com.br/images/vetor/download%20vetor%20crefisa%20financeira%20correspondente%20bancario.jpg', //Banco Crevisa
+    
+    '318': 'https://media.licdn.com/dms/image/v2/D4D0BAQHnYlXN6ors-w/company-logo_200_200/company-logo_200_200/0/1737059054059/bancobmg_logo?e=2147483647&v=beta&t=D3FpNCk41WJ6zGisDO_kCQVh7WnR3IBZ7aGtSu252wk', //Banco BMG
+
+    '012': 'https://companieslogo.com/img/orig/GFINBURO.MX-bfce3765.png?t=1720244492', //Banco Inbursa
+
+    '925': 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRF_1cWM-TaAlSCFzozM87FgfWL20TLQDIvbw&s', //Banco BRB
+
+    '029': 'https://upload.wikimedia.org/wikipedia/commons/thumb/1/19/Ita%C3%BA_Unibanco_logo_2023.svg/1200px-Ita%C3%BA_Unibanco_logo_2023.svg.png', //Banco Itau consig
+
+    '623': 'https://ri.bancopan.com.br/images/logo-pan-big.png', //Banco Pan
   };
 
   // Mapeamento de códigos de banco para classes CSS dos ícones
@@ -70,6 +86,7 @@ export function BankIcon({ bankCode, className = "w-6 h-6" }: BankIconProps) {
     '329': '#06B6D4',     // Banco 329
     'ZEMA': '#F59E0B',    // ZEMA CFI
     '254': '#1E40AF',     // Banco Pine
+    '029': '#1E40AF',     // Banco Itau consig
   };
   
   const iconClass = bankIconClasses[normalizedCode];

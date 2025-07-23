@@ -103,12 +103,12 @@ export function getBankName(code: string): string {
     '380': 'PicPay',
     '399': 'HSBC Bank Brasil',
     '422': 'Banco Safra',
-    '925': 'Banco Nacional de Desenvolvimento Econômico e Social',
+    '925': 'Banco BRB',
     '329': 'Banco QI',
     '012': 'Banco Inbursa',
     '935': 'Banco Crefisa',
     '604': 'Banco Industrial do Brasil',
-    '623': 'Banco Panamericano',
+    '623': 'Banco Pan',
     '633': 'Banco Rendimento',
     '637': 'Banco Sofisa',
     '653': 'Banco Indusval',
@@ -118,6 +118,8 @@ export function getBankName(code: string): string {
     '748': 'Banco Cooperativo Sicredi',
     '756': 'Banco Cooperativo do Brasil',
     '254': 'Banco Pine',
+    '626': 'Banco C6',
+    '029': 'Banco Itaú Consignado',
   };
 
   return bankMap[code] || `Banco ${code}`;
