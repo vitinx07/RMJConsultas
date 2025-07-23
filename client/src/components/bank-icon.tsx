@@ -31,9 +31,11 @@ export function BankIcon({ bankCode, className = "w-6 h-6" }: BankIconProps) {
 
     '925': 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRF_1cWM-TaAlSCFzozM87FgfWL20TLQDIvbw&s', //Banco BRB
 
-    '029': 'https://upload.wikimedia.org/wikipedia/commons/thumb/1/19/Ita%C3%BA_Unibanco_logo_2023.svg/1200px-Ita%C3%BA_Unibanco_logo_2023.svg.png', //Banco Itau consig
+    '029': 'https://upload.wikimedia.org/wikipedia/commons/thumb/1/19/Ita%C3%BA_Unibanco_logo_2023.svg/1200px-Ita%C3%BA_Unibanco_logo_2023.svg.png', //Banco Itaú consig
 
     '623': 'https://ri.bancopan.com.br/images/logo-pan-big.png', //Banco Pan
+
+    '121': 'https://s2-valor.glbimg.com/CDYNrCfOkfxpxJUwsfMgyywspSA=/0x0:237x246/888x0/smart/filters:strip_icc()/i.s3.glbimg.com/v1/AUTH_63b422c2caee4269b8b34177e8876b93/internal_photos/bs/2020/w/s/KEa34TR228M4qlxmoYOA/agi-logo.jpg', //Banco Pan
   };
 
   // Mapeamento de códigos de banco para classes CSS dos ícones

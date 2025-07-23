@@ -120,6 +120,7 @@ export function getBankName(code: string): string {
     '254': 'Banco Pine',
     '626': 'Banco C6',
     '029': 'Banco Itaú Consignado',
+    '121': 'Banco Agibank',
   };
 
   return bankMap[code] || `Banco ${code}`;
