@@ -121,8 +121,10 @@ export function getBankName(code: string): string {
     '029': 'Banco Itaú Consignado',
     '121': 'Banco Agibank',
     '643': 'Banco PINE S.A.',
-    '954': 'Banco  Cbss S.A. (Digio)',
+    '954': 'Banco Cbss S.A. (Digio)',
     '335': 'Banco Digio',
+    '389': 'Banco Mercantil',
+    '359': 'Banco Zema CFI',
   };
 
   return bankMap[code] || `Banco ${code}`;
