@@ -17,7 +17,7 @@ export function BankIcon({ bankCode, className = "w-6 h-6" }: BankIconProps) {
   
   // Mapeamento de códigos de banco para ícones externos (imagens)
   const bankExternalIcons: { [key: string]: string } = {
-    '254': 'https://logodownload.org/wp-content/uploads/2020/02/banco-pine-logo-4.png', //Banco pine
+    '254': 'https://is4-ssl.mzstatic.com/image/thumb/Purple123/v4/cb/6d/7d/cb6d7d6d-70b9-e7f4-7400-646df9dd8931/source/256x256bb.jpg', //Banco pine
     
     '626': 'https://cdn.brandfetch.io/idGbjRMvXY/w/400/h/400/theme/dark/icon.jpeg?c=1dxbfHSJFAPEGdCLU4o5B', //Banco C6
     
