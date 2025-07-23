@@ -17,7 +17,7 @@ export function BankIcon({ bankCode, className = "w-6 h-6" }: BankIconProps) {
   
   // Mapeamento de códigos de banco para ícones externos (imagens)
   const bankExternalIcons: { [key: string]: string } = {
-    '254': 'https://is4-ssl.mzstatic.com/image/thumb/Purple123/v4/cb/6d/7d/cb6d7d6d-70b9-e7f4-7400-646df9dd8931/source/256x256bb.jpg', //Banco pine
+    '254': 'https://yt3.googleusercontent.com/zE-Ig3Er5UVPUG0F1RrfcTlG6YGzmFEZLCAgB6CANo7sNrfk52nQk7l7tdg5TEGm-Rnf9y1yhg=s900-c-k-c0x00ffffff-no-rj', //Banco Parana
     
     '626': 'https://cdn.brandfetch.io/idGbjRMvXY/w/400/h/400/theme/dark/icon.jpeg?c=1dxbfHSJFAPEGdCLU4o5B', //Banco C6
     
@@ -28,6 +28,10 @@ export function BankIcon({ bankCode, className = "w-6 h-6" }: BankIconProps) {
     '318': 'https://media.licdn.com/dms/image/v2/D4D0BAQHnYlXN6ors-w/company-logo_200_200/company-logo_200_200/0/1737059054059/bancobmg_logo?e=2147483647&v=beta&t=D3FpNCk41WJ6zGisDO_kCQVh7WnR3IBZ7aGtSu252wk', //Banco BMG
 
     '012': 'https://companieslogo.com/img/orig/GFINBURO.MX-bfce3765.png?t=1720244492', //Banco Inbursa
+    
+    '954': 'https://www.idinheiro.com.br/wp-content/uploads/2021/04/digio.png', //Banco Cbss digio 
+    
+    '335': 'https://www.idinheiro.com.br/wp-content/uploads/2021/04/digio.png', //Banco Digio
 
     '925': 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRF_1cWM-TaAlSCFzozM87FgfWL20TLQDIvbw&s', //Banco BRB
 
@@ -36,6 +40,8 @@ export function BankIcon({ bankCode, className = "w-6 h-6" }: BankIconProps) {
     '623': 'https://ri.bancopan.com.br/images/logo-pan-big.png', //Banco Pan
 
     '121': 'https://s2-valor.glbimg.com/CDYNrCfOkfxpxJUwsfMgyywspSA=/0x0:237x246/888x0/smart/filters:strip_icc()/i.s3.glbimg.com/v1/AUTH_63b422c2caee4269b8b34177e8876b93/internal_photos/bs/2020/w/s/KEa34TR228M4qlxmoYOA/agi-logo.jpg', //Banco Pan
+
+    '643': 'https://is4-ssl.mzstatic.com/image/thumb/Purple123/v4/cb/6d/7d/cb6d7d6d-70b9-e7f4-7400-646df9dd8931/source/256x256bb.jpg', //Banco Parana
   };
 
   // Mapeamento de códigos de banco para classes CSS dos ícones

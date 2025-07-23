@@ -81,7 +81,6 @@ export function getBankName(code: string): string {
     '021': 'Banco do Estado do Espírito Santo',
     '025': 'Banco Alfa',
     '033': 'Banco Santander',
-    '626': 'Banco Ficsa',
     '036': 'Banco Bradesco BBI',
     '037': 'Banco do Estado do Pará',
     '041': 'Banco do Estado do Rio Grande do Sul',
@@ -117,10 +116,13 @@ export function getBankName(code: string): string {
     '745': 'Banco Citibank',
     '748': 'Banco Cooperativo Sicredi',
     '756': 'Banco Cooperativo do Brasil',
-    '254': 'Banco Pine',
+    '254': 'Banco Paraná Banco S.A',
     '626': 'Banco C6',
     '029': 'Banco Itaú Consignado',
     '121': 'Banco Agibank',
+    '643': 'Banco PINE S.A.',
+    '954': 'Banco  Cbss S.A. (Digio)',
+    '335': 'Banco Digio',
   };
 
   return bankMap[code] || `Banco ${code}`;
