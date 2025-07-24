@@ -436,6 +436,103 @@ export function BenefitDetails({ benefit }: BenefitDetailsProps) {
                     </p>
                   </div>
                 </div>
+
+                {/* Separator */}
+                <div className="border-t my-6"></div>
+
+                {/* Outras Informações integradas */}
+                <div className="space-y-6">
+                  <h4 className="font-semibold text-lg flex items-center gap-2 text-foreground">
+                    <Info className="h-5 w-5" />
+                    Outras Informações
+                  </h4>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {/* Banking Data */}
+                    <div className="bg-muted/30 dark:bg-muted/20 border rounded-lg p-4 shadow-sm">
+                      <h5 className="font-semibold mb-3 flex items-center gap-2 text-foreground">
+                        <University className="h-4 w-4" />
+                        Dados Bancários
+                      </h5>
+                      <div className="space-y-3">
+                        <div className="flex justify-between items-center">
+                          <span className="text-muted-foreground">Banco:</span>
+                          <div className="flex items-center gap-2">
+                            <BankIcon bankCode={DadosBancarios.Banco} className="w-5 h-5" />
+                            <div className="text-right">
+                              <span className="font-medium text-foreground block">
+                                {DadosBancarios.Banco} - {getBankName(DadosBancarios.Banco)}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">Agência:</span>
+                          <span className="font-medium text-foreground">{DadosBancarios.Agencia}</span>
+                        </div>
+                        {DadosBancarios.MeioPagamento === '3' || !DadosBancarios.ContaPagto ? (
+                          <div className="flex justify-between">
+                            <span className="text-muted-foreground">Conta:</span>
+                            <Badge variant="secondary" className="bg-blue-100 dark:bg-blue-950/30 text-blue-800 dark:text-blue-400">
+                              Código 02
+                            </Badge>
+                          </div>
+                        ) : (
+                          <div className="flex justify-between">
+                            <span className="text-muted-foreground">Conta:</span>
+                            <span className="font-medium text-foreground">{DadosBancarios.ContaPagto}</span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Card Information */}
+                    <div className="bg-muted/30 dark:bg-muted/20 border rounded-lg p-4 shadow-sm">
+                      <h5 className="font-semibold mb-3 flex items-center gap-2 text-foreground">
+                        <CreditCard className="h-4 w-4" />
+                        Informações do Cartão
+                      </h5>
+                      <div className="space-y-2">
+                        <div className="flex justify-between items-center">
+                          <span className="text-muted-foreground">Possui Cartão:</span>
+                          <Badge variant={ResumoFinanceiro.PossuiCartao ? "default" : "secondary"}>
+                            {ResumoFinanceiro.PossuiCartao ? "SIM" : "NÃO"}
+                          </Badge>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span className="text-muted-foreground">Meio de Recebimento:</span>
+                          <Badge variant={DadosBancarios.MeioPagamento === '3' ? "default" : "secondary"} 
+                                 className={DadosBancarios.MeioPagamento === '3' ? "bg-blue-100 dark:bg-blue-950/30 text-blue-800 dark:text-blue-400" : ""}>
+                            {DadosBancarios.MeioPagamento === '1' ? 'Conta Corrente' : 
+                             DadosBancarios.MeioPagamento === '2' ? 'Conta Poupança' : 
+                             DadosBancarios.MeioPagamento === '3' ? 'Cartão Magnético' : 
+                             `Código: ${DadosBancarios.MeioPagamento}`}
+                          </Badge>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span className="text-muted-foreground">Possui Conta Bancária:</span>
+                          <Badge variant={DadosBancarios.MeioPagamento === '3' ? "destructive" : "default"}>
+                            {DadosBancarios.MeioPagamento === '3' ? 'NÃO - Só Cartão' : 'SIM - Tem Conta'}
+                          </Badge>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span className="text-muted-foreground">Desconto Associação:</span>
+                          <span className="font-medium text-foreground">
+                            {formatCurrency(ResumoFinanceiro.DescontoAssociacao)}
+                          </span>
+                        </div>
+                        {typeof Associacao === 'object' && 'TaxaAssociativa' in Associacao && (
+                          <div className="flex justify-between items-center">
+                            <span className="text-muted-foreground">Taxa Associativa:</span>
+                            <span className="font-medium text-foreground">
+                              {Associacao.TaxaAssociativa} - {formatCurrency(Associacao.Parcela)}
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </div>
             </AccordionContent>
           </AccordionItem>
@@ -673,7 +770,7 @@ export function BenefitDetails({ benefit }: BenefitDetailsProps) {
                                     <BanrisulSimulation
                                       cpf={Beneficiario.CPF}
                                       dataNascimento={Beneficiario.DataNascimento}
-                                      contrato={emprestimo.Contrato}
+                                      contrato={emprestimo.Contrato || ''}
                                       dataContrato={emprestimo.DataAverbacao || new Date().toISOString()}
                                       valorParcela={emprestimo.ValorParcela}
                                       conveniada="000020"
@@ -691,7 +788,7 @@ export function BenefitDetails({ benefit }: BenefitDetailsProps) {
                                     <BanrisulSimulation
                                       cpf={Beneficiario.CPF}
                                       dataNascimento={Beneficiario.DataNascimento}
-                                      contrato={emprestimo.Contrato}
+                                      contrato={emprestimo.Contrato || ''}
                                       dataContrato={emprestimo.DataAverbacao || new Date().toISOString()}
                                       valorParcela={emprestimo.ValorParcela}
                                       conveniada="000020"
@@ -873,102 +970,7 @@ export function BenefitDetails({ benefit }: BenefitDetailsProps) {
             </AccordionItem>
           )}
 
-          {/* Other Information */}
-          <AccordionItem value="other">
-            <AccordionTrigger className="px-4 py-4 hover:bg-muted/30">
-              <span className="flex items-center gap-2 font-medium">
-                <Info className="h-4 w-4" />
-                Outras Informações
-              </span>
-            </AccordionTrigger>
-            <AccordionContent className="px-4 pb-4 bg-muted/20">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {/* Banking Data */}
-                <div className="bg-card border rounded-lg p-4 shadow-sm">
-                  <h4 className="font-semibold mb-3 flex items-center gap-2 text-foreground">
-                    <University className="h-4 w-4" />
-                    Dados Bancários
-                  </h4>
-                  <div className="space-y-3">
-                    <div className="flex justify-between items-center">
-                      <span className="text-muted-foreground">Banco:</span>
-                      <div className="flex items-center gap-2">
-                        <BankIcon bankCode={DadosBancarios.Banco} className="w-5 h-5" />
-                        <div className="text-right">
-                          <span className="font-medium text-foreground block">
-                            {DadosBancarios.Banco} - {getBankName(DadosBancarios.Banco)}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Agência:</span>
-                      <span className="font-medium text-foreground">{DadosBancarios.Agencia}</span>
-                    </div>
-                    {DadosBancarios.MeioPagamento === '3' || !DadosBancarios.ContaPagto ? (
-                      <div className="flex justify-between">
-                        <span className="text-muted-foreground">Conta:</span>
-                        <Badge variant="secondary" className="bg-blue-100 text-blue-800">
-                          Recebe via Cartão Magnético
-                        </Badge>
-                      </div>
-                    ) : (
-                      <div className="flex justify-between">
-                        <span className="text-muted-foreground">Conta:</span>
-                        <span className="font-medium text-foreground">{DadosBancarios.ContaPagto}</span>
-                      </div>
-                    )}
-                  </div>
-                </div>
 
-                {/* Additional Services */}
-                <div className="bg-card border rounded-lg p-4 shadow-sm">
-                  <h4 className="font-semibold mb-3 flex items-center gap-2 text-foreground">
-                    <CreditCard className="h-4 w-4" />
-                    Informações do Cartão
-                  </h4>
-                  <div className="space-y-2">
-                    <div className="flex justify-between items-center">
-                      <span className="text-muted-foreground">Possui Cartão:</span>
-                      <Badge variant={ResumoFinanceiro.PossuiCartao ? "default" : "secondary"}>
-                        {ResumoFinanceiro.PossuiCartao ? "Sim" : "Não"}
-                      </Badge>
-                    </div>
-                    <div className="flex justify-between items-center">
-                      <span className="text-muted-foreground">Meio de Recebimento:</span>
-                      <Badge variant={DadosBancarios.MeioPagamento === '3' ? "default" : "secondary"} 
-                             className={DadosBancarios.MeioPagamento === '3' ? "bg-blue-100 text-blue-800" : ""}>
-                        {DadosBancarios.MeioPagamento === '1' ? 'Conta Corrente' : 
-                         DadosBancarios.MeioPagamento === '2' ? 'Conta Poupança' : 
-                         DadosBancarios.MeioPagamento === '3' ? 'Cartão Magnético' : 
-                         `Código: ${DadosBancarios.MeioPagamento}`}
-                      </Badge>
-                    </div>
-                    <div className="flex justify-between items-center">
-                      <span className="text-muted-foreground">Possui Conta Bancária:</span>
-                      <Badge variant={DadosBancarios.MeioPagamento === '3' ? "destructive" : "default"}>
-                        {DadosBancarios.MeioPagamento === '3' ? 'NÃO - Só Cartão' : 'SIM - Tem Conta'}
-                      </Badge>
-                    </div>
-                    <div className="flex justify-between items-center">
-                      <span className="text-muted-foreground">Desconto Associação:</span>
-                      <span className="font-medium text-foreground">
-                        {formatCurrency(ResumoFinanceiro.DescontoAssociacao)}
-                      </span>
-                    </div>
-                    {typeof Associacao === 'object' && 'TaxaAssociativa' in Associacao && (
-                      <div className="flex justify-between items-center">
-                        <span className="text-muted-foreground">Taxa Associativa:</span>
-                        <span className="font-medium text-foreground">
-                          {Associacao.TaxaAssociativa} - {formatCurrency(Associacao.Parcela)}
-                        </span>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </div>
-            </AccordionContent>
-          </AccordionItem>
         </Accordion>
       </Card>
     </div>
