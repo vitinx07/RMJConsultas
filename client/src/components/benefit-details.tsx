@@ -427,16 +427,6 @@ export function BenefitDetails({ benefit }: BenefitDetailsProps) {
                   </div>
                 </div>
                 
-                <div className="flex items-center gap-3">
-                  <FileText className={`h-5 w-5 ${Beneficiario.PA === '1' ? 'text-blue-600' : 'text-muted-foreground'}`} />
-                  <div>
-                    <p className="text-sm text-muted-foreground">Procuração</p>
-                    <p className={`font-semibold ${Beneficiario.PA === '1' ? 'text-blue-600' : 'text-muted-foreground'}`}>
-                      {Beneficiario.PA === '1' ? 'POSSUI' : 'NÃO POSSUI'}
-                    </p>
-                  </div>
-                </div>
-
                 {/* Separator for Other Information */}
                 <div className="border-t border-border/50 my-6"></div>
 
