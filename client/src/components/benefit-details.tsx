@@ -431,20 +431,20 @@ export function BenefitDetails({ benefit }: BenefitDetailsProps) {
                 <div className="border-t border-border/50 my-6"></div>
 
                 {/* Outras Informações integradas dentro do mesmo card */}
-                <div className="space-y-4">
-                  <div className="flex items-center gap-2 mb-4">
+                <div className="space-y-6">
+                  <div className="flex items-center gap-2">
                     <Info className="h-5 w-5 text-blue-600 dark:text-blue-400" />
                     <h4 className="font-semibold text-lg text-foreground">Outras Informações</h4>
                   </div>
 
-                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                     {/* Banking Data */}
-                    <div className="bg-card border border-border rounded-lg p-4 shadow-sm">
-                      <div className="flex items-center gap-2 mb-3">
+                    <div className="bg-card border border-border rounded-lg p-5 shadow-sm">
+                      <div className="flex items-center gap-2 mb-4">
                         <University className="h-4 w-4 text-blue-600 dark:text-blue-400" />
                         <h5 className="font-semibold text-foreground">Dados Bancários</h5>
                       </div>
-                      <div className="space-y-2">
+                      <div className="space-y-3">
                         <div className="flex items-center justify-between">
                           <span className="text-sm text-muted-foreground">Banco:</span>
                           <div className="flex items-center gap-2">
@@ -468,12 +468,12 @@ export function BenefitDetails({ benefit }: BenefitDetailsProps) {
                     </div>
 
                     {/* Card Information */}
-                    <div className="bg-card border border-border rounded-lg p-4 shadow-sm">
-                      <div className="flex items-center gap-2 mb-3">
+                    <div className="bg-card border border-border rounded-lg p-5 shadow-sm">
+                      <div className="flex items-center gap-2 mb-4">
                         <CreditCard className="h-4 w-4 text-blue-600 dark:text-blue-400" />
                         <h5 className="font-semibold text-foreground">Informações do Cartão</h5>
                       </div>
-                      <div className="space-y-2">
+                      <div className="space-y-3">
                         <div className="flex items-center justify-between">
                           <span className="text-sm text-muted-foreground">Possui Cartão:</span>
                           <Badge variant="secondary" className="bg-blue-100 dark:bg-blue-950/30 text-blue-800 dark:text-blue-400 text-xs">
