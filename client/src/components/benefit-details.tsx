@@ -435,7 +435,7 @@ export function BenefitDetails({ benefit }: BenefitDetailsProps) {
             <AccordionTrigger className="px-4 py-4 hover:bg-muted/30">
               <span className="flex items-center gap-2 font-medium">
                 <Info className="h-4 w-4" />
-                Outras Informações
+                Dados Credenciais de Recebimento
               </span>
             </AccordionTrigger>
             <AccordionContent className="px-4 pb-4 bg-muted/20">
