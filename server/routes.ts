@@ -968,6 +968,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       if (!creditConditionForInclusion.covenant_code) validationErrors.push('covenant_code ausente');
       if (!creditConditionForInclusion.product_code) validationErrors.push('product_code ausente');
+      if (!creditConditionForInclusion.principal_amount) validationErrors.push('principal_amount ausente');
       if (!inclusionPayload.client?.tax_identifier) validationErrors.push('CPF ausente');
       if (!inclusionPayload.client?.name) validationErrors.push('Nome ausente');
       if (!inclusionPayload.client?.birth_date) validationErrors.push('Data de nascimento ausente');
@@ -986,6 +987,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           received_data: {
             covenant_code: creditConditionForInclusion.covenant_code,
             product_code: creditConditionForInclusion.product_code,
+            principal_amount: creditConditionForInclusion.principal_amount,
             cpf: inclusionPayload.client?.tax_identifier,
             cep: inclusionPayload.client?.address?.zip_code,
             bank_code: paymentData.bank_code,

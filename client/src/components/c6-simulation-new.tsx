@@ -388,6 +388,7 @@ export function C6Simulation({
         installment_quantity: selectedCondition.installment_quantity,
         installment_amount: selectedCondition.installment_amount,
         requested_amount: selectedConditionAny.requested_amount,
+        principal_amount: selectedConditionAny.requested_amount || selectedConditionAny.principal_amount, // Campo obrigatório
         iof_amount: selectedConditionAny.iof_amount,
         interest_amount: selectedConditionAny.interest_amount,
         total_amount: selectedConditionAny.total_amount,
