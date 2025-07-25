@@ -715,6 +715,307 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // C6 Bank API endpoints
+  app.post('/api/c6-bank/simulate', requireAuthHybrid, async (req, res) => {
+    try {
+      const { cpf, installment_quantity, selected_contracts, simulation_type, requested_amount, installment_amount } = req.body;
+
+      // 1. Autenticar no C6 Bank
+      const authResponse = await fetch('https://marketplace-proposal-service-api-p.c6bank.info/auth/token', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded'
+        },
+        body: new URLSearchParams({
+          username: '46437248890_003130',
+          password: 'Nipo4810**'
+        })
+      });
+
+      if (!authResponse.ok) {
+        return res.status(500).json({ error: 'Falha na autenticação C6 Bank' });
+      }
+
+      const authData = await authResponse.json();
+      const token = authData.access_token;
+
+      // 2. Buscar dados do cliente
+      const clientData = await fetch(`${process.env.REPLIT_DEV_DOMAIN || 'http://localhost:5000'}/api/multicorban/cpf`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Cookie': req.headers.cookie || ''
+        },
+        body: JSON.stringify({ cpf })
+      });
+
+      const clientInfo = await clientData.json();
+      const beneficiario = clientInfo[0]?.Beneficiario;
+      const resumoFinanceiro = clientInfo[0]?.ResumoFinanceiro;
+
+      if (!beneficiario) {
+        return res.status(400).json({ error: 'Dados do cliente não encontrados' });
+      }
+
+      // 3. Montar payload de simulação
+      const simulationPayload = {
+        operation_type: "REFINANCIAMENTO",
+        product_type_code: "0002",
+        simulation_type,
+        formalization_subtype: "DIGITAL_WEB",
+        promoter_code: "003130",
+        covenant_group: "INSS",
+        public_agency: "000001",
+        installment_quantity,
+        ...(simulation_type === 'POR_VALOR_SOLICITADO' 
+          ? { requested_amount } 
+          : { installment_amount }
+        ),
+        client: {
+          tax_identifier: beneficiario.CPF,
+          enrollment: beneficiario.Beneficio,
+          birth_date: beneficiario.DataNascimento,
+          income_amount: parseFloat(resumoFinanceiro?.ValorBeneficio || '5000')
+        },
+        refinancing_contracts: selected_contracts
+      };
+
+      // 4. Fazer simulação no C6
+      const simulationResponse = await fetch('https://marketplace-proposal-service-api-p.c6bank.info/marketplace/proposal/simulation', {
+        method: 'POST',
+        headers: {
+          'Authorization': token,
+          'Content-Type': 'application/json',
+          'Accept': 'application/vnd.c6bank_error_data_v2+json'
+        },
+        body: JSON.stringify(simulationPayload)
+      });
+
+      if (!simulationResponse.ok) {
+        const errorData = await simulationResponse.json();
+        return res.status(simulationResponse.status).json({
+          error: 'Erro na simulação C6 Bank',
+          details: errorData
+        });
+      }
+
+      const simulationResult = await simulationResponse.json();
+      res.json(simulationResult);
+
+    } catch (error) {
+      console.error('Erro na simulação C6:', error);
+      res.status(500).json({ error: 'Erro interno na simulação C6 Bank' });
+    }
+  });
+
+  app.post('/api/c6-bank/include-proposal', requireAuthHybrid, async (req, res) => {
+    try {
+      const { cpf, benefit_data, selected_contracts, credit_condition, proposal_data } = req.body;
+
+      // 1. Autenticar no C6 Bank
+      const authResponse = await fetch('https://marketplace-proposal-service-api-p.c6bank.info/auth/token', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded'
+        },
+        body: new URLSearchParams({
+          username: '46437248890_003130',
+          password: 'Nipo4810**'
+        })
+      });
+
+      if (!authResponse.ok) {
+        return res.status(500).json({ error: 'Falha na autenticação C6 Bank' });
+      }
+
+      const authData = await authResponse.json();
+      const token = authData.access_token;
+
+      // 2. Preparar dados bancários
+      const paymentData = {
+        bank_code: proposal_data.payment.bank_code.replace(/\D/g, ''),
+        agency_number: proposal_data.payment.agency_number.replace(/\D/g, ''),
+        agency_digit: "0",
+        account_type: "ContaCorrenteIndividual",
+        account_number: proposal_data.payment.account_number,
+        account_digit: proposal_data.payment.account_digit
+      };
+
+      // 3. Preparar condição de crédito para inclusão
+      const creditConditionForInclusion = {
+        ...credit_condition,
+        covenant_code: credit_condition.covenant.code,
+        product_code: credit_condition.product.code
+      };
+      delete creditConditionForInclusion.covenant;
+      delete creditConditionForInclusion.product;
+
+      // 4. Montar payload de inclusão
+      const inclusionPayload = {
+        formalization_subtype: "DIGITAL_WEB",
+        operation_type: "REFINANCIAMENTO",
+        simulation_type: "POR_VALOR_PARCELA",
+        origin: {
+          promoter_code: "003130",
+          covenant_group: "INSS",
+          public_agency: "000001",
+          typist_code: "390419",
+          tax_identifier_of_certified_agent: "46437248890"
+        },
+        credit_condition: creditConditionForInclusion,
+        payment: paymentData,
+        client: {
+          tax_identifier: proposal_data.client.tax_identifier,
+          name: proposal_data.client.name,
+          document_type: "RG",
+          document_number: proposal_data.client.document_number,
+          document_federation_unit: "SP",
+          issuance_date: "2010-01-01",
+          government_agency_which_has_issued_the_document: "SSP",
+          marital_status: "Solteiro",
+          spouses_name: "",
+          politically_exposed_person: "Nao",
+          birth_date: proposal_data.client.birth_date,
+          gender: "Feminino",
+          income_amount: proposal_data.client.income_amount,
+          mother_name: proposal_data.client.mother_name,
+          email: proposal_data.client.email,
+          mobile_phone_area_code: proposal_data.client.mobile_phone_area_code,
+          mobile_phone_number: proposal_data.client.mobile_phone_number,
+          bank_data: paymentData,
+          benefit_data: {
+            receive_card_benefit: "Nao",
+            federation_unit: benefit_data.Beneficiario?.UFBeneficio || "SP"
+          },
+          address: proposal_data.client.address,
+          professional_data: {
+            enrollment: benefit_data.Beneficiario?.Beneficio
+          }
+        },
+        refinancing_contracts: selected_contracts
+      };
+
+      // 5. Fazer inclusão no C6
+      const inclusionResponse = await fetch('https://marketplace-proposal-service-api-p.c6bank.info/marketplace/proposal', {
+        method: 'POST',
+        headers: {
+          'Authorization': token,
+          'Content-Type': 'application/json',
+          'Accept': 'application/vnd.c6bank_error_data_v2+json'
+        },
+        body: JSON.stringify(inclusionPayload)
+      });
+
+      if (!inclusionResponse.ok) {
+        const errorData = await inclusionResponse.json();
+        return res.status(inclusionResponse.status).json({
+          error: 'Erro na inclusão da proposta C6 Bank',
+          details: errorData
+        });
+      }
+
+      const inclusionResult = await inclusionResponse.json();
+      res.json(inclusionResult);
+
+    } catch (error) {
+      console.error('Erro na inclusão C6:', error);
+      res.status(500).json({ error: 'Erro interno na inclusão de proposta C6 Bank' });
+    }
+  });
+
+  app.get('/api/c6-bank/formalization-link/:proposalNumber', requireAuthHybrid, async (req, res) => {
+    try {
+      const { proposalNumber } = req.params;
+
+      // 1. Autenticar no C6 Bank
+      const authResponse = await fetch('https://marketplace-proposal-service-api-p.c6bank.info/auth/token', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded'
+        },
+        body: new URLSearchParams({
+          username: '46437248890_003130',
+          password: 'Nipo4810**'
+        })  
+      });
+
+      if (!authResponse.ok) {
+        return res.status(500).json({ error: 'Falha na autenticação C6 Bank' });
+      }
+
+      const authData = await authResponse.json();
+      const token = authData.access_token;
+
+      // 2. Buscar link de formalização
+      const linkResponse = await fetch(`https://marketplace-proposal-service-api-p.c6bank.info/marketplace/proposal/formalization-url?proposalNumber=${proposalNumber}`, {
+        method: 'GET',
+        headers: {
+          'Authorization': token,
+          'Accept': 'application/vnd.c6bank_url_consult_v1+json'
+        }
+      });
+
+      if (!linkResponse.ok) {
+        if (linkResponse.status === 404) {
+          return res.status(404).json({ error: 'Link ainda não disponível' });
+        }
+        return res.status(linkResponse.status).json({ error: 'Erro ao buscar link de formalização' });
+      }
+
+      const linkData = await linkResponse.json();
+      res.json(linkData);
+
+    } catch (error) {
+      console.error('Erro ao buscar link C6:', error);
+      res.status(500).json({ error: 'Erro interno ao buscar link de formalização' });
+    }
+  });
+
+  app.get('/api/c6-bank/proposal-status/:proposalNumber', requireAuthHybrid, async (req, res) => {
+    try {
+      const { proposalNumber } = req.params;
+
+      // 1. Autenticar no C6 Bank
+      const authResponse = await fetch('https://marketplace-proposal-service-api-p.c6bank.info/auth/token', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded'
+        },
+        body: new URLSearchParams({
+          username: '46437248890_003130',
+          password: 'Nipo4810**'
+        })
+      });
+
+      if (!authResponse.ok) {
+        return res.status(500).json({ error: 'Falha na autenticação C6 Bank' });
+      }
+
+      const authData = await authResponse.json();
+      const token = authData.access_token;
+
+      // 2. Consultar status da proposta
+      const statusResponse = await fetch(`https://marketplace-proposal-service-api-p.c6bank.info/marketplace/proposal/consult?proposalNumber=${proposalNumber}`, {
+        method: 'GET',
+        headers: {
+          'Authorization': token,
+          'Accept': 'application/json'
+        }
+      });
+
+      if (!statusResponse.ok) {
+        return res.status(statusResponse.status).json({ error: 'Erro ao consultar status da proposta' });
+      }
+
+      const statusData = await statusResponse.json();
+      res.json(statusData);
+
+    } catch (error) {
+      console.error('Erro ao consultar status C6:', error);
+      res.status(500).json({ error: 'Erro interno ao consultar status da proposta' });
+    }
+  });
+
   // Banrisul API endpoints
   app.post("/api/banrisul/contracts", requireAuthHybrid, requireAnyRole, async (req, res) => {
     try {

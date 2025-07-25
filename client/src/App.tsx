@@ -21,6 +21,7 @@ import EditUser from "@/pages/EditUser";
 import PasswordExpiryDemo from "@/pages/PasswordExpiryDemo";
 import ClientMarkers from "@/pages/client-markers";
 import NegotiationsControl from "@/pages/negotiations-control";
+import C6Simulation from "@/pages/C6Simulation";
 import NotFound from "@/pages/not-found";
 import PasswordExpiryAlert from "@/components/PasswordExpiryAlert";
 
@@ -94,6 +95,8 @@ function Router() {
         <Route path="/admin/marcacoes" component={ClientMarkers} />
         <Route path="/negotiations-control" component={NegotiationsControl} />
         <Route path="/admin/negotiations" component={NegotiationsControl} />
+        <Route path="/c6-simulation" component={C6Simulation} />
+        <Route path="/simulacao-c6" component={C6Simulation} />
         <Route path="/change-password" component={ChangePassword} />
         <Route component={NotFound} />
       </Switch>
