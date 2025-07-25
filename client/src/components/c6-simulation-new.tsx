@@ -259,6 +259,7 @@ export function C6Simulation({
           benefit_data: benefitData,
           selected_contracts: c6Contracts.map((c: any) => c.Contrato),
           credit_condition: selectedCondition,
+          insurance_type: selectedInsurance,
           proposal_data: {
             client: {
               tax_identifier: benefitData.Beneficiario.CPF,
@@ -606,7 +607,8 @@ export function C6Simulation({
                             </td>
                             <td className="border border-gray-200 px-4 py-2">
                               {condition.covenant?.rate_percentage ? `${condition.covenant.rate_percentage}%` : 
-                               condition.rate_percentage ? `${condition.rate_percentage}%` : 'N/A'}
+                               condition.rate_percentage ? `${condition.rate_percentage}%` : 
+                               condition.interest_rate ? `${condition.interest_rate}%` : 'N/A'}
                             </td>
                             <td className="border border-gray-200 px-4 py-2 text-center">
                               <Button
@@ -661,7 +663,9 @@ export function C6Simulation({
                   </div>
                   <div className="text-sm text-gray-600">
                     Parcela: R$ {selectedCondition.installment_amount.toFixed(2)} | 
-                    Taxa: {selectedCondition.covenant?.rate_percentage || selectedCondition.rate_percentage || 'N/A'}%
+                    Taxa: {selectedCondition.covenant?.rate_percentage ? `${selectedCondition.covenant.rate_percentage}%` : 
+                           selectedCondition.rate_percentage ? `${selectedCondition.rate_percentage}%` : 
+                           selectedCondition.interest_rate ? `${selectedCondition.interest_rate}%` : 'N/A'}
                   </div>
                 </div>
               )}
@@ -937,6 +941,46 @@ export function C6Simulation({
                 </div>
               </div>
 
+              {/* Seção de Seleção de Seguro */}
+              <div className="space-y-4 border-t pt-4">
+                <h3 className="font-semibold text-lg">Seleção de Seguro</h3>
+                <div className="space-y-3">
+                  <div className="flex items-center space-x-2">
+                    <input
+                      type="radio"
+                      id="sem-seguro"
+                      name="insurance"
+                      value="-1"
+                      checked={selectedInsurance === -1}
+                      onChange={(e) => setSelectedInsurance(parseInt(e.target.value))}
+                      className="h-4 w-4"
+                    />
+                    <Label htmlFor="sem-seguro" className="text-sm">
+                      Sem Seguro
+                    </Label>
+                  </div>
+                  
+                  <div className="flex items-center space-x-2">
+                    <input
+                      type="radio"
+                      id="seguro-prestamista"
+                      name="insurance"
+                      value="0"
+                      checked={selectedInsurance === 0}
+                      onChange={(e) => setSelectedInsurance(parseInt(e.target.value))}
+                      className="h-4 w-4"
+                    />
+                    <Label htmlFor="seguro-prestamista" className="text-sm">
+                      Seguro Prestamista (Recomendado)
+                    </Label>
+                  </div>
+                  
+                  <div className="text-xs text-gray-600 ml-6">
+                    O seguro prestamista protege o beneficiário e a família, quitando o saldo devedor em caso de morte ou invalidez permanente.
+                  </div>
+                </div>
+              </div>
+
               <Button 
                 onClick={() => digitizationMutation.mutate()} 
                 disabled={digitizationMutation.isPending || !selectedCondition}
@@ -974,6 +1018,29 @@ export function C6Simulation({
                     <CheckCircle className="h-8 w-8 text-green-600 mx-auto mb-2" />
                     <p className="text-green-800 font-medium">Link de formalização disponível!</p>
                   </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="formalization-link">Link para Cópia</Label>
+                    <div className="flex gap-2">
+                      <Input 
+                        id="formalization-link"
+                        value={formalizationUrl}
+                        readOnly
+                        className="flex-1"
+                      />
+                      <Button 
+                        onClick={() => {
+                          navigator.clipboard.writeText(formalizationUrl);
+                          toast({ title: "Link copiado!", description: "Link de formalização copiado para a área de transferência" });
+                        }}
+                        variant="outline"
+                        size="sm"
+                      >
+                        Copiar
+                      </Button>
+                    </div>
+                  </div>
+                  
                   <Button 
                     onClick={() => window.open(formalizationUrl, '_blank')}
                     className="w-full bg-green-600 hover:bg-green-700"
