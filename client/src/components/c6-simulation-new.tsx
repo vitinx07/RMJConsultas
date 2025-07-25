@@ -370,7 +370,7 @@ export function C6Simulation({
           debug_expense: selectedExpenseItemNumber, // Log para debug
           proposal_data: {
             client: {
-              tax_identifier: benefitData.Beneficiario.CPF,
+              tax_identifier: String(benefitData.Beneficiario.CPF).padStart(11, '0'),
               name: digitizationData.nomeCompleto,
               document_type: "RG",
               document_number: digitizationData.rg,
@@ -628,7 +628,7 @@ export function C6Simulation({
                         onChange={(e) => setInstallmentQuantity(Number(e.target.value))}
                         className="w-full p-2 border border-gray-300 rounded-md"
                       >
-                        {[96].map(months => (
+                        {[72,84,96].map(months => (
                           <option key={months} value={months}>{months} meses</option>
                         ))}
                       </select>

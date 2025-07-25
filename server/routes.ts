@@ -957,6 +957,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         expenses: expensesForInclusion
       };
 
+      // Log do payload completo antes do envio
+      console.log('📤 PAYLOAD COMPLETO PARA C6:', JSON.stringify(inclusionPayload, null, 2));
+      
       // 5. Fazer inclusão no C6
       const inclusionResponse = await fetch('https://marketplace-proposal-service-api-p.c6bank.info/marketplace/proposal', {
         method: 'POST',
@@ -968,13 +971,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
         body: JSON.stringify(inclusionPayload)
       });
 
+      console.log('📥 C6 RESPONSE STATUS:', inclusionResponse.status);
+      
       if (!inclusionResponse.ok) {
         const errorData = await inclusionResponse.json();
-        console.error('C6 Inclusion Error:', errorData);
-        console.error('Payload sent:', JSON.stringify(inclusionPayload, null, 2));
+        console.error('❌ C6 INCLUSION ERROR (Status ' + inclusionResponse.status + '):', errorData);
+        console.error('📋 PAYLOAD QUE CAUSOU ERRO:', JSON.stringify(inclusionPayload, null, 2));
+        
+        // Verificar campos obrigatórios específicos
+        console.log('🔍 CAMPOS CRÍTICOS:');
+        console.log('  - covenant_code:', creditConditionForInclusion.covenant_code);
+        console.log('  - product_code:', creditConditionForInclusion.product_code);
+        console.log('  - client name:', inclusionPayload.client?.name);
+        console.log('  - cpf:', inclusionPayload.client?.tax_identifier);
+        console.log('  - expenses count:', inclusionPayload.expenses?.length);
+        
         return res.status(inclusionResponse.status).json({
           error: 'Erro na inclusão da proposta C6 Bank',
           details: errorData,
+          status: inclusionResponse.status,
           payload: inclusionPayload
         });
       }
