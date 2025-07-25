@@ -2037,6 +2037,69 @@ consultation = await storage.getConsultationByCpf(cpf as string, userId);
     }
   });
 
+  // C6 Digitizations endpoints
+  app.get("/api/c6-digitizations", requireAuthHybrid, requireAnyRole, async (req, res) => {
+    try {
+      const userId = req.user!.role === 'administrator' || req.user!.role === 'gerente' ? undefined : req.user!.id;
+      const digitizations = await storage.getC6DigitizationsByUser(userId);
+      res.json(digitizations);
+    } catch (error) {
+      console.error("Erro ao obter digitalizações C6:", error);
+      res.status(500).json({ error: "Erro ao carregar digitalizações" });
+    }
+  });
+
+  app.get("/api/c6-digitizations/:id", requireAuthHybrid, requireAnyRole, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const digitization = await storage.getC6DigitizationById(id);
+      
+      if (!digitization) {
+        return res.status(404).json({ error: "Digitalização não encontrada" });
+      }
+
+      res.json(digitization);
+    } catch (error) {
+      console.error("Erro ao obter digitalização C6:", error);
+      res.status(500).json({ error: "Erro ao carregar digitalização" });
+    }
+  });
+
+  app.post("/api/c6-digitizations", requireAuthHybrid, requireAnyRole, async (req, res) => {
+    try {
+      const userId = req.user!.id;
+      const digitizationData = {
+        ...req.body,
+        userId,
+        status: 'pending'
+      };
+
+      const digitization = await storage.createC6Digitization(digitizationData);
+      res.status(201).json(digitization);
+    } catch (error) {
+      console.error("Erro ao criar digitalização C6:", error);
+      res.status(400).json({ error: "Dados inválidos para digitalização" });
+    }
+  });
+
+  app.put("/api/c6-digitizations/:id/status", requireAuthHybrid, requireAnyRole, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { status, formalizationLink } = req.body;
+
+      const digitization = await storage.updateC6DigitizationStatus(id, status, formalizationLink);
+      
+      if (!digitization) {
+        return res.status(404).json({ error: "Digitalização não encontrada" });
+      }
+
+      res.json(digitization);
+    } catch (error) {
+      console.error("Erro ao atualizar status da digitalização C6:", error);
+      res.status(500).json({ error: "Erro ao atualizar status" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

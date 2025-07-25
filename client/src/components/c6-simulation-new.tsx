@@ -423,7 +423,7 @@ export function C6Simulation({
 
       return response.json();
     },
-    onSuccess: (data) => {
+    onSuccess: async (data) => {
       console.log('Digitalização successful:', data);
       console.log('Expense selected at success:', selectedExpenseItemNumber);
       setProposalNumber(data.proposal_number);
@@ -432,6 +432,37 @@ export function C6Simulation({
         title: "Proposta digitalizada",
         description: `Número da proposta: ${data.proposal_number}`,
       });
+
+      // Salvar digitalização no histórico
+      try {
+        const selectedInsuranceDescription = selectedCondition?.expenses?.find(
+          (exp: any) => String(exp.item_number) === selectedExpenseItemNumber
+        )?.description || '';
+
+        const digitizationResult = await fetch('/api/c6-digitizations', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            cpf: benefitData.Beneficiario.CPF,
+            clientName: benefitData.Beneficiario.Nome,
+            proposalNumber: data.proposal_number,
+            selectedContracts: selectedContracts,
+            creditCondition: selectedCondition,
+            selectedInsurance: selectedInsuranceDescription,
+            requestedAmount: parseFloat(requestedAmount),
+            installmentAmount: selectedCondition?.installment_amount || 0,
+            clientAmount: selectedCondition?.client_amount || 0,
+          }),
+        });
+        
+        if (digitizationResult.ok) {
+          const savedDigitization = await digitizationResult.json();
+          // Salvar o ID para atualizar com link depois
+          (window as any).currentDigitizationId = savedDigitization.id;
+        }
+      } catch (error) {
+        console.error('Erro ao salvar digitalização no histórico:', error);
+      }
 
       // Iniciar sistema de 15 tentativas
       setTimeout(() => {
@@ -483,7 +514,25 @@ export function C6Simulation({
       
       if (data.url || data.formalizationUrl) {
         // Link encontrado imediatamente
-        setFormalizationUrl(data.url || data.formalizationUrl);
+        const finalUrl = data.url || data.formalizationUrl;
+        setFormalizationUrl(finalUrl);
+        
+        // Atualizar digitalização com o link de formalização
+        if ((window as any).currentDigitizationId) {
+          try {
+            await fetch(`/api/c6-digitizations/${(window as any).currentDigitizationId}/status`, {
+              method: 'PUT',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                status: 'approved',
+                formalizationLink: finalUrl
+              }),
+            });
+          } catch (error) {
+            console.error('Erro ao atualizar digitalização com link:', error);
+          }
+        }
+        
         toast({
           title: "Link de formalização obtido!",
           description: `Encontrado na tentativa ${data.attemptInfo?.attemptUsed || 1}`,
@@ -503,8 +552,26 @@ export function C6Simulation({
             if (checkResponse.ok) {
               const linkData = await checkResponse.json();
               if (linkData.url || linkData.formalizationUrl) {
-                setFormalizationUrl(linkData.url || linkData.formalizationUrl);
+                const finalUrl = linkData.url || linkData.formalizationUrl;
+                setFormalizationUrl(finalUrl);
                 clearInterval(checkInterval);
+                
+                // Atualizar digitalização com o link de formalização
+                if ((window as any).currentDigitizationId) {
+                  try {
+                    await fetch(`/api/c6-digitizations/${(window as any).currentDigitizationId}/status`, {
+                      method: 'PUT',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({
+                        status: 'approved',
+                        formalizationLink: finalUrl
+                      }),
+                    });
+                  } catch (error) {
+                    console.error('Erro ao atualizar digitalização com link:', error);
+                  }
+                }
+                
                 toast({
                   title: "Link de formalização obtido!",
                   description: "Cliente pode assinar o contrato",

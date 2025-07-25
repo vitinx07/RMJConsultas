@@ -554,3 +554,45 @@ export type BankingData = z.infer<typeof bankingDataSchema>;
 export type Loan = z.infer<typeof loanSchema>;
 export type Benefit = z.infer<typeof benefitSchema>;
 export type SearchRequest = z.infer<typeof searchRequestSchema>;
+
+// Tabela para histórico de digitalizações C6 Bank
+export const c6Digitizations = pgTable("c6_digitizations", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  cpf: varchar("cpf", { length: 11 }).notNull(),
+  clientName: varchar("client_name", { length: 255 }).notNull(),
+  proposalNumber: varchar("proposal_number", { length: 50 }).notNull(),
+  userId: uuid("user_id").notNull().references(() => users.id),
+  selectedContracts: jsonb("selected_contracts").notNull(), // Array de contratos
+  creditCondition: jsonb("credit_condition").notNull(), // Condição de crédito completa
+  selectedInsurance: varchar("selected_insurance", { length: 100 }), // Seguro selecionado
+  requestedAmount: decimal("requested_amount", { precision: 10, scale: 2 }).notNull(),
+  installmentAmount: decimal("installment_amount", { precision: 10, scale: 2 }).notNull(),
+  clientAmount: decimal("client_amount", { precision: 10, scale: 2 }).notNull(), // Troco
+  formalizationLink: text("formalization_link"), // Link de formalização
+  status: varchar("status", { length: 50 }).default('pending'), // pending, approved, rejected
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+}, (table) => [
+  index("idx_c6_digitizations_cpf").on(table.cpf),
+  index("idx_c6_digitizations_user").on(table.userId),
+  index("idx_c6_digitizations_proposal").on(table.proposalNumber),
+  index("idx_c6_digitizations_created").on(table.createdAt),
+]);
+
+// C6 Digitizations relations
+export const c6DigitizationsRelations = relations(c6Digitizations, ({ one }) => ({
+  user: one(users, {
+    fields: [c6Digitizations.userId],
+    references: [users.id],
+  }),
+}));
+
+// C6 Digitizations schemas
+export const insertC6DigitizationSchema = createInsertSchema(c6Digitizations).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type C6Digitization = typeof c6Digitizations.$inferSelect;
+export type InsertC6Digitization = z.infer<typeof insertC6DigitizationSchema>;

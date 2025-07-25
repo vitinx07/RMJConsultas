@@ -8,6 +8,7 @@ import {
   passwordResetTokens,
   clientMarkers,
   clientMarkerHistory,
+  c6Digitizations,
   type User,
   type CreateUser,
   type UpdateUser,
@@ -26,6 +27,8 @@ import {
   type ClientMarkerStatus,
   type ClientMarkerHistory,
   type InsertClientMarkerHistory,
+  type C6Digitization,
+  type InsertC6Digitization,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc, asc, gte, lte, sql, count, inArray, isNull, or, isNotNull } from "drizzle-orm";
@@ -93,6 +96,12 @@ export interface IStorage {
   
   // Dashboard para gerentes/administradores
   getActiveNegotiations(): Promise<any>;
+  
+  // C6 Digitizations operations
+  createC6Digitization(digitizationData: InsertC6Digitization): Promise<C6Digitization>;
+  getC6DigitizationsByUser(userId?: string): Promise<C6Digitization[]>;
+  getC6DigitizationById(id: string): Promise<C6Digitization | undefined>;
+  updateC6DigitizationStatus(id: string, status: string, formalizationLink?: string): Promise<C6Digitization | undefined>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -1082,6 +1091,79 @@ export class DatabaseStorage implements IStorage {
       .orderBy(desc(consultations.createdAt));
 
     return unmarkedClients;
+  }
+
+  // C6 Digitizations operations
+  async createC6Digitization(digitizationData: InsertC6Digitization): Promise<C6Digitization> {
+    const [digitization] = await db
+      .insert(c6Digitizations)
+      .values(digitizationData)
+      .returning();
+    
+    return digitization;
+  }
+
+  async getC6DigitizationsByUser(userId?: string): Promise<C6Digitization[]> {
+    const query = db
+      .select({
+        id: c6Digitizations.id,
+        cpf: c6Digitizations.cpf,
+        clientName: c6Digitizations.clientName,
+        proposalNumber: c6Digitizations.proposalNumber,
+        userId: c6Digitizations.userId,
+        selectedContracts: c6Digitizations.selectedContracts,
+        creditCondition: c6Digitizations.creditCondition,
+        selectedInsurance: c6Digitizations.selectedInsurance,
+        requestedAmount: c6Digitizations.requestedAmount,
+        installmentAmount: c6Digitizations.installmentAmount,
+        clientAmount: c6Digitizations.clientAmount,
+        formalizationLink: c6Digitizations.formalizationLink,
+        status: c6Digitizations.status,
+        createdAt: c6Digitizations.createdAt,
+        updatedAt: c6Digitizations.updatedAt,
+        user: {
+          username: users.username,
+          firstName: users.firstName,
+          lastName: users.lastName,
+        }
+      })
+      .from(c6Digitizations)
+      .leftJoin(users, eq(c6Digitizations.userId, users.id))
+      .orderBy(desc(c6Digitizations.createdAt));
+
+    if (userId) {
+      query.where(eq(c6Digitizations.userId, userId));
+    }
+
+    return await query;
+  }
+
+  async getC6DigitizationById(id: string): Promise<C6Digitization | undefined> {
+    const [digitization] = await db
+      .select()
+      .from(c6Digitizations)
+      .where(eq(c6Digitizations.id, id));
+    
+    return digitization;
+  }
+
+  async updateC6DigitizationStatus(id: string, status: string, formalizationLink?: string): Promise<C6Digitization | undefined> {
+    const updateData: any = {
+      status,
+      updatedAt: new Date(),
+    };
+
+    if (formalizationLink) {
+      updateData.formalizationLink = formalizationLink;
+    }
+
+    const [digitization] = await db
+      .update(c6Digitizations)
+      .set(updateData)
+      .where(eq(c6Digitizations.id, id))
+      .returning();
+    
+    return digitization;
   }
 }
 

@@ -123,6 +123,17 @@ export function Navbar() {
                   </Button>
                 </Link>
 
+                <Link href="/digitalizacoes">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className={getNavButtonClass("/digitalizacoes")}
+                  >
+                    <Clock className="h-4 w-4 mr-2" />
+                    Digitalizações
+                  </Button>
+                </Link>
+
                 <Link href="/favoritos">
                   <Button
                     variant="ghost"
@@ -279,6 +290,20 @@ export function Navbar() {
                   >
                     <History className="h-4 w-4 mr-3" />
                     Histórico
+                  </Button>
+                </Link>
+
+                <Link
+                  href="/digitalizacoes"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className={`w-full justify-start ${getNavButtonClass("/digitalizacoes")}`}
+                  >
+                    <Clock className="h-4 w-4 mr-3" />
+                    Digitalizações
                   </Button>
                 </Link>
 
