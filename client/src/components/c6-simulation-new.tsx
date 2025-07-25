@@ -97,7 +97,7 @@ export function C6Simulation({
   const [manualInstallmentAmount, setManualInstallmentAmount] = useState<number | null>(null);
   const [creditConditions, setCreditConditions] = useState<CreditCondition[]>([]);
   const [selectedCondition, setSelectedCondition] = useState<CreditCondition | null>(null);
-  const [selectedExpense, setSelectedExpense] = useState<string>(''); // Default: sem seguro
+  const [selectedExpense, setSelectedExpense] = useState<string>('none'); // Default: sem seguro
   const [proposalNumber, setProposalNumber] = useState<string>('');
   const [formalizationUrl, setFormalizationUrl] = useState<string>('');
   const [formalizationAttempts, setFormalizationAttempts] = useState(0);
@@ -294,7 +294,7 @@ export function C6Simulation({
     onSuccess: (data) => {
       setCreditConditions(data.credit_conditions || []);
       // Reset expense selection quando nova simulação
-      setSelectedExpense('');
+      setSelectedExpense('none');
       // NÃO muda o step - permanece no mesmo card mostrando a tabela
       toast({
         title: "Simulação concluída",
@@ -329,7 +329,7 @@ export function C6Simulation({
           benefit_data: benefitData,
           selected_contracts: c6Contracts.map((c: any) => c.Contrato),
           credit_condition: selectedCondition,
-          selected_expense: selectedExpense,
+          selected_expense: selectedExpense === 'none' ? '' : selectedExpense,
           debug_expense: selectedExpense, // Log para debug
           proposal_data: {
             client: {
@@ -1070,7 +1070,7 @@ export function C6Simulation({
                           <SelectValue placeholder="Escolha uma opção de seguro" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="">
+                          <SelectItem value="none">
                             <div className="flex justify-between items-center w-full">
                               <span>✅ Sem seguro adicional (Recomendado)</span>
                               <span className="text-green-600 font-medium ml-4">R$ 0,00</span>
@@ -1101,14 +1101,14 @@ export function C6Simulation({
                         <div className="flex justify-between items-center">
                           <span className="font-medium text-green-700">
                             Seguro selecionado: {
-                              selectedExpense === '' 
+                              selectedExpense === 'none' 
                                 ? 'Sem seguro adicional' 
                                 : selectedCondition.expenses.find(e => e.code === selectedExpense)?.description_type
                             }
                           </span>
                           <span className="text-green-600 font-medium">
                             R$ {
-                              selectedExpense === '' 
+                              selectedExpense === 'none' 
                                 ? '0,00' 
                                 : selectedCondition.expenses.find(e => e.code === selectedExpense)?.amount.toFixed(2)
                             }
