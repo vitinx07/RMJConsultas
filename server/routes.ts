@@ -998,6 +998,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const inclusionResult = await inclusionResponse.json();
+      console.log('✅ PROPOSTA DIGITADA COM SUCESSO:', inclusionResult);
+      
+      // Se tiver número da proposta, iniciar tentativas de busca do link
+      if (inclusionResult.proposalNumber) {
+        console.log('🔄 Iniciando tentativas para buscar link de formalização...');
+        console.log('📋 Número da proposta:', inclusionResult.proposalNumber);
+        
+        // Adicionar informações de tentativas na resposta
+        inclusionResult.linkAttemptInfo = {
+          proposalNumber: inclusionResult.proposalNumber,
+          maxAttempts: 15,
+          intervalMinutes: 5
+        };
+      }
+      
       res.json(inclusionResult);
 
     } catch (error) {
@@ -1006,9 +1021,126 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Endpoint com sistema de 15 tentativas para buscar link de formalização
+  app.post('/api/c6-bank/formalization-link-attempts', requireAuthHybrid, async (req, res) => {
+    try {
+      const { proposalNumber } = req.body;
+      
+      if (!proposalNumber) {
+        return res.status(400).json({ error: 'Número da proposta é obrigatório' });
+      }
+
+      console.log('🚀 Iniciando 15 tentativas para proposta:', proposalNumber);
+      
+      let attemptCount = 0;
+      const maxAttempts = 15;
+      const intervalMs = 5 * 60 * 1000; // 5 minutos
+
+      const tryGetLink = async () => {
+        attemptCount++;
+        console.log(`🔄 Tentativa ${attemptCount}/${maxAttempts} para proposta ${proposalNumber}`);
+
+        try {
+          // 1. Autenticar no C6 Bank
+          const authResponse = await fetch('https://marketplace-proposal-service-api-p.c6bank.info/auth/token', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/x-www-form-urlencoded'
+            },
+            body: new URLSearchParams({
+              username: '46437248890_003130',
+              password: 'Nipo4810**'
+            })
+          });
+
+          if (!authResponse.ok) {
+            throw new Error('Falha na autenticação C6 Bank');
+          }
+
+          const authData = await authResponse.json();
+          const token = authData.access_token;
+
+          // 2. Buscar link de formalização
+          const linkResponse = await fetch(`https://marketplace-proposal-service-api-p.c6bank.info/marketplace/proposal/formalization-url?proposalNumber=${proposalNumber}`, {
+            method: 'GET',
+            headers: {
+              'Authorization': token,
+              'Accept': 'application/vnd.c6bank_url_consult_v1+json'
+            }
+          });
+
+          if (linkResponse.ok) {
+            const linkData = await linkResponse.json();
+            console.log('✅ LINK ENCONTRADO na tentativa', attemptCount, ':', linkData);
+            return { success: true, data: linkData, attempt: attemptCount };
+          } else if (linkResponse.status === 404) {
+            console.log(`❌ Tentativa ${attemptCount}: Link ainda não disponível`);
+            return { success: false, status: 404, attempt: attemptCount };
+          } else {
+            console.log(`❌ Tentativa ${attemptCount}: Erro ${linkResponse.status}`);
+            const errorText = await linkResponse.text();
+            return { success: false, status: linkResponse.status, attempt: attemptCount, error: errorText };
+          }
+        } catch (error) {
+          console.error(`❌ Tentativa ${attemptCount} falhou:`, error);
+          return { success: false, error: error.message, attempt: attemptCount };
+        }
+      };
+
+      // Primeira tentativa imediata
+      let result = await tryGetLink();
+      
+      if (result.success) {
+        return res.json({
+          ...result.data,
+          attemptInfo: {
+            attemptUsed: result.attempt,
+            totalAttempts: maxAttempts,
+            status: 'found'
+          }
+        });
+      }
+
+      // Se não encontrou, configurar tentativas periódicas
+      res.json({
+        message: 'Sistema de tentativas iniciado. O link será buscado automaticamente a cada 5 minutos.',
+        proposalNumber,
+        attemptInfo: {
+          currentAttempt: attemptCount,
+          maxAttempts,
+          intervalMinutes: 5,
+          status: 'searching'
+        }
+      });
+
+      // Continuar tentativas em background
+      const intervalId = setInterval(async () => {
+        if (attemptCount >= maxAttempts) {
+          console.log(`⏰ Limite de ${maxAttempts} tentativas atingido para proposta ${proposalNumber}`);
+          clearInterval(intervalId);
+          return;
+        }
+
+        result = await tryGetLink();
+        
+        if (result.success) {
+          console.log(`🎉 SUCESSO! Link encontrado na tentativa ${result.attempt} para proposta ${proposalNumber}`);
+          console.log(`🔗 Link disponível: ${result.data.url || result.data.formalizationUrl}`);
+          clearInterval(intervalId);
+        }
+      }, intervalMs);
+
+    } catch (error) {
+      console.error('Erro no sistema de tentativas:', error);
+      res.status(500).json({ error: 'Erro interno no sistema de tentativas' });
+    }
+  });
+
   app.get('/api/c6-bank/formalization-link/:proposalNumber', requireAuthHybrid, async (req, res) => {
     try {
       const { proposalNumber } = req.params;
+
+      console.log('🔍 Consultando link para proposta:', proposalNumber);
 
       // 1. Autenticar no C6 Bank
       const authResponse = await fetch('https://marketplace-proposal-service-api-p.c6bank.info/auth/token', {
@@ -1038,14 +1170,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       });
 
+      console.log('📥 C6 Link Response Status:', linkResponse.status);
+
       if (!linkResponse.ok) {
+        const errorText = await linkResponse.text();
+        console.log('❌ Erro na busca do link:', errorText);
+        
         if (linkResponse.status === 404) {
-          return res.status(404).json({ error: 'Link ainda não disponível' });
+          return res.status(404).json({ 
+            error: 'Link ainda não disponível',
+            message: 'O link de formalização ainda não foi gerado pelo C6 Bank. Use o sistema de tentativas para buscar automaticamente.'
+          });
         }
-        return res.status(linkResponse.status).json({ error: 'Erro ao buscar link de formalização' });
+        return res.status(linkResponse.status).json({ 
+          error: 'Erro ao buscar link de formalização',
+          details: errorText
+        });
       }
 
       const linkData = await linkResponse.json();
+      console.log('✅ Link encontrado:', linkData);
       res.json(linkData);
 
     } catch (error) {

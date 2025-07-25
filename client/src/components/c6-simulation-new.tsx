@@ -432,9 +432,9 @@ export function C6Simulation({
         description: `Número da proposta: ${data.proposal_number}`,
       });
 
-      // Iniciar busca do link
+      // Iniciar sistema de 15 tentativas
       setTimeout(() => {
-        searchFormalizationLink(data.proposal_number);
+        startFormalizationAttempts(data.proposal_number);
       }, 2000);
     },
     onError: (error) => {
@@ -446,40 +446,78 @@ export function C6Simulation({
     }
   });
 
-  // Buscar link de formalização
-  const searchFormalizationLink = async (proposalNum: string) => {
-    setFormalizationAttempts(0);
+  // Sistema de 15 tentativas para buscar link de formalização
+  const startFormalizationAttempts = async (proposalNum: string) => {
+    try {
+      setFormalizationAttempts(1);
+      
+      const response = await fetch('/api/c6-bank/formalization-link-attempts', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ proposalNumber: proposalNum }),
+      });
 
-    const attempts = setInterval(async () => {
-      try {
-        setFormalizationAttempts(prev => prev + 1);
-
-        const response = await fetch(`/api/c6-bank/formalization-link/${proposalNum}`);
-
-        if (response.ok) {
-          const data = await response.json();
-          if (data.status === 'ACTIVE') {
-            setFormalizationUrl(data.url);
-            clearInterval(attempts);
-            toast({
-              title: "Link de formalização obtido!",
-              description: "Cliente pode assinar o contrato",
+      const data = await response.json();
+      
+      if (data.url || data.formalizationUrl) {
+        // Link encontrado imediatamente
+        setFormalizationUrl(data.url || data.formalizationUrl);
+        toast({
+          title: "Link de formalização obtido!",
+          description: `Encontrado na tentativa ${data.attemptInfo?.attemptUsed || 1}`,
+        });
+      } else {
+        // Sistema de tentativas iniciado
+        toast({
+          title: "Sistema de tentativas iniciado",
+          description: "Buscando link automaticamente a cada 5 minutos (15 tentativas)",
+        });
+        
+        // Continuar verificando manualmente periodicamente
+        const checkInterval = setInterval(async () => {
+          try {
+            const checkResponse = await fetch(`/api/c6-bank/formalization-link/${proposalNum}`);
+            
+            if (checkResponse.ok) {
+              const linkData = await checkResponse.json();
+              if (linkData.url || linkData.formalizationUrl) {
+                setFormalizationUrl(linkData.url || linkData.formalizationUrl);
+                clearInterval(checkInterval);
+                toast({
+                  title: "Link de formalização obtido!",
+                  description: "Cliente pode assinar o contrato",
+                });
+              }
+            }
+            
+            setFormalizationAttempts(prev => {
+              const newAttempt = prev + 1;
+              if (newAttempt >= 15) {
+                clearInterval(checkInterval);
+                toast({
+                  title: "Timeout",
+                  description: "Link não disponível após 15 tentativas. Consulte o C6 Bank diretamente.",
+                  variant: "destructive",
+                });
+              }
+              return newAttempt;
             });
+          } catch (error) {
+            console.error('Erro ao verificar link:', error);
           }
-        }
-
-        if (formalizationAttempts >= 10) {
-          clearInterval(attempts);
-          toast({
-            title: "Timeout",
-            description: "Link não disponível após 10 tentativas",
-            variant: "destructive",
-          });
-        }
-      } catch (error) {
-        console.error('Erro ao buscar link:', error);
+        }, 5 * 60 * 1000); // 5 minutos
       }
-    }, 15000); // 15 segundos entre tentativas
+      
+    } catch (error) {
+      console.error('Erro ao iniciar tentativas:', error);
+      toast({
+        title: "Erro",
+        description: "Falha ao iniciar sistema de tentativas",
+        variant: "destructive",
+      });
+    }
   };
 
   return (
@@ -1190,7 +1228,7 @@ export function C6Simulation({
                     <Clock className="h-8 w-8 text-blue-600 mx-auto mb-2" />
                     <p className="text-blue-800">Aguardando link de formalização...</p>
                     <p className="text-sm text-gray-600">
-                      Tentativa {formalizationAttempts}/10
+                      Tentativa {formalizationAttempts}/15 (Sistema automático a cada 5 minutos)
                     </p>
                   </div>
                 </div>
