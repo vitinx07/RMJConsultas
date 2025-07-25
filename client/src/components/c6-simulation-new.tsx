@@ -439,6 +439,16 @@ export function C6Simulation({
           (exp: any) => String(exp.item_number) === selectedExpenseItemNumber
         )?.description || '';
 
+        console.log('🗂️ Salvando digitalização no histórico:', {
+          cpf: benefitData.Beneficiario.CPF,
+          clientName: benefitData.Beneficiario.Nome,
+          proposalNumber: data.proposal_number,
+          requestedAmount: requestedAmount,
+          requestedAmountParsed: parseFloat(requestedAmount),
+          selectedContracts,
+          selectedInsurance: selectedInsuranceDescription
+        });
+
         const digitizationResult = await fetch('/api/c6-digitizations', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -449,7 +459,7 @@ export function C6Simulation({
             selectedContracts: selectedContracts,
             creditCondition: selectedCondition,
             selectedInsurance: selectedInsuranceDescription,
-            requestedAmount: parseFloat(requestedAmount),
+            requestedAmount: parseFloat(requestedAmount) || 0,
             installmentAmount: selectedCondition?.installment_amount || 0,
             clientAmount: selectedCondition?.client_amount || 0,
           }),
@@ -457,11 +467,25 @@ export function C6Simulation({
         
         if (digitizationResult.ok) {
           const savedDigitization = await digitizationResult.json();
+          console.log('✅ Digitalização salva com sucesso:', savedDigitization.id);
           // Salvar o ID para atualizar com link depois
           (window as any).currentDigitizationId = savedDigitization.id;
+          
+          toast({
+            title: "Digitalização salva",
+            description: "Registro adicionado ao histórico de digitalizações",
+          });
+        } else {
+          const errorText = await digitizationResult.text();
+          console.error('❌ Erro ao salvar digitalização:', errorText);
         }
       } catch (error) {
-        console.error('Erro ao salvar digitalização no histórico:', error);
+        console.error('❌ Erro ao salvar digitalização no histórico:', error);
+        toast({
+          title: "Erro no histórico",
+          description: "Não foi possível salvar no histórico de digitalizações",
+          variant: "destructive",
+        });
       }
 
       // Iniciar sistema de 15 tentativas
@@ -541,7 +565,7 @@ export function C6Simulation({
         // Sistema de tentativas iniciado
         toast({
           title: "Sistema de tentativas iniciado",
-          description: "Buscando link automaticamente a cada 5 minutos (15 tentativas)",
+          description: "Buscando link automaticamente a cada 20 segundos (15 tentativas)",
         });
         
         // Continuar verificando manualmente periodicamente
@@ -594,7 +618,7 @@ export function C6Simulation({
           } catch (error) {
             console.error('Erro ao verificar link:', error);
           }
-        }, 20 * 1000); // 5 minutos
+        }, 20 * 1000); // 20 segundos
       }
       
     } catch (error) {
