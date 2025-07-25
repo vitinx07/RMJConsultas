@@ -34,7 +34,7 @@ import { Benefit } from "@shared/schema";
 import { formatCurrency, formatDate, formatDateWithAge, formatCPF, formatBankAccount, getBenefitSpeciesName, getBankName, getBankCodeFromName } from "@/lib/utils";
 import { BankIcon } from "@/components/bank-icon";
 import { BanrisulSimulation } from "@/components/banrisul-simulation";
-import { C6Simulation } from "@/components/c6-simulation";
+import { C6Simulation } from "@/components/c6-simulation-new";
 
 interface BenefitDetailsProps {
   benefit: Benefit;

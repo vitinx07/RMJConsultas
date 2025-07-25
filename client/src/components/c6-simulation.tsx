@@ -67,24 +67,79 @@ interface C6SimulationProps {
   className?: string;
 }
 
+interface BenefitData {
+  Beneficiario: {
+    Nome: string;
+    CPF: string;
+    DataNascimento: string;
+    Beneficio: string;
+    NomeMae: string;
+    RG: string;
+    CEP: string;
+    Telefone: string;
+    Email: string;
+    Logradouro: string;
+    Numero: string;
+    Complemento: string;
+    Bairro: string;
+    Cidade: string;
+    UF: string;
+  };
+  ResumoFinanceiro: {
+    ValorBeneficio: string;
+  };
+  DadosBancarios: {
+    Banco: string;
+    AgenciaPagto: string;
+    ContaPagto: string;
+  };
+  Emprestimos: Array<{
+    Contrato: string;
+    Banco: string;
+    ValorParcela: number;
+  }>;
+}
+
+interface CreditCondition {
+  covenant: { code: string; description: string };
+  product: { code: string; description: string };
+  client_amount: number;
+  installment_amount: number;
+  installment_quantity: number;
+  interest_rate: number;
+  total_amount: number;
+  expenses?: Array<{
+    description_type: string;
+    amount: number;
+    exempt: string;
+  }>;
+}
+
 export function C6Simulation({ 
   cpf, 
   dataNascimento,
   className = ""
 }: C6SimulationProps) {
   const [isOpen, setIsOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState("simulation");
-  const [valorDesejado, setValorDesejado] = useState("");
-  const [prazoDesejado, setPrazoDesejado] = useState("60");
-  const [simulationResults, setSimulationResults] = useState<SimulationResult[]>([]);
+  const [step, setStep] = useState<'simulation' | 'digitization'>('simulation');
+  const [prazoDesejado, setPrazoDesejado] = useState("84");
+  const [benefitData, setBenefitData] = useState<BenefitData | null>(null);
   const [contracts, setContracts] = useState<C6Contract[]>([]);
   const [selectedContracts, setSelectedContracts] = useState<string[]>([]);
+  const [creditConditions, setCreditConditions] = useState<CreditCondition[]>([]);
+  const [selectedCondition, setSelectedCondition] = useState<CreditCondition | null>(null);
+  const [selectedInsurance, setSelectedInsurance] = useState<number>(-1);
   
-  // Dados para digitalização
+  // Dados para digitalização (pré-preenchidos)
   const [digitizationData, setDigitizationData] = useState({
+    // Dados pessoais
     nomeCompleto: '',
+    nomeMae: '',
+    rg: '',
     telefone: '',
     email: '',
+    
+    // Endereço
     cep: '',
     logradouro: '',
     numero: '',
@@ -92,46 +147,91 @@ export function C6Simulation({
     bairro: '',
     cidade: '',
     uf: '',
-    rendaLiquida: '',
-    valorDesejado: '',
-    prazoDesejado: '60'
+    
+    // Dados bancários
+    banco: '',
+    agencia: '',
+    conta: '',
+    
+    // Dados do benefício
+    beneficio: '',
+    rendaBruta: '',
+    
+    // Configurações do empréstimo
+    prazoDesejado: '84',
+    parcelaAtual: 0
   });
   
-  const [digitizationResult, setDigitizationResult] = useState<DigitizationResult | null>(null);
+  const [proposalNumber, setProposalNumber] = useState<string>('');
+  const [formalizationStatus, setFormalizationStatus] = useState<'idle' | 'searching' | 'found' | 'error'>('idle');
+  const [formalizationUrl, setFormalizationUrl] = useState<string>('');
   const [formalizationAttempts, setFormalizationAttempts] = useState(0);
   const { toast } = useToast();
 
-  // Buscar contratos disponíveis
-  const contractsMutation = useMutation({
+  // Buscar dados completos do CPF (MULTI CORBAN)
+  const fetchBenefitData = useMutation({
     mutationFn: async (cpf: string) => {
-      const response = await fetch('/api/c6/contracts', {
+      const response = await fetch('/api/multicorban/cpf', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ cpf }),
       });
 
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({ 
-          error: 'Erro ao buscar contratos' 
-        }));
-        throw new Error(errorData.error || 'Erro ao buscar contratos');
+        throw new Error('Erro ao buscar dados do beneficiário');
       }
 
-      return response.json();
+      const data = await response.json();
+      return data[0]; // Primeiro benefício
     },
     onSuccess: (data) => {
-      setContracts(data);
-      if (data.length === 0) {
-        toast({
-          title: "Nenhum contrato encontrado",
-          description: "Não foram encontrados contratos refinanciáveis para este CPF.",
-          variant: "destructive",
-        });
-      }
+      setBenefitData(data);
+      
+      // Pré-preencher dados de digitalização
+      const beneficiario = data.Beneficiario;
+      const bancarios = data.DadosBancarios;
+      const resumo = data.ResumoFinanceiro;
+      
+      setDigitizationData({
+        nomeCompleto: beneficiario.Nome || '',
+        nomeMae: beneficiario.NomeMae || '',
+        rg: beneficiario.RG || '',
+        telefone: beneficiario.Telefone || '',
+        email: beneficiario.Email || '',
+        cep: beneficiario.CEP || '',
+        logradouro: beneficiario.Logradouro || '',
+        numero: beneficiario.Numero || '',
+        complemento: beneficiario.Complemento || '',
+        bairro: beneficiario.Bairro || '',
+        cidade: beneficiario.Cidade || '',
+        uf: beneficiario.UF || '',
+        banco: bancarios.Banco || '',
+        agencia: bancarios.AgenciaPagto || '',
+        conta: bancarios.ContaPagto || '',
+        beneficio: beneficiario.Beneficio || '',
+        rendaBruta: resumo.ValorBeneficio || '',
+        prazoDesejado,
+        parcelaAtual: 0
+      });
+
+      // Filtrar contratos C6 Bank
+      const c6Contracts = data.Emprestimos?.filter((emp: any) => 
+        emp.Banco === '626' || emp.NomeBanco?.toLowerCase().includes('ficsa')
+      ) || [];
+      
+      setContracts(c6Contracts.map((emp: any) => ({
+        contrato: emp.Contrato,
+        dataContrato: emp.DataAverbacao,
+        valorParcela: emp.ValorParcela,
+        refinanciavel: true,
+        saldoDevedor: emp.SaldoDevedor || 0,
+        quantidadeParcelas: emp.PrazoRestante || 84,
+        convenio: 'INSS'
+      })));
     },
     onError: (error) => {
       toast({
-        title: "Erro ao buscar contratos",
+        title: "Erro ao buscar dados",
         description: error.message,
         variant: "destructive",
       });
