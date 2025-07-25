@@ -160,6 +160,55 @@ export function C6Simulation({
     setShowBankSuggestions(true);
   };
 
+  // Função para aceitar apenas números
+  const onlyNumbers = (value: string) => {
+    return value.replace(/\D/g, '');
+  };
+
+  // Função para extrair número da casa do endereço
+  const extractHouseNumber = (address: string) => {
+    // Padrão: "RUA CACHOEIRINHA 130, NOSSASENHORADA"
+    const match = address.match(/\b(\d+)\b/);
+    return match ? match[1] : '';
+  };
+
+  // Função para extrair logradouro sem o número
+  const extractStreetName = (address: string) => {
+    // Remove números e vírgulas do início até o primeiro número
+    return address.replace(/\b\d+\b.*$/, '').trim();
+  };
+
+  // Validações obrigatórias
+  const validateRequiredFields = () => {
+    const errors: string[] = [];
+    
+    if (!digitizationData.nomeCompleto) errors.push('Nome Completo');
+    if (!digitizationData.nomeMae) errors.push('Nome da Mãe');
+    if (!digitizationData.rg) errors.push('RG');
+    if (!digitizationData.ufRg) errors.push('UF do RG');
+    if (!digitizationData.orgaoExpedidor) errors.push('Órgão Expedidor');
+    if (!digitizationData.dataEmissaoRg) errors.push('Data Emissão RG');
+    if (!digitizationData.estadoCivil) errors.push('Estado Civil');
+    if (!digitizationData.sexo) errors.push('Sexo');
+    if (!digitizationData.pessoaPoliticamenteExposta) errors.push('Pessoa Politicamente Exposta');
+    if (!digitizationData.telefone || digitizationData.telefone.replace(/\D/g, '').length < 10) errors.push('Telefone (deve ter pelo menos 10 dígitos)');
+    if (!digitizationData.email || !digitizationData.email.includes('@')) errors.push('E-mail válido');
+    if (!digitizationData.cep || digitizationData.cep.replace(/\D/g, '').length !== 8) errors.push('CEP (deve ter 8 dígitos)');
+    if (!digitizationData.logradouro) errors.push('Logradouro');
+    if (!digitizationData.numero) errors.push('Número');
+    if (!digitizationData.bairro) errors.push('Bairro');
+    if (!digitizationData.cidade) errors.push('Cidade');
+    if (!digitizationData.uf) errors.push('UF');
+    if (!digitizationData.banco) errors.push('Banco');
+    if (!digitizationData.agencia || digitizationData.agencia.replace(/\D/g, '').length === 0) errors.push('Agência (somente números)');
+    if (!digitizationData.conta || digitizationData.conta.replace(/\D/g, '').length === 0) errors.push('Conta (somente números)');
+    if (!digitizationData.tipoContaDescricao) errors.push('Tipo de Conta');
+    if (!digitizationData.recebeCartaoBeneficio) errors.push('Recebe Cartão Benefício');
+    if (!digitizationData.ufBeneficio) errors.push('UF do Benefício');
+    
+    return errors;
+  };
+
   const [digitizationData, setDigitizationData] = useState({
     nomeCompleto: '',
     nomeMae: '',
@@ -388,8 +437,8 @@ export function C6Simulation({
               mobile_phone_area_code: cleanedPhone.substring(0, 2),
               mobile_phone_number: cleanedPhone.substring(2),
               bank_data: {
-                bank_code: digitizationData.banco.replace(/\D/g, ''),
-                agency_number: digitizationData.agencia.replace(/\D/g, ''),
+                bank_code: digitizationData.banco.split('-')[0]?.trim() || digitizationData.banco.replace(/\D/g, ''),
+                agency_number: digitizationData.agencia,
                 agency_digit: digitizationData.digitoAgencia,
                 account_type: digitizationData.tipoContaDescricao,
                 account_number: digitizationData.conta.length > 1 ? digitizationData.conta.slice(0, -1) : digitizationData.conta,
@@ -405,7 +454,7 @@ export function C6Simulation({
                 neighborhood: digitizationData.bairro,
                 city: digitizationData.cidade,
                 federation_unit: digitizationData.uf,
-                zip_code: digitizationData.cep
+                zip_code: digitizationData.cep.replace(/\D/g, '')
               },
               professional_data: {
                 enrollment: benefitData.Beneficiario.Beneficio
@@ -525,21 +574,21 @@ export function C6Simulation({
         <Button 
           variant="outline" 
           size="sm" 
-          className={`bg-blue-50 hover:bg-blue-100 text-blue-700 border-blue-200 ${className}`}
+          className={`bg-blue-50 hover:bg-green-100 text-green-700 border-green-200 ${className}`}
           onClick={() => {
             setIsOpen(true);
             fetchBenefitData.mutate(cpf);
           }}
         >
           <Building2 className="h-3 w-3 mr-1" />
-          C6 Bank
+          Simular
         </Button>
       </DialogTrigger>
 
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <Building2 className="h-5 w-5 text-blue-600" />
+            <Building2 className="h-5 w-5 text-green-600" />
             Sistema C6 Bank - Refinanciamento
           </DialogTitle>
         </DialogHeader>
@@ -938,7 +987,8 @@ export function C6Simulation({
                       <Input 
                         value={digitizationData.telefone}
                         onChange={(e) => {
-                          const formatted = formatPhone(e.target.value);
+                          const numbersOnly = onlyNumbers(e.target.value);
+                          const formatted = formatPhone(numbersOnly);
                           setDigitizationData(prev => ({...prev, telefone: formatted}));
                         }}
                         placeholder="(11) 99999-9999"
@@ -965,7 +1015,8 @@ export function C6Simulation({
                       <Input 
                         value={digitizationData.cep}
                         onChange={(e) => {
-                          const formatted = formatCEP(e.target.value);
+                          const numbersOnly = onlyNumbers(e.target.value);
+                          const formatted = formatCEP(numbersOnly);
                           setDigitizationData(prev => ({...prev, cep: formatted}));
                         }}
                         placeholder="00000-000"
@@ -976,14 +1027,29 @@ export function C6Simulation({
                       <Label>Logradouro *</Label>
                       <Input 
                         value={digitizationData.logradouro}
-                        onChange={(e) => setDigitizationData(prev => ({...prev, logradouro: e.target.value}))}
+                        onChange={(e) => {
+                          const fullAddress = e.target.value;
+                          const streetName = extractStreetName(fullAddress);
+                          const houseNumber = extractHouseNumber(fullAddress);
+                          
+                          setDigitizationData(prev => ({
+                            ...prev, 
+                            logradouro: streetName || fullAddress,
+                            numero: houseNumber || prev.numero
+                          }));
+                        }}
+                        placeholder="Ex: RUA CACHOEIRINHA 130, NOSSASENHORADA"
                       />
                     </div>
                     <div>
                       <Label>Número *</Label>
                       <Input 
                         value={digitizationData.numero}
-                        onChange={(e) => setDigitizationData(prev => ({...prev, numero: e.target.value}))}
+                        onChange={(e) => {
+                          const numbersOnly = onlyNumbers(e.target.value);
+                          setDigitizationData(prev => ({...prev, numero: numbersOnly}));
+                        }}
+                        placeholder="130"
                       />
                     </div>
                     <div>
@@ -1067,15 +1133,22 @@ export function C6Simulation({
                       <Label>Agência *</Label>
                       <Input 
                         value={digitizationData.agencia}
-                        onChange={(e) => setDigitizationData(prev => ({...prev, agencia: e.target.value}))}
+                        onChange={(e) => {
+                          const numbersOnly = onlyNumbers(e.target.value);
+                          setDigitizationData(prev => ({...prev, agencia: numbersOnly}));
+                        }}
+                        placeholder="1234"
                       />
                     </div>
                     <div>
                       <Label>Conta *</Label>
                       <Input 
                         value={digitizationData.conta}
-                        onChange={(e) => setDigitizationData(prev => ({...prev, conta: e.target.value}))}
-                        placeholder="Ex: 0554444"
+                        onChange={(e) => {
+                          const numbersOnly = onlyNumbers(e.target.value);
+                          setDigitizationData(prev => ({...prev, conta: numbersOnly}));
+                        }}
+                        placeholder="0554444"
                       />
                     </div>
                     <div>
@@ -1153,6 +1226,18 @@ export function C6Simulation({
 
               <Button 
                 onClick={() => {
+                  // Validar campos obrigatórios antes de digitalizar
+                  const validationErrors = validateRequiredFields();
+                  
+                  if (validationErrors.length > 0) {
+                    toast({
+                      title: "Campos obrigatórios não preenchidos",
+                      description: `Preencha: ${validationErrors.slice(0, 3).join(', ')}${validationErrors.length > 3 ? ` e mais ${validationErrors.length - 3}` : ''}`,
+                      variant: "destructive",
+                    });
+                    return;
+                  }
+                  
                   console.log('Starting digitization with selected expense item_number:', selectedExpenseItemNumber);
                   digitizationMutation.mutate();
                 }} 
