@@ -328,6 +328,7 @@ export function C6Simulation({
           selected_contracts: c6Contracts.map((c: any) => c.Contrato),
           credit_condition: selectedCondition,
           selected_expense: selectedExpense,
+          debug_expense: selectedExpense, // Log para debug
           proposal_data: {
             client: {
               tax_identifier: benefitData.Beneficiario.CPF,
@@ -383,6 +384,8 @@ export function C6Simulation({
       return response.json();
     },
     onSuccess: (data) => {
+      console.log('Digitalização successful:', data);
+      console.log('Expense selected at success:', selectedExpense);
       setProposalNumber(data.proposal_number);
       setStep('formalization');
       toast({
@@ -1062,6 +1065,7 @@ export function C6Simulation({
                           value=""
                           checked={selectedExpense === ''}
                           onChange={(e) => {
+                            console.log('No expense selected, value:', e.target.value);
                             setSelectedExpense(e.target.value);
                           }}
                           className="h-4 w-4 text-blue-600 focus:ring-blue-500"
@@ -1087,6 +1091,7 @@ export function C6Simulation({
                               value={expense.code}
                               checked={selectedExpense === expense.code}
                               onChange={(e) => {
+                                console.log('Selected expense:', e.target.value);
                                 setSelectedExpense(e.target.value);
                               }}
                               className="h-4 w-4 text-green-600 focus:ring-green-500"
@@ -1123,7 +1128,10 @@ export function C6Simulation({
               )}
 
               <Button 
-                onClick={() => digitizationMutation.mutate()} 
+                onClick={() => {
+                  console.log('Starting digitization with selected expense:', selectedExpense);
+                  digitizationMutation.mutate();
+                }} 
                 disabled={digitizationMutation.isPending || !selectedCondition}
                 className="w-full"
               >

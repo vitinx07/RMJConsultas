@@ -979,9 +979,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       if (!inclusionResponse.ok) {
         const errorData = await inclusionResponse.json();
+        console.error('C6 Inclusion Error:', errorData);
+        console.error('Payload sent:', JSON.stringify(inclusionPayload, null, 2));
         return res.status(inclusionResponse.status).json({
           error: 'Erro na inclusão da proposta C6 Bank',
-          details: errorData
+          details: errorData,
+          payload: inclusionPayload
         });
       }
 
