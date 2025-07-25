@@ -77,6 +77,7 @@ export function C6Simulation({
   const [benefitData, setBenefitData] = useState<BenefitData | null>(null);
   const [selectedContracts, setSelectedContracts] = useState<string[]>([]);
   const [installmentQuantity, setInstallmentQuantity] = useState(84);
+  const [manualInstallmentAmount, setManualInstallmentAmount] = useState<number | null>(null);
   const [creditConditions, setCreditConditions] = useState<CreditCondition[]>([]);
   const [selectedCondition, setSelectedCondition] = useState<CreditCondition | null>(null);
   const [selectedInsurance, setSelectedInsurance] = useState<number>(-1);
@@ -170,9 +171,10 @@ export function C6Simulation({
         selectedContracts.includes(c.Contrato)
       );
       
-      const totalParcela = selectedContractData.reduce((sum: number, c: any) => 
-        sum + (c.ValorParcela || 0), 0
-      );
+      const totalParcela = manualInstallmentAmount || 
+        selectedContractData.reduce((sum: number, c: any) => 
+          sum + (c.ValorParcela || 0), 0
+        );
 
       const response = await fetch('/api/c6-bank/simulate', {
         method: 'POST',
@@ -461,7 +463,7 @@ export function C6Simulation({
                 <div className="space-y-4 border-t pt-4">
                   <h3 className="font-semibold text-lg">2. Simulação de Refinanciamento</h3>
                   
-                  <div className="grid grid-cols-1 gap-4">
+                  <div className="grid grid-cols-2 gap-4">
                     <div>
                       <label className="block text-sm font-medium mb-2">
                         Prazo Desejado (meses)
@@ -475,6 +477,34 @@ export function C6Simulation({
                           <option key={months} value={months}>{months} meses</option>
                         ))}
                       </select>
+                    </div>
+                    
+                    <div>
+                      <label className="block text-sm font-medium mb-2">
+                        Parcela Atual Total
+                      </label>
+                      <input
+                        type="number"
+                        step="0.01"
+                        value={manualInstallmentAmount !== null ? manualInstallmentAmount : (() => {
+                          if (!benefitData) return '';
+                          const c6Contracts = benefitData.Emprestimos?.filter((emp: any) => 
+                            emp.Banco === '626' || emp.NomeBanco?.toLowerCase().includes('ficsa')
+                          ) || [];
+                          const selectedContractData = c6Contracts.filter((c: any) => 
+                            selectedContracts.includes(c.Contrato)
+                          );
+                          return selectedContractData.reduce((sum: number, c: any) => 
+                            sum + (c.ValorParcela || 0), 0
+                          );
+                        })()}
+                        onChange={(e) => {
+                          const value = parseFloat(e.target.value) || 0;
+                          setManualInstallmentAmount(value);
+                        }}
+                        className="w-full p-2 border border-gray-300 rounded-md"
+                        placeholder="0.00"
+                      />
                     </div>
                   </div>
 
@@ -498,64 +528,62 @@ export function C6Simulation({
                 </div>
               )}
 
-              {/* Seção 3: Escolha da Condição de Crédito */}
+              {/* Seção 3: Tabela de Condições de Crédito */}
               {creditConditions.length > 0 && (
                 <div className="space-y-4 border-t pt-4">
                   <h3 className="font-semibold text-lg">3. Escolha a Condição de Crédito</h3>
                   
-                  <div className="grid gap-3">
-                    {creditConditions.map((condition, index) => (
-                      <div
-                        key={index}
-                        className={`p-4 border rounded-lg cursor-pointer transition-colors ${
-                          selectedCondition === index
-                            ? 'border-blue-500 bg-blue-50'
-                            : 'border-gray-200 hover:border-gray-300'
-                        }`}
-                        onClick={() => setSelectedCondition(index)}
-                      >
-                        <div className="flex justify-between items-center">
-                          <div>
-                            <div className="font-medium">
-                              Prazo: {condition.installment_quantity} meses
-                            </div>
-                            <div className="text-sm text-gray-600">
-                              Parcela: R$ {condition.installment_amount?.toFixed(2)}
-                            </div>
-                            <div className="text-sm text-gray-600">
-                              Valor Liberado: R$ {condition.net_amount?.toFixed(2)}
-                            </div>
-                          </div>
-                          <div className={`w-4 h-4 rounded-full border-2 ${
-                            selectedCondition === index
-                              ? 'bg-blue-500 border-blue-500'
-                              : 'border-gray-300'
-                          }`}>
-                            {selectedCondition === index && (
-                              <div className="w-2 h-2 bg-white rounded-full m-0.5"></div>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                    ))}
+                  <div className="overflow-x-auto">
+                    <table className="w-full border-collapse border border-gray-200">
+                      <thead>
+                        <tr className="bg-gray-50">
+                          <th className="border border-gray-200 px-4 py-2 text-left">Prazo (meses)</th>
+                          <th className="border border-gray-200 px-4 py-2 text-left">Parcela</th>
+                          <th className="border border-gray-200 px-4 py-2 text-left">Valor Liberado</th>
+                          <th className="border border-gray-200 px-4 py-2 text-left">Taxa</th>
+                          <th className="border border-gray-200 px-4 py-2 text-center">Ação</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {creditConditions.map((condition, index) => (
+                          <tr key={index} className="hover:bg-gray-50">
+                            <td className="border border-gray-200 px-4 py-2 font-medium">
+                              {condition.installment_quantity}
+                            </td>
+                            <td className="border border-gray-200 px-4 py-2">
+                              R$ {condition.installment_amount?.toFixed(2)}
+                            </td>
+                            <td className="border border-gray-200 px-4 py-2">
+                              R$ {condition.net_amount?.toFixed(2)}
+                            </td>
+                            <td className="border border-gray-200 px-4 py-2">
+                              {condition.interest_rate ? `${condition.interest_rate}%` : 'N/A'}
+                            </td>
+                            <td className="border border-gray-200 px-4 py-2 text-center">
+                              <Button
+                                size="sm"
+                                onClick={() => {
+                                  setSelectedCondition(index);
+                                  setStep('digitization');
+                                }}
+                                className="bg-green-600 hover:bg-green-700"
+                              >
+                                Digitar
+                              </Button>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
                   </div>
 
-                  <div className="flex gap-3">
-                    <Button 
-                      variant="outline" 
-                      onClick={() => setCreditConditions([])}
-                      className="flex-1"
-                    >
-                      Voltar
-                    </Button>
-                    <Button 
-                      onClick={() => setStep('digitization')} 
-                      disabled={selectedCondition === null}
-                      className="flex-1"
-                    >
-                      Continuar para Digitalização
-                    </Button>
-                  </div>
+                  <Button 
+                    variant="outline" 
+                    onClick={() => setCreditConditions([])}
+                    className="w-full"
+                  >
+                    Nova Simulação
+                  </Button>
                 </div>
               )}
             </CardContent>
