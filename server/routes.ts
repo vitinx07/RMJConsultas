@@ -841,10 +841,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           birth_date: beneficiario.DataNascimento,
           income_amount: parseFloat(resumoFinanceiro?.ValorBeneficio || '5000')
         },
-        refinancing_contracts: selected_contracts.filter(contract => {
-          const contractStr = String(contract);
-          return !contractStr.startsWith('19'); // Filtrar contratos problemáticos
-        })
+        refinancing_contracts: selected_contracts
       };
 
       // 4. Fazer simulação no C6
@@ -914,39 +911,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // 4. Usar despesas já processadas do frontend
       const expensesForInclusion = credit_condition.expenses || [];
 
-      // 4. Filtrar contratos válidos (remover contratos que podem não existir na base C6)
-      const validContracts = selected_contracts.filter(contract => {
-        // Filtrar contratos que começam com números específicos conhecidos como válidos no C6
-        // Contratos que começam com 19 (1900...) podem ser problemáticos
-        const contractStr = String(contract);
-        
-        // Log para debug
-        console.log(`🔍 Validando contrato: ${contractStr}`);
-        
-        // Manter apenas contratos que NÃO começam com "19"
-        const isValid = !contractStr.startsWith('19');
-        
-        if (!isValid) {
-          console.log(`❌ Contrato filtrado (não válido): ${contractStr}`);
-        } else {
-          console.log(`✅ Contrato válido: ${contractStr}`);
-        }
-        
-        return isValid;
-      });
-
-      console.log(`📊 Contratos originais: ${selected_contracts.length}, Contratos válidos: ${validContracts.length}`);
-      console.log(`📋 Contratos válidos para inclusão:`, validContracts);
-
-      // Se nenhum contrato válido, retornar erro
-      if (validContracts.length === 0) {
-        return res.status(400).json({
-          error: 'Nenhum contrato válido encontrado para refinanciamento',
-          details: 'Todos os contratos selecionados foram filtrados por serem inválidos na base C6'
-        });
-      }
-
-      // 5. Montar payload de inclusão
+      // 4. Montar payload de inclusão
       const inclusionPayload = {
         formalization_subtype: "DIGITAL_WEB",
         operation_type: "REFINANCIAMENTO",
@@ -991,7 +956,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             enrollment: benefit_data.Beneficiario?.Beneficio
           }
         },
-        refinancing_contracts: validContracts,
+        refinancing_contracts: selected_contracts,
         expenses: expensesForInclusion
       };
 
