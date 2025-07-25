@@ -395,8 +395,8 @@ export function C6Simulation({
                 agency_number: digitizationData.agencia.replace(/\D/g, ''),
                 agency_digit: digitizationData.digitoAgencia,
                 account_type: digitizationData.tipoContaDescricao,
-                account_number: digitizationData.conta.length > 1 ? digitizationData.conta.slice(0, -1) : digitizationData.conta,
-                account_digit: digitizationData.conta.length > 1 ? digitizationData.conta.slice(-1) : ""
+                account_number: digitizationData.conta.replace(/\D/g, '').length > 1 ? digitizationData.conta.replace(/\D/g, '').slice(0, -1) : digitizationData.conta.replace(/\D/g, ''),
+                account_digit: digitizationData.conta.replace(/\D/g, '').length > 1 ? digitizationData.conta.replace(/\D/g, '').slice(-1) : ""
               },
               benefit_data: {
                 receive_card_benefit: digitizationData.recebeCartaoBeneficio,

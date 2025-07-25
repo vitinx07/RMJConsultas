@@ -345,7 +345,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Update password and remove mustChangePassword flag + set new expiry
       await storage.updateUserPassword(user.id, newPassword);
-      
+
       // Set new password expiry and clear temporary flags
       const { passwordExpiryService } = await import("./password-expiry");
       await passwordExpiryService.setNewPasswordExpiry(user.id);
@@ -390,7 +390,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     app.post("/api/auth/simulate-expiry", requireAuthHybrid, async (req, res) => {
       try {
         const { daysToExpiry } = req.body;
-        
+
         if (typeof daysToExpiry !== 'number' || daysToExpiry < 0 || daysToExpiry > 365) {
           return res.status(400).json({ error: "Dias para expiração deve ser entre 0 e 365" });
         }
@@ -719,7 +719,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/c6/contracts', requireAuthHybrid, async (req, res) => {
     try {
       const { cpf } = req.body;
-      
+
       // Esta é uma simulação para o sistema atual
       // Em uma implementação real, buscaria contratos do C6 Bank via API
       const mockContracts = [
@@ -754,7 +754,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/c6/simulate', requireAuthHybrid, async (req, res) => {
     try {
       const { cpf, dataNascimento, valorDesejado, prazoDesejado, contratos } = req.body;
-      
+
       // Esta é uma simulação para o sistema atual
       // Em uma implementação real, faria simulação via API do C6 Bank
       const mockSimulation = [
@@ -803,7 +803,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const baseUrl = req.headers.host?.includes('replit.dev') || req.headers.host?.includes('worf.replit.dev') 
         ? `https://${req.headers.host}` 
         : 'http://localhost:5000';
-      
+
       const clientData = await fetch(`${baseUrl}/api/multicorban/cpf`, {
         method: 'POST',
         headers: {
@@ -830,6 +830,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         promoter_code: "003130",
         covenant_group: "INSS",
         public_agency: "000001",
+```python
         installment_quantity,
         ...(simulation_type === 'POR_VALOR_SOLICITADO' 
           ? { requested_amount } 
@@ -921,7 +922,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const c6Contracts = allContracts.filter((emp: any) => 
         emp.Banco === '626' || emp.NomeBanco?.toLowerCase().includes('ficsa') || emp.NomeBanco?.toLowerCase().includes('c6')
       );
-      
+
       const c6ContractNumbers = c6Contracts.map((c: any) => c.Contrato);
       const nonC6Contracts = selected_contracts.filter((contract: string) => 
         !c6ContractNumbers.includes(contract)
@@ -1024,7 +1025,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Log do payload completo antes do envio
       console.log('📤 PAYLOAD COMPLETO PARA C6:', JSON.stringify(inclusionPayload, null, 2));
-      
+
       // 5. Fazer inclusão no C6
       const inclusionResponse = await fetch('https://marketplace-proposal-service-api-p.c6bank.info/marketplace/proposal', {
         method: 'POST',
@@ -1037,19 +1038,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
 
       console.log('📥 C6 RESPONSE STATUS:', inclusionResponse.status);
-      
+
       if (!inclusionResponse.ok) {
         const errorData = await inclusionResponse.json();
         console.error('❌ C6 INCLUSION ERROR (Status ' + inclusionResponse.status + '):', errorData);
-        
+
         // Analisar tipos específicos de erro e fornecer mensagens amigáveis
         let userMessage = 'Erro na digitalização da proposta';
         let shouldRetry = false;
-        
+
         if (errorData.details && Array.isArray(errorData.details)) {
           for (const detail of errorData.details) {
             const message = detail.message || '';
-            
+
             // Erro de operação não encontrada
             if (message.includes('não foi encontrada na base de dados')) {
               const contractMatch = message.match(/Operação (\d+)/);
@@ -1057,26 +1058,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
               userMessage = `O contrato ${contract} não foi encontrado na base do C6 Bank. Verifique se o número está correto e se é elegível para refinanciamento.`;
               break;
             }
-            
+
             // Erro de valor menor ou igual
             if (message.includes('valor menor ou igual') || message.includes('minimum') || message.includes('maximum')) {
               userMessage = 'O valor da parcela está fora dos limites permitidos. Ajuste o valor e tente novamente.';
               shouldRetry = true;
               break;
             }
-            
+
             // Erro de validação de dados
             if (message.includes('Validation error') || message.includes('campo obrigatório')) {
               userMessage = 'Dados obrigatórios estão faltando ou incorretos. Verifique as informações preenchidas.';
               break;
             }
-            
+
             // Erro de CPF
             if (message.includes('CPF') || message.includes('tax_identifier')) {
               userMessage = 'Problema com o CPF informado. Verifique se está correto e válido.';
               break;
             }
-            
+
             // Erro de banco
             if (message.includes('bank_data') || message.includes('conta') || message.includes('agencia')) {
               userMessage = 'Dados bancários incorretos. Verifique banco, agência e conta.';
@@ -1084,7 +1085,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             }
           }
         }
-        
+
         // Log detalhado para debug
         console.log('🔍 CAMPOS CRÍTICOS:');
         console.log('  - covenant_code:', creditConditionForInclusion.covenant_code);
@@ -1093,7 +1094,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.log('  - cpf:', inclusionPayload.client?.tax_identifier);
         console.log('  - contracts:', selected_contracts);
         console.log('  - expenses count:', inclusionPayload.expenses?.length);
-        
+
         return res.status(inclusionResponse.status).json({
           error: userMessage,
           details: errorData,
@@ -1105,12 +1106,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const inclusionResult = await inclusionResponse.json();
       console.log('✅ PROPOSTA DIGITADA COM SUCESSO:', inclusionResult);
-      
+
       // Se tiver número da proposta, iniciar tentativas de busca do link
       if (inclusionResult.proposalNumber) {
         console.log('🔄 Iniciando tentativas para buscar link de formalização...');
         console.log('📋 Número da proposta:', inclusionResult.proposalNumber);
-        
+
         // Adicionar informações de tentativas na resposta
         inclusionResult.linkAttemptInfo = {
           proposalNumber: inclusionResult.proposalNumber,
@@ -1118,7 +1119,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           intervalMinutes: 5
         };
       }
-      
+
       res.json(inclusionResult);
 
     } catch (error) {
@@ -1131,13 +1132,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/c6-bank/formalization-link-attempts', requireAuthHybrid, async (req, res) => {
     try {
       const { proposalNumber } = req.body;
-      
+
       if (!proposalNumber) {
         return res.status(400).json({ error: 'Número da proposta é obrigatório' });
       }
 
       console.log('🚀 Iniciando 15 tentativas para proposta:', proposalNumber);
-      
+
       let attemptCount = 0;
       const maxAttempts = 15;
       const intervalMs = 5 * 60 * 1000; // 5 minutos
@@ -1195,7 +1196,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Primeira tentativa imediata
       let result = await tryGetLink();
-      
+
       if (result.success) {
         return res.json({
           ...result.data,
@@ -1228,7 +1229,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
 
         result = await tryGetLink();
-        
+
         if (result.success) {
           console.log(`🎉 SUCESSO! Link encontrado na tentativa ${result.attempt} para proposta ${proposalNumber}`);
           console.log(`🔗 Link disponível: ${result.data.url || result.data.formalizationUrl}`);
@@ -1281,7 +1282,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!linkResponse.ok) {
         const errorText = await linkResponse.text();
         console.log('❌ Erro na busca do link:', errorText);
-        
+
         if (linkResponse.status === 404) {
           return res.status(404).json({ 
             error: 'Link ainda não disponível',
@@ -1353,13 +1354,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/c6-bank/consultar-proposta', requireAuthHybrid, async (req, res) => {
     try {
       const { proposalNumber } = req.body;
-      
+
       if (!proposalNumber) {
         return res.status(400).json({ error: 'Número da proposta é obrigatório' });
       }
-      
+
       console.log(`🔍 Consultando proposta ${proposalNumber}...`);
-      
+
       // 1. Autenticar no C6 Bank
       const authResponse = await fetch('https://marketplace-proposal-service-api-p.c6bank.info/auth/token', {
         method: 'POST',
@@ -1387,11 +1388,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
           'Accept': 'application/vnd.c6bank_fgts_consult_v2+json'
         }
       });
-      
+
       if (!response.ok) {
         const errorText = await response.text();
         console.log('❌ Erro na consulta da proposta:', errorText);
-        
+
         if (response.status === 404) {
           return res.status(404).json({ 
             error: 'Proposta não encontrada',
@@ -1399,12 +1400,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
             proposalNumber 
           });
         }
-        
+
         throw new Error(`API C6 retornou status ${response.status}`);
       }
-      
+
       const data = await response.json();
-      
+
       // Extrair informações detalhadas da proposta
       const proposalDetails = {
         proposalNumber: data.proposal_number || proposalNumber,
@@ -1422,11 +1423,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         historicoMovimentacao: data.loan_track || null,
         dadosCompletos: data
       };
-      
+
       console.log('✅ Proposta consultada com detalhes completos');
-      
+
       res.json(proposalDetails);
-      
+
     } catch (error) {
       console.error('❌ Erro ao consultar proposta:', error);
       res.status(500).json({ error: 'Erro ao consultar proposta na API C6' });
@@ -1437,13 +1438,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/c6-bank/consultar-movimentacao', requireAuthHybrid, async (req, res) => {
     try {
       const { proposalNumber } = req.body;
-      
+
       if (!proposalNumber) {
         return res.status(400).json({ error: 'Número da proposta é obrigatório' });
       }
-      
+
       console.log(`📊 Consultando movimentação da proposta ${proposalNumber}...`);
-      
+
       // 1. Autenticar no C6 Bank  
       const authResponse = await fetch('https://marketplace-proposal-service-api-p.c6bank.info/auth/token', {
         method: 'POST',
@@ -1471,11 +1472,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
           'Accept': 'application/vnd.c6bank_fgts_consult_v2+json'
         }
       });
-      
+
       if (!response.ok) {
         const errorText = await response.text();
         console.log('❌ Erro na consulta de movimentação:', errorText);
-        
+
         if (response.status === 404) {
           return res.status(404).json({ 
             error: 'Movimentação não encontrada',
@@ -1483,16 +1484,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
             proposalNumber 
           });
         }
-        
+
         throw new Error(`API C6 retornou status ${response.status}`);
       }
-      
+
       const data = await response.json();
-      
+
       // Extrair movimentações e histórico detalhado
       const movimentacoes = data.loan_track?.movements || data.movements || data.movement_history || [];
       const observacoes = data.loan_track?.observations || data.observations || [];
-      
+
       res.json({
         proposalNumber,
         movements: movimentacoes,
@@ -1502,7 +1503,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         situacao: data.situation,
         atividadeAtual: data.current_activity_description
       });
-      
+
     } catch (error) {
       console.error('❌ Erro ao consultar movimentação:', error);
       res.status(500).json({ error: 'Erro ao consultar movimentação na API C6' });
@@ -1699,16 +1700,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const userId = req.user!.id;
       const period = req.query.period ? parseInt(req.query.period as string) : 30;
       const consultations = await storage.getConsultations(period, userId);
-      
+
       // Enriquecer dados com informações do resultData para melhor exibição
       const enrichedConsultations = consultations.map(consultation => {
         const resultData = consultation.resultData;
         let enrichedData = { ...consultation };
-        
+
         if (resultData) {
           // Se resultData é um array, pegar o primeiro item
           const firstBenefit = Array.isArray(resultData) ? resultData[0] : resultData;
-          
+
           if (firstBenefit && firstBenefit.Beneficiario) {
             // Usar dados já salvos nas colunas normalizadas, mas fallback para resultData se necessário
             if (!enrichedData.beneficiaryName) {
@@ -1728,10 +1729,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
             }
           }
         }
-        
+
         return enrichedData;
       });
-      
+
       res.json(enrichedConsultations);
     } catch (error) {
       console.error("Erro ao buscar histórico de consultas:", error);
@@ -1945,7 +1946,7 @@ consultation = await storage.getConsultationByCpf(cpf as string, userId);
   });
 
   // Client markers routes - Sistema de marcação de clientes
-  
+
   // Buscar marcação de um cliente por CPF
   app.get("/api/client-markers/:cpf", requireAuthHybrid, requireAnyRole, async (req, res) => {
     try {
@@ -1988,18 +1989,18 @@ consultation = await storage.getConsultationByCpf(cpf as string, userId);
     try {
       const { cpf } = req.params;
       const user = req.user!;
-      
+
       // Verificar se a marcação existe e pertence ao usuário atual
       const existingMarker = await storage.getClientMarker(cpf);
       if (!existingMarker) {
         return res.status(404).json({ error: "Marcação não encontrada" });
       }
-      
+
       // Verificar se o usuário pode editar: dono da marcação, quem assumiu a venda, ou administrador
       const canEdit = existingMarker.userId === user.id || 
                      existingMarker.assumedBy === user.id || 
                      user.role === "administrator";
-      
+
       if (!canEdit) {
         return res.status(403).json({ 
           error: "Você só pode alterar marcações suas ou que tenha assumido" 
@@ -2049,7 +2050,7 @@ consultation = await storage.getConsultationByCpf(cpf as string, userId);
     try {
       const { cpf } = req.params;
       const user = req.user!;
-      
+
       // Apenas administradores podem remover marcações
       if (user.role !== "administrator") {
         return res.status(403).json({ 
@@ -2101,7 +2102,7 @@ consultation = await storage.getConsultationByCpf(cpf as string, userId);
       }
 
       const { cpf } = req.params;
-      
+
       // Buscar marcação existente
       const existingMarker = await storage.getClientMarker(cpf);
       if (!existingMarker) {
@@ -2134,10 +2135,10 @@ consultation = await storage.getConsultationByCpf(cpf as string, userId);
   app.get("/api/client-markers/unmarked", requireAuthHybrid, async (req, res) => {
     try {
       const user = req.user!;
-      
+
       // Buscar clientes consultados pelo usuário que não foram marcados
       const unmarkedClients = await storage.getUnmarkedClients(user.id);
-      
+
       res.json(unmarkedClients);
     } catch (error) {
       console.error("Erro ao buscar clientes não marcados:", error);
@@ -2213,7 +2214,7 @@ consultation = await storage.getConsultationByCpf(cpf as string, userId);
     try {
       const { id } = req.params;
       const digitization = await storage.getC6DigitizationById(id);
-      
+
       if (!digitization) {
         return res.status(404).json({ error: "Digitalização não encontrada" });
       }
@@ -2248,7 +2249,7 @@ consultation = await storage.getConsultationByCpf(cpf as string, userId);
       const { status, formalizationLink } = req.body;
 
       const digitization = await storage.updateC6DigitizationStatus(id, status, formalizationLink);
-      
+
       if (!digitization) {
         return res.status(404).json({ error: "Digitalização não encontrada" });
       }
@@ -2267,7 +2268,7 @@ consultation = await storage.getConsultationByCpf(cpf as string, userId);
       const digitizations = await storage.getC6DigitizationsByUser(userId);
       let updatedCount = 0;
       const updates = [];
-      
+
       for (const digitization of digitizations) {
         if (digitization.status === 'pending' && digitization.proposalNumber) {
           try {
@@ -2284,11 +2285,11 @@ consultation = await storage.getConsultationByCpf(cpf as string, userId);
               const statusData = await statusResponse.json();
               let newStatus = digitization.status;
               let formalizationLink = digitization.formalizationLink;
-              
+
               // Mapear status da API C6 para nossos status
               if (statusData.status === 'APPROVED' || statusData.situation === 'APROVADA') {
                 newStatus = 'approved';
-                
+
                 // Tentar buscar link de formalização
                 try {
                   const linkResponse = await fetch(`http://localhost:5000/api/c6-bank/formalization-link/${digitization.proposalNumber}`, {
@@ -2298,7 +2299,7 @@ consultation = await storage.getConsultationByCpf(cpf as string, userId);
                       'Cookie': req.headers.cookie || ''
                     }
                   });
-                  
+
                   if (linkResponse.ok) {
                     const linkData = await linkResponse.json();
                     if (linkData.url || linkData.formalizationUrl) {
@@ -2308,13 +2309,13 @@ consultation = await storage.getConsultationByCpf(cpf as string, userId);
                 } catch (linkError) {
                   console.log(`Link ainda não disponível para proposta ${digitization.proposalNumber}`);
                 }
-                
+
               } else if (statusData.situation === 'REPROVADA' || statusData.status === 'REJECTED') {
                 newStatus = 'rejected';
               } else if (statusData.situation === 'EM ANÁLISE' || statusData.status === 'CREDIT_ANALYSIS') {
                 newStatus = 'pending';
               }
-              
+
               // Atualizar se houve mudança
               if (newStatus !== digitization.status || formalizationLink !== digitization.formalizationLink) {
                 await storage.updateC6DigitizationStatus(digitization.id, newStatus, formalizationLink);
@@ -2332,7 +2333,7 @@ consultation = await storage.getConsultationByCpf(cpf as string, userId);
           }
         }
       }
-      
+
       res.json({ 
         message: 'Status das digitalizações atualizados com sucesso',
         updatedCount,
