@@ -134,7 +134,7 @@ export default function DigitalizacoesPage() {
     }
   };
 
-  const filteredDigitizations = digitizations.filter((dig: C6Digitization) => {
+  const filteredDigitizations = (digitizations as C6Digitization[]).filter((dig: C6Digitization) => {
     const matchesSearch = 
       dig.clientName.toLowerCase().includes(searchTerm.toLowerCase()) ||
       dig.cpf.includes(searchTerm) ||
@@ -308,19 +308,19 @@ export default function DigitalizacoesPage() {
                       <div className="flex justify-between">
                         <span className="text-sm">Valor Solicitado:</span>
                         <span className="font-medium text-green-600">
-                          R$ {digitization.requestedAmount.toFixed(2)}
+                          R$ {(digitization.requestedAmount || 0).toFixed(2)}
                         </span>
                       </div>
                       <div className="flex justify-between">
                         <span className="text-sm">Parcela:</span>
                         <span className="font-medium">
-                          R$ {digitization.installmentAmount.toFixed(2)}
+                          R$ {(digitization.installmentAmount || 0).toFixed(2)}
                         </span>
                       </div>
                       <div className="flex justify-between">
                         <span className="text-sm font-semibold">Troco:</span>
                         <span className="font-bold text-blue-600">
-                          R$ {digitization.clientAmount.toFixed(2)}
+                          R$ {(digitization.clientAmount || 0).toFixed(2)}
                         </span>
                       </div>
                     </div>
@@ -332,7 +332,7 @@ export default function DigitalizacoesPage() {
                       Contratos
                     </h4>
                     <div className="space-y-1">
-                      {digitization.selectedContracts.map((contract: string, index: number) => (
+                      {(digitization.selectedContracts || []).map((contract: string, index: number) => (
                         <div key={index} className="flex items-center gap-2">
                           <CreditCard className="h-3 w-3 text-muted-foreground" />
                           <span className="text-sm font-mono">{contract}</span>
