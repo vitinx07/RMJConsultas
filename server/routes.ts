@@ -924,7 +924,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           tax_identifier_of_certified_agent: "46437248890"
         },
         credit_condition: creditConditionForInclusion,
-        payment: paymentData,
+        bank_data: paymentData,
         client: {
           tax_identifier: proposal_data.client.tax_identifier,
           name: proposal_data.client.name,
@@ -980,6 +980,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!paymentData.bank_code) validationErrors.push('Código do banco ausente');
       if (!paymentData.agency_number) validationErrors.push('Agência ausente');
       if (!paymentData.account_number) validationErrors.push('Conta ausente');
+      if (!inclusionPayload.bank_data) validationErrors.push('bank_data ausente');
       
       if (validationErrors.length > 0) {
         console.error('❌ VALIDAÇÃO FALHOU:', validationErrors);
@@ -1003,6 +1004,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Log do payload completo antes do envio
       console.log('📤 PAYLOAD COMPLETO PARA C6:', JSON.stringify(inclusionPayload, null, 2));
+      console.log('🔍 BANK_DATA STRUCTURE:', JSON.stringify(paymentData, null, 2));
       
       // 5. Fazer inclusão no C6
       const inclusionResponse = await fetch('https://marketplace-proposal-service-api-p.c6bank.info/marketplace/proposal', {
