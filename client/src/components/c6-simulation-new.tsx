@@ -1068,11 +1068,14 @@ export function C6Simulation({
                         className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                       >
                         <option value="none">✅ Sem seguro adicional (Recomendado) - R$ 0,00</option>
-                        {selectedCondition.expenses.map((expense) => (
-                          <option key={expense.code} value={expense.code}>
-                            {expense.description_type} - R$ {expense.amount.toFixed(2)}
-                          </option>
-                        ))}
+                        {selectedCondition.expenses.map((expense) => {
+                          console.log('Expense disponível:', expense.code, expense.description_type);
+                          return (
+                            <option key={expense.code} value={expense.code}>
+                              {expense.description_type} - R$ {expense.amount.toFixed(2)}
+                            </option>
+                          );
+                        })}
                       </select>
                     </div>
                     
