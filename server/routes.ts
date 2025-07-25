@@ -943,14 +943,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
           email: proposal_data.client.email,
           mobile_phone_area_code: proposal_data.client.mobile_phone_area_code,
           mobile_phone_number: proposal_data.client.mobile_phone_number,
-          bank_data: paymentData,
           benefit_data: {
             receive_card_benefit: "Nao",
             federation_unit: benefit_data.Beneficiario?.UFBeneficio || "SP"
           },
           address: {
-            ...proposal_data.client.address,
-            zip_code: proposal_data.client.address.zip_code.replace('-', '') // Remove hífen do CEP
+            street: proposal_data.client.address.street,
+            number: proposal_data.client.address.number,
+            neighborhood: proposal_data.client.address.neighborhood,
+            city: proposal_data.client.address.city,
+            federation_unit: proposal_data.client.address.federation_unit,
+            zip_code: proposal_data.client.address.zip_code.replace(/\D/g, '') // Remove todos os caracteres não numéricos
           },
           professional_data: {
             enrollment: benefit_data.Beneficiario?.Beneficio
@@ -959,6 +962,38 @@ export async function registerRoutes(app: Express): Promise<Server> {
         refinancing_contracts: selected_contracts,
         expenses: expensesForInclusion
       };
+
+      // Validação dos campos obrigatórios antes do envio
+      const validationErrors = [];
+      
+      if (!creditConditionForInclusion.covenant_code) validationErrors.push('covenant_code ausente');
+      if (!creditConditionForInclusion.product_code) validationErrors.push('product_code ausente');
+      if (!inclusionPayload.client?.tax_identifier) validationErrors.push('CPF ausente');
+      if (!inclusionPayload.client?.name) validationErrors.push('Nome ausente');
+      if (!inclusionPayload.client?.birth_date) validationErrors.push('Data de nascimento ausente');
+      if (!inclusionPayload.client?.address?.zip_code || inclusionPayload.client.address.zip_code.length !== 8) {
+        validationErrors.push('CEP inválido (deve ter 8 dígitos)');
+      }
+      if (!paymentData.bank_code) validationErrors.push('Código do banco ausente');
+      if (!paymentData.agency_number) validationErrors.push('Agência ausente');
+      if (!paymentData.account_number) validationErrors.push('Conta ausente');
+      
+      if (validationErrors.length > 0) {
+        console.error('❌ VALIDAÇÃO FALHOU:', validationErrors);
+        return res.status(400).json({
+          error: 'Campos obrigatórios faltando ou inválidos',
+          validation_errors: validationErrors,
+          received_data: {
+            covenant_code: creditConditionForInclusion.covenant_code,
+            product_code: creditConditionForInclusion.product_code,
+            cpf: inclusionPayload.client?.tax_identifier,
+            cep: inclusionPayload.client?.address?.zip_code,
+            bank_code: paymentData.bank_code,
+            agency: paymentData.agency_number,
+            account: paymentData.account_number
+          }
+        });
+      }
 
       // Log do payload completo antes do envio
       console.log('📤 PAYLOAD COMPLETO PARA C6:', JSON.stringify(inclusionPayload, null, 2));
