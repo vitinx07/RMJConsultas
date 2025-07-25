@@ -895,14 +895,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const authData = await authResponse.json();
       const token = authData.access_token;
 
-      // 2. Preparar dados bancários
+      // 2. Preparar dados bancários com limpeza e validação
+      const bankData = proposal_data.client.bank_data;
       const paymentData = {
-        bank_code: proposal_data.client.bank_data.bank_code,
-        agency_number: proposal_data.client.bank_data.agency_number,
-        agency_digit: proposal_data.client.bank_data.agency_digit,
-        account_type: proposal_data.client.bank_data.account_type,
-        account_number: proposal_data.client.bank_data.account_number,
-        account_digit: proposal_data.client.bank_data.account_digit
+        bank_code: String(bankData.bank_code).split('-')[0].trim().replace(/\D/g, ''),
+        agency_number: String(bankData.agency_number).replace(/\D/g, ''),
+        agency_digit: bankData.agency_digit || '0',
+        account_type: bankData.account_type,
+        account_number: String(bankData.account_number).replace(/\D/g, '').slice(0, -1),
+        account_digit: String(bankData.account_number).replace(/\D/g, '').slice(-1)
       };
 
       // 3. O credit_condition já vem processado do frontend
@@ -924,7 +925,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
           tax_identifier_of_certified_agent: "46437248890"
         },
         credit_condition: creditConditionForInclusion,
-        bank_data: paymentData,
         client: {
           tax_identifier: proposal_data.client.tax_identifier,
           name: proposal_data.client.name,
@@ -943,6 +943,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           email: proposal_data.client.email,
           mobile_phone_area_code: proposal_data.client.mobile_phone_area_code,
           mobile_phone_number: proposal_data.client.mobile_phone_number,
+          bank_data: paymentData, // CORREÇÃO: bank_data dentro do client conforme API
           benefit_data: {
             receive_card_benefit: "Nao",
             federation_unit: benefit_data.Beneficiario?.UFBeneficio || "SP"
@@ -980,7 +981,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!paymentData.bank_code) validationErrors.push('Código do banco ausente');
       if (!paymentData.agency_number) validationErrors.push('Agência ausente');
       if (!paymentData.account_number) validationErrors.push('Conta ausente');
-      if (!inclusionPayload.bank_data) validationErrors.push('bank_data ausente');
+      if (!inclusionPayload.client.bank_data) validationErrors.push('bank_data ausente no client');
       
       if (validationErrors.length > 0) {
         console.error('❌ VALIDAÇÃO FALHOU:', validationErrors);

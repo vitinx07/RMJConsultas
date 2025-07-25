@@ -1275,6 +1275,17 @@ export function C6Simulation({
                     });
                     return;
                   }
+
+                  // --- VALIDAÇÃO DOS DADOS BANCÁRIOS ADICIONADA ---
+                  if (!digitizationData.banco || !digitizationData.agencia || !digitizationData.conta) {
+                    toast({
+                      title: "Dados Bancários Incompletos",
+                      description: "Os dados bancários não foram encontrados na consulta. Preencha-os manualmente antes de continuar.",
+                      variant: "destructive",
+                    });
+                    return; // Impede o envio
+                  }
+                  // -------------------------
                   
                   console.log('Starting digitization with selected expense item_number:', selectedExpenseItemNumber);
                   digitizationMutation.mutate();
