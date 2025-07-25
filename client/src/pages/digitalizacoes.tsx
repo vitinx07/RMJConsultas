@@ -60,6 +60,9 @@ export default function DigitalizacoesPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [dateFilter, setDateFilter] = useState<string>("all");
+  const [proposalReport, setProposalReport] = useState<any>(null);
+  const [isConsultingProposal, setIsConsultingProposal] = useState<string | null>(null);
+  const [isConsultingMovement, setIsConsultingMovement] = useState<string | null>(null);
 
   const { data: digitizations = [], isLoading, refetch } = useQuery({
     queryKey: ['/api/c6-digitizations'],
@@ -119,8 +122,249 @@ export default function DigitalizacoesPage() {
     return numValue.toFixed(2);
   };
 
+  // Função para formatar datas seguindo o padrão brasileiro
+  const formatDate = (dateStr: string | null | undefined): string => {
+    if (!dateStr) return 'N/A';
+    try {
+      const date = new Date(dateStr);
+      return date.toLocaleDateString('pt-BR') + ' ' + date.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+    } catch {
+      return dateStr;
+    }
+  };
+
+  // Componente para exibir o relatório detalhado da proposta
+  const ProposalReportCard = ({ data }: { data: any }) => {
+    if (!data) return null;
+
+    const dadosCompletos = data.dadosCompletos || {};
+    const client = dadosCompletos.client || {};
+    const creditCondition = dadosCompletos.credit_condition || {};
+    const loanTrack = dadosCompletos.loan_track || {};
+    const liberations = dadosCompletos.liberations || [];
+    const origins = dadosCompletos.origins || [];
+
+    return (
+      <Card className="w-full mt-6 border-2 border-blue-200 dark:border-blue-800">
+        <CardHeader className="pb-4">
+          <div className="text-center">
+            <CardTitle className="text-xl font-bold text-blue-800 dark:text-blue-200">
+              ═══════════════════════════════════════════════════
+            </CardTitle>
+            <CardTitle className="text-2xl font-bold text-blue-900 dark:text-blue-100 my-2">
+              RELATÓRIO DA PROPOSTA
+            </CardTitle>
+            <CardTitle className="text-xl font-bold text-blue-800 dark:text-blue-200">
+              ═══════════════════════════════════════════════════
+            </CardTitle>
+          </div>
+        </CardHeader>
+        
+        <CardContent className="space-y-6">
+          {/* DADOS PRINCIPAIS */}
+          <div className="bg-gray-50 dark:bg-gray-900 p-4 rounded-lg">
+            <h3 className="font-bold text-lg mb-3 text-gray-800 dark:text-gray-200">
+              📋 DADOS PRINCIPAIS
+            </h3>
+            <div className="grid grid-cols-1 gap-2 text-sm">
+              <div className="flex">
+                <span className="font-medium w-48">Número da Proposta:</span>
+                <span className="text-blue-600 dark:text-blue-400 font-mono">
+                  {dadosCompletos.proposal_number || 'N/A'}
+                </span>
+              </div>
+              <div className="flex">
+                <span className="font-medium w-48">Cliente:</span>
+                <span className="text-green-600 dark:text-green-400 font-semibold">
+                  {client.name || 'N/A'}
+                </span>
+              </div>
+              <div className="flex">
+                <span className="font-medium w-48">CPF:</span>
+                <span className="font-mono">{client.tax_identifier || 'N/A'}</span>
+              </div>
+              <div className="flex">
+                <span className="font-medium w-48">Matrícula:</span>
+                <span className="font-mono">{client.enrolment || 'N/A'}</span>
+              </div>
+              <div className="flex">
+                <span className="font-medium w-48">Tipo de Operação:</span>
+                <span>{dadosCompletos.operation_type || 'N/A'}</span>
+              </div>
+              <div className="flex">
+                <span className="font-medium w-48">Data de Registro:</span>
+                <span>{formatDate(dadosCompletos.registration_date)}</span>
+              </div>
+            </div>
+          </div>
+
+          {/* STATUS ATUAL */}
+          <div className="bg-yellow-50 dark:bg-yellow-900/20 p-4 rounded-lg">
+            <h3 className="font-bold text-lg mb-3 text-gray-800 dark:text-gray-200">
+              🔄 STATUS ATUAL
+            </h3>
+            <div className="grid grid-cols-1 gap-2 text-sm">
+              <div className="flex">
+                <span className="font-medium w-48">Situação:</span>
+                <Badge variant={loanTrack.situation === 'APR' ? 'default' : 'secondary'}>
+                  {loanTrack.situation || 'N/A'}
+                </Badge>
+              </div>
+              <div className="flex">
+                <span className="font-medium w-48">Atividade Atual:</span>
+                <span className="text-orange-600 dark:text-orange-400 font-semibold">
+                  {loanTrack.current_activity_description || 'N/A'}
+                </span>
+              </div>
+              <div className="flex">
+                <span className="font-medium w-48">Código da Atividade:</span>
+                <span className="font-mono">{loanTrack.current_activity_number || 'N/A'}</span>
+              </div>
+              <div className="flex">
+                <span className="font-medium w-48">Última Atualização:</span>
+                <span>{formatDate(loanTrack.activity_last_update)}</span>
+              </div>
+              <div className="flex">
+                <span className="font-medium w-48">Status Formalização:</span>
+                <Badge variant="outline">
+                  {dadosCompletos.formalization_status || 'N/A'}
+                </Badge>
+              </div>
+            </div>
+          </div>
+
+          {/* CONDIÇÕES DE CRÉDITO */}
+          {Object.keys(creditCondition).length > 0 && (
+            <div className="bg-green-50 dark:bg-green-900/20 p-4 rounded-lg">
+              <h3 className="font-bold text-lg mb-3 text-gray-800 dark:text-gray-200">
+                💰 CONDIÇÕES DE CRÉDITO
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm">
+                <div className="flex">
+                  <span className="font-medium w-48">Valor Solicitado:</span>
+                  <span className="text-green-600 dark:text-green-400 font-bold">
+                    R$ {(creditCondition.requested_amount || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                  </span>
+                </div>
+                <div className="flex">
+                  <span className="font-medium w-48">Valor Bruto:</span>
+                  <span className="font-semibold">
+                    R$ {(creditCondition.gross_amount || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                  </span>
+                </div>
+                <div className="flex">
+                  <span className="font-medium w-48">Valor Líquido:</span>
+                  <span className="text-blue-600 dark:text-blue-400 font-bold">
+                    R$ {(creditCondition.net_amount || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                  </span>
+                </div>
+                <div className="flex">
+                  <span className="font-medium w-48">Valor da Parcela:</span>
+                  <span className="text-purple-600 dark:text-purple-400 font-bold">
+                    R$ {(creditCondition.installment_amount || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                  </span>
+                </div>
+                <div className="flex">
+                  <span className="font-medium w-48">Quantidade de Parcelas:</span>
+                  <span className="font-semibold">{creditCondition.installment_quantity || 0}x</span>
+                </div>
+                <div className="flex">
+                  <span className="font-medium w-48">IOF:</span>
+                  <span>R$ {(creditCondition.iof_amount || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
+                </div>
+                <div className="flex">
+                  <span className="font-medium w-48">Primeiro Vencimento:</span>
+                  <span>{formatDate(creditCondition.first_due_date)}</span>
+                </div>
+                <div className="flex">
+                  <span className="font-medium w-48">Último Vencimento:</span>
+                  <span>{formatDate(creditCondition.last_due_date)}</span>
+                </div>
+              </div>
+
+              {/* Taxas */}
+              {creditCondition.taxes && (
+                <div className="mt-4 p-3 bg-white dark:bg-gray-800 rounded">
+                  <h4 className="font-semibold mb-2">📊 Taxas</h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-1 text-xs">
+                    <div>Taxa Mensal Cliente: {creditCondition.taxes.monthly_customer_rate || 0}%</div>
+                    <div>Taxa Anual Cliente: {creditCondition.taxes.annual_customer_rate || 0}%</div>
+                    <div>CET Mensal: {creditCondition.taxes.monthly_effective_total_cost_rate || 0}%</div>
+                    <div>CET Anual: {creditCondition.taxes.annual_effective_total_cost_rate || 0}%</div>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* LIBERAÇÕES */}
+          {liberations.length > 0 && (
+            <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg">
+              <h3 className="font-bold text-lg mb-3 text-gray-800 dark:text-gray-200">
+                🏦 LIBERAÇÕES
+              </h3>
+              <div className="space-y-3">
+                {liberations.map((lib: any, index: number) => (
+                  <div key={index} className="bg-white dark:bg-gray-800 p-3 rounded border">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm">
+                      <div><span className="font-medium">Beneficiário:</span> {lib.beneficiary_type}</div>
+                      <div><span className="font-medium">Valor:</span> R$ {(lib.value || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</div>
+                      <div><span className="font-medium">Forma:</span> {lib.way_liberation}</div>
+                      <div><span className="font-medium">Documento:</span> {lib.document_type}</div>
+                      {lib.bank_code && <div><span className="font-medium">Banco:</span> {lib.bank_code}</div>}
+                      {lib.agency_number && <div><span className="font-medium">Agência:</span> {lib.agency_number}-{lib.agency_digit}</div>}
+                      {lib.account_number && <div><span className="font-medium">Conta:</span> {lib.account_number}-{lib.account_digit}</div>}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* DADOS DO CLIENTE */}
+          {client.address && client.address.length > 0 && (
+            <div className="bg-gray-50 dark:bg-gray-900 p-4 rounded-lg">
+              <h3 className="font-bold text-lg mb-3 text-gray-800 dark:text-gray-200">
+                👤 DADOS DO CLIENTE
+              </h3>
+              <div className="space-y-2 text-sm">
+                <div><span className="font-medium">Estado Civil:</span> {client.marital_state || 'N/A'}</div>
+                <div><span className="font-medium">Data Nascimento:</span> {formatDate(client.birth_date)}</div>
+                
+                {client.address[0] && (
+                  <div>
+                    <span className="font-medium">Endereço:</span> {client.address[0].street} {client.address[0].number}, {client.address[0].neighborhood} - {client.address[0].city}/{client.address[0].federation_unit} - CEP: {client.address[0].zip_code}
+                  </div>
+                )}
+                
+                {client.phone_numbers && client.phone_numbers[0] && (
+                  <div>
+                    <span className="font-medium">Telefone:</span> ({client.phone_numbers[0].phone_number_area_code}) {client.phone_numbers[0].phone_number}
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* BOTÃO PARA FECHAR */}
+          <div className="text-center pt-4">
+            <Button 
+              variant="outline" 
+              onClick={() => setProposalReport(null)}
+              className="px-6"
+            >
+              <XCircle className="w-4 h-4 mr-2" />
+              Fechar Relatório
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  };
+
   // Função para consultar proposta na API C6
   const consultarProposta = async (proposalNumber: string) => {
+    setIsConsultingProposal(proposalNumber);
     try {
       const response = await fetch('/api/c6-bank/consultar-proposta', {
         method: 'POST',
@@ -134,27 +378,13 @@ export default function DigitalizacoesPage() {
 
       const data = await response.json();
       
-      // Exibir informações detalhadas da proposta
-      const cliente = data.cliente || {};
-      const valorFormatado = new Intl.NumberFormat('pt-BR', {
-        style: 'currency',
-        currency: 'BRL'
-      }).format(data.valorSolicitado || 0);
-
+      // Exibir relatório detalhado da proposta
+      setProposalReport(data);
+      
       toast({
-        title: "Proposta Consultada com Sucesso",
-        description: `Cliente: ${cliente.nome} | Situação: ${data.situacao} | Valor: ${valorFormatado}`,
-        duration: 5000,
-      });
-
-      // Log detalhado no console para debugging
-      console.log('📋 Detalhes completos da proposta:', {
-        numero: data.proposalNumber,
-        cliente: cliente,
-        situacao: data.situacao,
-        atividade: data.atividadeAtual,
-        observacoes: data.observacoes,
-        dadosCompletos: data.dadosCompletos
+        title: "Relatório da Proposta Gerado",
+        description: "Consulte os detalhes completos abaixo",
+        duration: 3000,
       });
     } catch (error: any) {
       const errorMessage = error?.response?.status === 404 ? 
@@ -166,11 +396,14 @@ export default function DigitalizacoesPage() {
         description: errorMessage,
         variant: "destructive",
       });
+    } finally {
+      setIsConsultingProposal(null);
     }
   };
 
   // Função para consultar movimentação da proposta
   const consultarMovimentacao = async (proposalNumber: string) => {
+    setIsConsultingMovement(proposalNumber);
     try {
       const response = await fetch('/api/c6-bank/consultar-movimentacao', {
         method: 'POST',
@@ -214,6 +447,8 @@ export default function DigitalizacoesPage() {
         description: errorMessage,
         variant: "destructive",
       });
+    } finally {
+      setIsConsultingMovement(null);
     }
   };
 
@@ -502,18 +737,28 @@ export default function DigitalizacoesPage() {
                         variant="outline"
                         size="sm"
                         onClick={() => consultarProposta(digitization.proposalNumber)}
+                        disabled={isConsultingProposal === digitization.proposalNumber}
                         className="w-full flex items-center gap-2"
                       >
-                        <Eye className="h-4 w-4" />
+                        {isConsultingProposal === digitization.proposalNumber ? (
+                          <RefreshCw className="h-4 w-4 animate-spin" />
+                        ) : (
+                          <Eye className="h-4 w-4" />
+                        )}
                         Consultar Proposta
                       </Button>
                       <Button
                         variant="outline"
                         size="sm"
                         onClick={() => consultarMovimentacao(digitization.proposalNumber)}
+                        disabled={isConsultingMovement === digitization.proposalNumber}
                         className="w-full flex items-center gap-2"
                       >
-                        <TrendingUp className="h-4 w-4" />
+                        {isConsultingMovement === digitization.proposalNumber ? (
+                          <RefreshCw className="h-4 w-4 animate-spin" />
+                        ) : (
+                          <TrendingUp className="h-4 w-4" />
+                        )}
                         Ver Movimentação
                       </Button>
                     </div>
@@ -559,6 +804,9 @@ export default function DigitalizacoesPage() {
           ))}
         </div>
       )}
+      
+      {/* Relatório Detalhado da Proposta */}
+      {proposalReport && <ProposalReportCard data={proposalReport} />}
       </div>
     </>
   );
