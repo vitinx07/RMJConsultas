@@ -25,11 +25,17 @@ interface BenefitData {
     Telefone: string;
     Email: string;
     Logradouro: string;
+    Endereco: string;
     Numero: string;
     Complemento: string;
     Bairro: string;
     Cidade: string;
     UF: string;
+    UFBeneficio: string;
+    Sexo: string;
+    EstadoCivil: string;
+    OrgaoExpedidor: string;
+    DataEmissaoRG: string;
   };
   ResumoFinanceiro: {
     ValorBeneficio: string;
@@ -150,11 +156,11 @@ export function C6Simulation({
         bairro: beneficiario.Bairro || '',
         cidade: beneficiario.Cidade || '',
         uf: beneficiario.UF || '',
-        estadoCivil: 'Solteiro',
+        estadoCivil: beneficiario.EstadoCivil || 'Solteiro',
         sexo: beneficiario.Sexo || 'Masculino',
         ufRg: beneficiario.UF || 'SP',
-        orgaoExpedidor: 'SSP',
-        dataEmissaoRg: '2010-01-01',
+        orgaoExpedidor: beneficiario.OrgaoExpedidor || 'SSP',
+        dataEmissaoRg: beneficiario.DataEmissaoRG || '2010-01-01',
         pessoaPoliticamenteExposta: 'Nao',
         nomeConjuge: '',
         recebeCartaoBeneficio: 'Nao',
@@ -606,7 +612,7 @@ export function C6Simulation({
                               <Button
                                 size="sm"
                                 onClick={() => {
-                                  setSelectedCondition(index);
+                                  setSelectedCondition(condition);
                                   setStep('digitization');
                                 }}
                                 className="bg-green-600 hover:bg-green-700"
@@ -644,30 +650,18 @@ export function C6Simulation({
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-6">
-              {creditConditions.length > 0 && (
-                <div>
-                  <Label>Escolha a Condição de Crédito</Label>
-                  <div className="grid gap-2 mt-2">
-                    {creditConditions.map((condition, index) => (
-                      <div 
-                        key={index}
-                        className={`p-3 border rounded cursor-pointer ${
-                          selectedCondition === condition ? 'border-blue-500 bg-blue-50' : 'border-gray-200'
-                        }`}
-                        onClick={() => setSelectedCondition(condition)}
-                      >
-                        <div className="flex justify-between">
-                          <span className="font-medium">{condition.covenant.description}</span>
-                          <span className="text-green-600 font-bold">
-                            Troco: R$ {condition.client_amount.toFixed(2)}
-                          </span>
-                        </div>
-                        <div className="text-sm text-gray-600">
-                          Parcela: R$ {condition.installment_amount.toFixed(2)} | 
-                          Taxa: {condition.interest_rate}%
-                        </div>
-                      </div>
-                    ))}
+              {selectedCondition && (
+                <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+                  <h3 className="font-semibold text-blue-800 mb-2">Condição Selecionada</h3>
+                  <div className="flex justify-between items-center">
+                    <span className="font-medium">{selectedCondition.covenant.description}</span>
+                    <span className="text-green-600 font-bold">
+                      Troco: R$ {selectedCondition.client_amount.toFixed(2)}
+                    </span>
+                  </div>
+                  <div className="text-sm text-gray-600">
+                    Parcela: R$ {selectedCondition.installment_amount.toFixed(2)} | 
+                    Taxa: {selectedCondition.covenant?.rate_percentage || selectedCondition.rate_percentage || 'N/A'}%
                   </div>
                 </div>
               )}

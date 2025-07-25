@@ -897,12 +897,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // 2. Preparar dados bancários
       const paymentData = {
-        bank_code: proposal_data.payment.bank_code.replace(/\D/g, ''),
-        agency_number: proposal_data.payment.agency_number.replace(/\D/g, ''),
-        agency_digit: "0",
-        account_type: "ContaCorrenteIndividual",
-        account_number: proposal_data.payment.account_number,
-        account_digit: proposal_data.payment.account_digit
+        bank_code: proposal_data.client.bank_data.bank_code,
+        agency_number: proposal_data.client.bank_data.agency_number,
+        agency_digit: proposal_data.client.bank_data.agency_digit,
+        account_type: proposal_data.client.bank_data.account_type,
+        account_number: proposal_data.client.bank_data.account_number,
+        account_digit: proposal_data.client.bank_data.account_digit
       };
 
       // 3. Preparar condição de crédito para inclusão
