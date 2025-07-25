@@ -54,6 +54,103 @@ interface C6Digitization {
   };
 }
 
+// Componente para exibir o status real da proposta no card principal
+const ProposalStatusBadge = ({ proposalNumber, fallbackStatus }: { proposalNumber: string, fallbackStatus: string }) => {
+  const [realStatus, setRealStatus] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+
+  const getStatusBadgeVariant = (status: string) => {
+    switch (status) {
+      case 'approved':
+      case 'APROVADA':
+        return 'default';
+      case 'rejected':
+      case 'REJEITADA':
+      case 'CANCELADA':
+        return 'destructive';
+      case 'pending':
+      case 'PENDENTE':
+      case 'EM_ANALISE':
+      default:
+        return 'secondary';
+    }
+  };
+
+  const getStatusLabel = (status: string) => {
+    switch (status) {
+      case 'approved':
+      case 'APROVADA':
+        return 'Aprovada';
+      case 'rejected':
+      case 'REJEITADA':
+        return 'Rejeitada';
+      case 'CANCELADA':
+        return 'Cancelada';
+      case 'EM_ANALISE':
+        return 'Em Análise de Crédito';
+      case 'pending':
+      case 'PENDENTE':
+      default:
+        return 'Pendente';
+    }
+  };
+
+  useEffect(() => {
+    const fetchRealStatus = async () => {
+      setIsLoading(true);
+      try {
+        const response = await fetch('/api/c6-bank/consultar-proposta', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ proposalNumber }),
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          const loanTrack = data.dadosCompletos?.loan_track || {};
+          const formalizationStatus = data.dadosCompletos?.formalization_status;
+          
+          // Prioriza status de cancelamento
+          if (loanTrack.current_activity_description === 'CANCELADA' || formalizationStatus === 'CANCELADO') {
+            setRealStatus('CANCELADA');
+          } else if (loanTrack.situation === 'APR') {
+            setRealStatus('APROVADA');
+          } else if (formalizationStatus === 'REJEITADA') {
+            setRealStatus('REJEITADA');
+          } else {
+            setRealStatus(loanTrack.current_activity_description || formalizationStatus || loanTrack.situation || fallbackStatus);
+          }
+        }
+      } catch (error) {
+        console.log('Erro ao consultar status da proposta:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchRealStatus();
+  }, [proposalNumber, fallbackStatus]);
+
+  const statusToShow = realStatus || fallbackStatus;
+
+  if (isLoading) {
+    return (
+      <Badge variant="secondary" className="animate-pulse">
+        Verificando...
+      </Badge>
+    );
+  }
+
+  return (
+    <Badge 
+      variant={getStatusBadgeVariant(statusToShow)}
+      className={statusToShow === 'CANCELADA' ? 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400 border-red-300' : ''}
+    >
+      {getStatusLabel(statusToShow)}
+    </Badge>
+  );
+};
+
 export default function DigitalizacoesPage() {
   const { user } = useAuth();
   const { toast } = useToast();
@@ -133,6 +230,8 @@ export default function DigitalizacoesPage() {
       return dateStr;
     }
   };
+
+
 
   // Componente para exibir o relatório detalhado da proposta em modal
   const ProposalReportModal = ({ data, isOpen, onClose }: { data: any, isOpen: boolean, onClose: () => void }) => {
@@ -711,9 +810,7 @@ export default function DigitalizacoesPage() {
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
-                    <Badge variant={getStatusBadgeVariant(digitization.status)}>
-                      {getStatusLabel(digitization.status)}
-                    </Badge>
+                    <ProposalStatusBadge proposalNumber={digitization.proposalNumber} fallbackStatus={digitization.status} />
                   </div>
                 </div>
               </CardHeader>
