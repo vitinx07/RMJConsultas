@@ -157,7 +157,7 @@ export function C6Simulation({
       setDigitizationData({
         nomeCompleto: beneficiario.Nome || '',
         nomeMae: beneficiario.NomeMae || '',
-        rg: beneficiario.RG || '',
+        rg: beneficiario.RG || beneficiario.Rg || '',
         telefone: beneficiario.Telefone || '',
         email: beneficiario.Email || 'naoinformado@gmail.com',
         cep: beneficiario.CEP || '',
@@ -168,7 +168,7 @@ export function C6Simulation({
         cidade: beneficiario.Cidade || '',
         uf: beneficiario.UF || '',
         estadoCivil: beneficiario.EstadoCivil || 'Solteiro',
-        sexo: beneficiario.Sexo || 'Masculino',
+        sexo: beneficiario.Sexo === 'F' ? 'Feminino' : beneficiario.Sexo === 'M' ? 'Masculino' : beneficiario.Sexo || 'Masculino',
         ufRg: beneficiario.UF || 'SP',
         orgaoExpedidor: beneficiario.OrgaoExpedidor || 'SSP',
         dataEmissaoRg: beneficiario.DataEmissaoRG || '2010-01-01',
