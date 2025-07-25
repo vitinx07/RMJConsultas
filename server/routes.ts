@@ -830,7 +830,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         promoter_code: "003130",
         covenant_group: "INSS",
         public_agency: "000001",
-```python
         installment_quantity,
         ...(simulation_type === 'POR_VALOR_SOLICITADO' 
           ? { requested_amount } 
