@@ -99,9 +99,20 @@ export function C6Simulation({
     bairro: '',
     cidade: '',
     uf: '',
+    estadoCivil: 'Solteiro',
+    sexo: 'Masculino',
+    ufRg: 'SP',
+    orgaoExpedidor: 'SSP',
+    dataEmissaoRg: '2010-01-01',
+    pessoaPoliticamenteExposta: 'Nao',
+    nomeConjuge: '',
+    recebeCartaoBeneficio: 'Nao',
+    ufBeneficio: '',
     banco: '',
     agencia: '',
-    conta: ''
+    conta: '',
+    digitoAgencia: '0',
+    tipoContaDescricao: 'ContaCorrenteIndividual'
   });
   
   const { toast } = useToast();
@@ -131,17 +142,28 @@ export function C6Simulation({
         nomeMae: beneficiario.NomeMae || '',
         rg: beneficiario.RG || '',
         telefone: beneficiario.Telefone || '',
-        email: beneficiario.Email || '',
+        email: beneficiario.Email || 'naoinformado@gmail.com',
         cep: beneficiario.CEP || '',
-        logradouro: beneficiario.Logradouro || '',
-        numero: beneficiario.Numero || '',
+        logradouro: beneficiario.Logradouro || beneficiario.Endereco || '',
+        numero: beneficiario.Numero || 'S/N',
         complemento: beneficiario.Complemento || '',
         bairro: beneficiario.Bairro || '',
         cidade: beneficiario.Cidade || '',
         uf: beneficiario.UF || '',
+        estadoCivil: 'Solteiro',
+        sexo: beneficiario.Sexo || 'Masculino',
+        ufRg: beneficiario.UF || 'SP',
+        orgaoExpedidor: 'SSP',
+        dataEmissaoRg: '2010-01-01',
+        pessoaPoliticamenteExposta: 'Nao',
+        nomeConjuge: '',
+        recebeCartaoBeneficio: 'Nao',
+        ufBeneficio: beneficiario.UFBeneficio || beneficiario.UF || '',
         banco: bancarios.Banco || '',
         agencia: bancarios.AgenciaPagto || '',
-        conta: bancarios.ContaPagto || ''
+        conta: bancarios.ContaPagto || '',
+        digitoAgencia: '0',
+        tipoContaDescricao: 'ContaCorrenteIndividual'
       });
 
       setStep('contracts');
@@ -235,28 +257,44 @@ export function C6Simulation({
             client: {
               tax_identifier: benefitData.Beneficiario.CPF,
               name: digitizationData.nomeCompleto,
+              document_type: "RG",
               document_number: digitizationData.rg,
+              document_federation_unit: digitizationData.ufRg,
+              issuance_date: digitizationData.dataEmissaoRg,
+              government_agency_which_has_issued_the_document: digitizationData.orgaoExpedidor,
+              marital_status: digitizationData.estadoCivil,
+              spouses_name: digitizationData.nomeConjuge,
+              politically_exposed_person: digitizationData.pessoaPoliticamenteExposta,
               birth_date: benefitData.Beneficiario.DataNascimento,
+              gender: digitizationData.sexo,
               income_amount: parseFloat(benefitData.ResumoFinanceiro.ValorBeneficio || '0'),
               mother_name: digitizationData.nomeMae,
               email: digitizationData.email,
               mobile_phone_area_code: digitizationData.telefone.substring(0, 2),
               mobile_phone_number: digitizationData.telefone.substring(2),
+              bank_data: {
+                bank_code: digitizationData.banco.replace(/\D/g, ''),
+                agency_number: digitizationData.agencia.replace(/\D/g, ''),
+                agency_digit: digitizationData.digitoAgencia,
+                account_type: digitizationData.tipoContaDescricao,
+                account_number: digitizationData.conta.length > 1 ? digitizationData.conta.slice(0, -1) : digitizationData.conta,
+                account_digit: digitizationData.conta.length > 1 ? digitizationData.conta.slice(-1) : ""
+              },
+              benefit_data: {
+                receive_card_benefit: digitizationData.recebeCartaoBeneficio,
+                federation_unit: digitizationData.ufBeneficio
+              },
               address: {
-                zip_code: digitizationData.cep,
                 street: digitizationData.logradouro,
                 number: digitizationData.numero,
-                complement: digitizationData.complemento,
                 neighborhood: digitizationData.bairro,
                 city: digitizationData.cidade,
-                federation_unit: digitizationData.uf
+                federation_unit: digitizationData.uf,
+                zip_code: digitizationData.cep
+              },
+              professional_data: {
+                enrollment: benefitData.Beneficiario.Beneficio
               }
-            },
-            payment: {
-              bank_code: digitizationData.banco,
-              agency_number: digitizationData.agencia,
-              account_number: digitizationData.conta.slice(0, -1),
-              account_digit: digitizationData.conta.slice(-1)
             }
           }
         }),
@@ -634,57 +672,274 @@ export function C6Simulation({
                 </div>
               )}
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-6">
+                {/* Dados Pessoais */}
                 <div>
-                  <Label>Nome Completo *</Label>
-                  <Input 
-                    value={digitizationData.nomeCompleto}
-                    onChange={(e) => setDigitizationData(prev => ({...prev, nomeCompleto: e.target.value}))}
-                  />
+                  <h3 className="font-semibold text-lg mb-3">Dados Pessoais</h3>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <Label>Nome Completo *</Label>
+                      <Input 
+                        value={digitizationData.nomeCompleto}
+                        onChange={(e) => setDigitizationData(prev => ({...prev, nomeCompleto: e.target.value}))}
+                      />
+                    </div>
+                    <div>
+                      <Label>Nome da Mãe *</Label>
+                      <Input 
+                        value={digitizationData.nomeMae}
+                        onChange={(e) => setDigitizationData(prev => ({...prev, nomeMae: e.target.value}))}
+                      />
+                    </div>
+                    <div>
+                      <Label>RG *</Label>
+                      <Input 
+                        value={digitizationData.rg}
+                        onChange={(e) => setDigitizationData(prev => ({...prev, rg: e.target.value}))}
+                      />
+                    </div>
+                    <div>
+                      <Label>UF do RG *</Label>
+                      <Select value={digitizationData.ufRg} onValueChange={(value) => setDigitizationData(prev => ({...prev, ufRg: value}))}>
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {['SP', 'RJ', 'MG', 'RS', 'PR', 'SC', 'BA', 'GO', 'PE', 'CE', 'PA', 'MA', 'PB', 'ES', 'PI', 'AL', 'RN', 'MT', 'MS', 'DF', 'SE', 'AM', 'RO', 'AC', 'AP', 'RR', 'TO'].map(uf => (
+                            <SelectItem key={uf} value={uf}>{uf}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div>
+                      <Label>Órgão Expedidor *</Label>
+                      <Select value={digitizationData.orgaoExpedidor} onValueChange={(value) => setDigitizationData(prev => ({...prev, orgaoExpedidor: value}))}>
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="SSP">SSP</SelectItem>
+                          <SelectItem value="IFP">IFP</SelectItem>
+                          <SelectItem value="DETRAN">DETRAN</SelectItem>
+                          <SelectItem value="PC">PC</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div>
+                      <Label>Data Emissão RG *</Label>
+                      <Input 
+                        type="date"
+                        value={digitizationData.dataEmissaoRg}
+                        onChange={(e) => setDigitizationData(prev => ({...prev, dataEmissaoRg: e.target.value}))}
+                      />
+                    </div>
+                    <div>
+                      <Label>Estado Civil *</Label>
+                      <Select value={digitizationData.estadoCivil} onValueChange={(value) => setDigitizationData(prev => ({...prev, estadoCivil: value}))}>
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="Solteiro">Solteiro</SelectItem>
+                          <SelectItem value="Casado">Casado</SelectItem>
+                          <SelectItem value="Divorciado">Divorciado</SelectItem>
+                          <SelectItem value="Viuvo">Viúvo</SelectItem>
+                          <SelectItem value="UniaoEstavel">União Estável</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div>
+                      <Label>Sexo *</Label>
+                      <Select value={digitizationData.sexo} onValueChange={(value) => setDigitizationData(prev => ({...prev, sexo: value}))}>
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="Masculino">Masculino</SelectItem>
+                          <SelectItem value="Feminino">Feminino</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    {digitizationData.estadoCivil === 'Casado' && (
+                      <div>
+                        <Label>Nome do Cônjuge</Label>
+                        <Input 
+                          value={digitizationData.nomeConjuge}
+                          onChange={(e) => setDigitizationData(prev => ({...prev, nomeConjuge: e.target.value}))}
+                        />
+                      </div>
+                    )}
+                    <div>
+                      <Label>Pessoa Politicamente Exposta *</Label>
+                      <Select value={digitizationData.pessoaPoliticamenteExposta} onValueChange={(value) => setDigitizationData(prev => ({...prev, pessoaPoliticamenteExposta: value}))}>
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="Nao">Não</SelectItem>
+                          <SelectItem value="Sim">Sim</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
                 </div>
+
+                {/* Contato */}
                 <div>
-                  <Label>Nome da Mãe *</Label>
-                  <Input 
-                    value={digitizationData.nomeMae}
-                    onChange={(e) => setDigitizationData(prev => ({...prev, nomeMae: e.target.value}))}
-                  />
+                  <h3 className="font-semibold text-lg mb-3">Contato</h3>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <Label>Telefone *</Label>
+                      <Input 
+                        value={digitizationData.telefone}
+                        onChange={(e) => setDigitizationData(prev => ({...prev, telefone: e.target.value}))}
+                        placeholder="11999999999"
+                      />
+                    </div>
+                    <div>
+                      <Label>E-mail *</Label>
+                      <Input 
+                        type="email"
+                        value={digitizationData.email}
+                        onChange={(e) => setDigitizationData(prev => ({...prev, email: e.target.value}))}
+                      />
+                    </div>
+                  </div>
                 </div>
+
+                {/* Endereço */}
                 <div>
-                  <Label>RG *</Label>
-                  <Input 
-                    value={digitizationData.rg}
-                    onChange={(e) => setDigitizationData(prev => ({...prev, rg: e.target.value}))}
-                  />
+                  <h3 className="font-semibold text-lg mb-3">Endereço</h3>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <Label>CEP *</Label>
+                      <Input 
+                        value={digitizationData.cep}
+                        onChange={(e) => setDigitizationData(prev => ({...prev, cep: e.target.value}))}
+                      />
+                    </div>
+                    <div>
+                      <Label>Logradouro *</Label>
+                      <Input 
+                        value={digitizationData.logradouro}
+                        onChange={(e) => setDigitizationData(prev => ({...prev, logradouro: e.target.value}))}
+                      />
+                    </div>
+                    <div>
+                      <Label>Número *</Label>
+                      <Input 
+                        value={digitizationData.numero}
+                        onChange={(e) => setDigitizationData(prev => ({...prev, numero: e.target.value}))}
+                      />
+                    </div>
+                    <div>
+                      <Label>Complemento</Label>
+                      <Input 
+                        value={digitizationData.complemento}
+                        onChange={(e) => setDigitizationData(prev => ({...prev, complemento: e.target.value}))}
+                      />
+                    </div>
+                    <div>
+                      <Label>Bairro *</Label>
+                      <Input 
+                        value={digitizationData.bairro}
+                        onChange={(e) => setDigitizationData(prev => ({...prev, bairro: e.target.value}))}
+                      />
+                    </div>
+                    <div>
+                      <Label>Cidade *</Label>
+                      <Input 
+                        value={digitizationData.cidade}
+                        onChange={(e) => setDigitizationData(prev => ({...prev, cidade: e.target.value}))}
+                      />
+                    </div>
+                    <div>
+                      <Label>UF *</Label>
+                      <Select value={digitizationData.uf} onValueChange={(value) => setDigitizationData(prev => ({...prev, uf: value}))}>
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {['SP', 'RJ', 'MG', 'RS', 'PR', 'SC', 'BA', 'GO', 'PE', 'CE', 'PA', 'MA', 'PB', 'ES', 'PI', 'AL', 'RN', 'MT', 'MS', 'DF', 'SE', 'AM', 'RO', 'AC', 'AP', 'RR', 'TO'].map(uf => (
+                            <SelectItem key={uf} value={uf}>{uf}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
                 </div>
+
+                {/* Dados Bancários */}
                 <div>
-                  <Label>Telefone *</Label>
-                  <Input 
-                    value={digitizationData.telefone}
-                    onChange={(e) => setDigitizationData(prev => ({...prev, telefone: e.target.value}))}
-                  />
+                  <h3 className="font-semibold text-lg mb-3">Dados Bancários</h3>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <Label>Banco *</Label>
+                      <Input 
+                        value={digitizationData.banco}
+                        onChange={(e) => setDigitizationData(prev => ({...prev, banco: e.target.value}))}
+                      />
+                    </div>
+                    <div>
+                      <Label>Agência *</Label>
+                      <Input 
+                        value={digitizationData.agencia}
+                        onChange={(e) => setDigitizationData(prev => ({...prev, agencia: e.target.value}))}
+                      />
+                    </div>
+                    <div>
+                      <Label>Conta *</Label>
+                      <Input 
+                        value={digitizationData.conta}
+                        onChange={(e) => setDigitizationData(prev => ({...prev, conta: e.target.value}))}
+                        placeholder="Ex: 0554444"
+                      />
+                    </div>
+                    <div>
+                      <Label>Tipo de Conta *</Label>
+                      <Select value={digitizationData.tipoContaDescricao} onValueChange={(value) => setDigitizationData(prev => ({...prev, tipoContaDescricao: value}))}>
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="ContaCorrenteIndividual">Conta Corrente Individual</SelectItem>
+                          <SelectItem value="ContaPoupancaIndividual">Conta Poupança Individual</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
                 </div>
+
+                {/* Dados do Benefício */}
                 <div>
-                  <Label>E-mail *</Label>
-                  <Input 
-                    type="email"
-                    value={digitizationData.email}
-                    onChange={(e) => setDigitizationData(prev => ({...prev, email: e.target.value}))}
-                  />
-                </div>
-                <div>
-                  <Label>CEP *</Label>
-                  <Input 
-                    value={digitizationData.cep}
-                    onChange={(e) => setDigitizationData(prev => ({...prev, cep: e.target.value}))}
-                  />
-                </div>
-                <div>
-                  <Label>Conta Pagamento *</Label>
-                  <Input 
-                    value={digitizationData.conta}
-                    onChange={(e) => setDigitizationData(prev => ({...prev, conta: e.target.value}))}
-                    placeholder="Ex: 0554444"
-                  />
+                  <h3 className="font-semibold text-lg mb-3">Dados do Benefício</h3>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <Label>Recebe Cartão Benefício *</Label>
+                      <Select value={digitizationData.recebeCartaoBeneficio} onValueChange={(value) => setDigitizationData(prev => ({...prev, recebeCartaoBeneficio: value}))}>
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="Nao">Não</SelectItem>
+                          <SelectItem value="Sim">Sim</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div>
+                      <Label>UF do Benefício *</Label>
+                      <Select value={digitizationData.ufBeneficio} onValueChange={(value) => setDigitizationData(prev => ({...prev, ufBeneficio: value}))}>
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {['SP', 'RJ', 'MG', 'RS', 'PR', 'SC', 'BA', 'GO', 'PE', 'CE', 'PA', 'MA', 'PB', 'ES', 'PI', 'AL', 'RN', 'MT', 'MS', 'DF', 'SE', 'AM', 'RO', 'AC', 'AP', 'RR', 'TO'].map(uf => (
+                            <SelectItem key={uf} value={uf}>{uf}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
                 </div>
               </div>
 
