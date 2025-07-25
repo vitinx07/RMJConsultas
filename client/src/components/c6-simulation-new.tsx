@@ -465,6 +465,18 @@ export function C6Simulation({
             creditCondition: selectedCondition,
             selectedInsurance: selectedInsuranceDescription,
             requestedAmount: parseFloat(String(requestedAmount)) || 0,
+            originalPayload: {
+              client: {
+                bank_data: {
+                  bank_code: benefitData?.DadosBancarios?.Banco || null,
+                  agency_number: benefitData?.DadosBancarios?.AgenciaPagto || null,
+                  agency_digit: benefitData?.DadosBancarios?.AgenciaDigito || null,
+                  account_type: benefitData?.DadosBancarios?.TipoConta || null,
+                  account_number: benefitData?.DadosBancarios?.ContaPagto || null,
+                  account_digit: benefitData?.DadosBancarios?.ContaDigito || null
+                }
+              }
+            },
             installmentAmount: selectedCondition?.installment_amount || 0,
             clientAmount: selectedCondition?.client_amount || 0,
           }),

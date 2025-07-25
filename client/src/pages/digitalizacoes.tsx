@@ -459,11 +459,65 @@ export default function DigitalizacoesPage() {
             </div>
           )}
 
+          {/* DADOS BANCÁRIOS */}
+          <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg">
+            <h3 className="font-bold text-lg mb-3 text-gray-800 dark:text-gray-200">
+              🏦 Dados Bancários
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm">
+              <div className="flex">
+                <span className="font-medium w-24">Banco:</span>
+                <span>
+                  {(client.bank_data?.bank_code || 
+                    dadosCompletos.client?.bank_data?.bank_code || 
+                    data.originalPayload?.client?.bank_data?.bank_code) || '- Banco null'}
+                </span>
+              </div>
+              <div className="flex">
+                <span className="font-medium w-24">Agência:</span>
+                <span>
+                  {(() => {
+                    const agencyNumber = client.bank_data?.agency_number || 
+                                       dadosCompletos.client?.bank_data?.agency_number || 
+                                       data.originalPayload?.client?.bank_data?.agency_number;
+                    const agencyDigit = client.bank_data?.agency_digit || 
+                                      dadosCompletos.client?.bank_data?.agency_digit || 
+                                      data.originalPayload?.client?.bank_data?.agency_digit;
+                    return agencyNumber ? `${agencyNumber}-${agencyDigit || ''}` : 'N/A';
+                  })()}
+                </span>
+              </div>
+              <div className="flex">
+                <span className="font-medium w-24">Conta:</span>
+                <span>
+                  {(() => {
+                    const accountNumber = client.bank_data?.account_number || 
+                                        dadosCompletos.client?.bank_data?.account_number || 
+                                        data.originalPayload?.client?.bank_data?.account_number ||
+                                        client.account_number;
+                    const accountDigit = client.bank_data?.account_digit || 
+                                       dadosCompletos.client?.bank_data?.account_digit || 
+                                       data.originalPayload?.client?.bank_data?.account_digit;
+                    return accountNumber ? `${accountNumber}-${accountDigit || ''}` : 'N/A';
+                  })()}
+                </span>
+              </div>
+              <div className="flex">
+                <span className="font-medium w-24">Tipo:</span>
+                <span>
+                  {(client.bank_data?.account_type || 
+                    dadosCompletos.client?.bank_data?.account_type || 
+                    data.originalPayload?.client?.bank_data?.account_type) || 'N/A'}
+                </span>
+              </div>
+            </div>
+          </div>
+
           {/* LIBERAÇÕES (apenas do cliente) */}
           {liberations.filter((lib: any) => lib.beneficiary_type === 'Cliente').length > 0 && (
-            <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg">
+            <div className="bg-green-50 dark:bg-green-900/20 p-4 rounded-lg">
               <h3 className="font-bold text-lg mb-3 text-gray-800 dark:text-gray-200">
-                🏦 LIBERAÇÕES PARA O CLIENTE
+                💰 LIBERAÇÕES PARA O CLIENTE
               </h3>
               <div className="space-y-3">
                 {liberations.filter((lib: any) => lib.beneficiary_type === 'Cliente').map((lib: any, index: number) => (
@@ -472,9 +526,6 @@ export default function DigitalizacoesPage() {
                       <div><span className="font-medium">Valor:</span> R$ {(lib.value || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</div>
                       <div><span className="font-medium">Forma:</span> {lib.way_liberation}</div>
                       <div><span className="font-medium">Documento:</span> {lib.document_type}</div>
-                      {lib.bank_code && <div><span className="font-medium">Banco:</span> {lib.bank_code}</div>}
-                      {lib.agency_number && <div><span className="font-medium">Agência:</span> {lib.agency_number}-{lib.agency_digit}</div>}
-                      {lib.account_number && <div><span className="font-medium">Conta:</span> {lib.account_number}-{lib.account_digit}</div>}
                     </div>
                   </div>
                 ))}
