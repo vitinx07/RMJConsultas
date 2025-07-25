@@ -160,55 +160,6 @@ export function C6Simulation({
     setShowBankSuggestions(true);
   };
 
-  // Função para aceitar apenas números
-  const onlyNumbers = (value: string) => {
-    return value.replace(/\D/g, '');
-  };
-
-  // Função para extrair número da casa do endereço
-  const extractHouseNumber = (address: string) => {
-    // Padrão: "RUA CACHOEIRINHA 130, NOSSASENHORADA"
-    const match = address.match(/\b(\d+)\b/);
-    return match ? match[1] : '';
-  };
-
-  // Função para extrair logradouro sem o número
-  const extractStreetName = (address: string) => {
-    // Remove números e vírgulas do início até o primeiro número
-    return address.replace(/\b\d+\b.*$/, '').trim();
-  };
-
-  // Validações obrigatórias
-  const validateRequiredFields = () => {
-    const errors: string[] = [];
-    
-    if (!digitizationData.nomeCompleto) errors.push('Nome Completo');
-    if (!digitizationData.nomeMae) errors.push('Nome da Mãe');
-    if (!digitizationData.rg) errors.push('RG');
-    if (!digitizationData.ufRg) errors.push('UF do RG');
-    if (!digitizationData.orgaoExpedidor) errors.push('Órgão Expedidor');
-    if (!digitizationData.dataEmissaoRg) errors.push('Data Emissão RG');
-    if (!digitizationData.estadoCivil) errors.push('Estado Civil');
-    if (!digitizationData.sexo) errors.push('Sexo');
-    if (!digitizationData.pessoaPoliticamenteExposta) errors.push('Pessoa Politicamente Exposta');
-    if (!digitizationData.telefone || digitizationData.telefone.replace(/\D/g, '').length < 10) errors.push('Telefone (deve ter pelo menos 10 dígitos)');
-    if (!digitizationData.email || !digitizationData.email.includes('@')) errors.push('E-mail válido');
-    if (!digitizationData.cep || digitizationData.cep.replace(/\D/g, '').length !== 8) errors.push('CEP (deve ter 8 dígitos)');
-    if (!digitizationData.logradouro) errors.push('Logradouro');
-    if (!digitizationData.numero) errors.push('Número');
-    if (!digitizationData.bairro) errors.push('Bairro');
-    if (!digitizationData.cidade) errors.push('Cidade');
-    if (!digitizationData.uf) errors.push('UF');
-    if (!digitizationData.banco) errors.push('Banco');
-    if (!digitizationData.agencia || digitizationData.agencia.replace(/\D/g, '').length === 0) errors.push('Agência (somente números)');
-    if (!digitizationData.conta || digitizationData.conta.replace(/\D/g, '').length === 0) errors.push('Conta (somente números)');
-    if (!digitizationData.tipoContaDescricao) errors.push('Tipo de Conta');
-    if (!digitizationData.recebeCartaoBeneficio) errors.push('Recebe Cartão Benefício');
-    if (!digitizationData.ufBeneficio) errors.push('UF do Benefício');
-    
-    return errors;
-  };
-
   const [digitizationData, setDigitizationData] = useState({
     nomeCompleto: '',
     nomeMae: '',
@@ -260,16 +211,6 @@ export function C6Simulation({
       const beneficiario = data.Beneficiario;
       const bancarios = data.DadosBancarios;
 
-      // Extrair dados do endereço completo se disponível
-      const enderecoCompleto = beneficiario.Endereco || '';
-      const streetName = extractStreetName(enderecoCompleto);
-      const houseNumber = extractHouseNumber(enderecoCompleto);
-
-      console.log('Dados bancários disponíveis:', bancarios);
-      console.log('Endereço completo:', enderecoCompleto);
-      console.log('Rua extraída:', streetName);
-      console.log('Número extraído:', houseNumber);
-
       setDigitizationData({
         nomeCompleto: beneficiario.Nome || '',
         nomeMae: beneficiario.NomeMae || '',
@@ -277,8 +218,8 @@ export function C6Simulation({
         telefone: beneficiario.Telefone ? formatPhone(beneficiario.Telefone) : '',
         email: beneficiario.Email || 'naoinformado@gmail.com',
         cep: beneficiario.CEP ? formatCEP(beneficiario.CEP) : '',
-        logradouro: streetName || beneficiario.Logradouro || enderecoCompleto,
-        numero: houseNumber || beneficiario.Numero || 'S/N',
+        logradouro: beneficiario.Logradouro || beneficiario.Endereco || '',
+        numero: beneficiario.Numero || 'S/N',
         complemento: beneficiario.Complemento || '',
         bairro: beneficiario.Bairro || '',
         cidade: beneficiario.Cidade || '',
@@ -292,10 +233,10 @@ export function C6Simulation({
         nomeConjuge: '',
         recebeCartaoBeneficio: 'Nao',
         ufBeneficio: beneficiario.UFBeneficio || beneficiario.UF || '',
-        banco: `${bancarios?.Banco || ''} - ${bancarios?.NomeBanco || 'Banco'}`.trim(),
-        agencia: String(bancarios?.Agencia || bancarios?.AgenciaPagto || ''),
-        conta: String(bancarios?.Conta || bancarios?.ContaPagto || ''),
-        digitoAgencia: bancarios?.DigitoAgencia || '0',
+        banco: bancarios.Banco || '',
+        agencia: bancarios.AgenciaPagto || '',
+        conta: bancarios.ContaPagto || '',
+        digitoAgencia: '0',
         tipoContaDescricao: 'ContaCorrenteIndividual'
       });
 
@@ -381,49 +322,26 @@ export function C6Simulation({
       }
 
       // 1. Corrigir formato do credit_condition para inclusão (flatten)
-      const selectedConditionAny = selectedCondition as any;
-      const creditConditionForInclusion: any = {
-        covenant_code: selectedCondition.covenant?.code,
-        product_code: selectedCondition.product?.code,
-        installment_quantity: selectedCondition.installment_quantity,
-        installment_amount: selectedCondition.installment_amount,
-        requested_amount: selectedConditionAny.requested_amount,
-        principal_amount: selectedConditionAny.principal_amount || selectedConditionAny.requested_amount, // Campo obrigatório
-        client_amount: selectedConditionAny.client_amount || selectedConditionAny.principal_amount || selectedConditionAny.requested_amount, // Campo obrigatório
-        iof_amount: selectedConditionAny.iof_amount,
-        interest_amount: selectedConditionAny.interest_amount,
-        total_amount: selectedConditionAny.total_amount,
-        gross_amount: selectedConditionAny.gross_amount,
-        net_amount: selectedConditionAny.net_amount,
-        coefficient: selectedConditionAny.coefficient,
-        interest_rate: selectedCondition.interest_rate,
-        monthly_effective_total_cost_rate: selectedConditionAny.monthly_effective_total_cost_rate, // Campo obrigatório
-        annual_effective_total_cost_rate: selectedConditionAny.annual_effective_total_cost_rate,
-        monthly_customer_rate: selectedConditionAny.monthly_customer_rate,
-        annual_customer_rate: selectedConditionAny.annual_customer_rate,
-        cet_monthly: selectedConditionAny.cet_monthly,
-        cet_yearly: selectedConditionAny.cet_yearly,
-        first_due_date: selectedConditionAny.first_due_date,
-        last_due_date: selectedConditionAny.last_due_date
-      };
+      const creditConditionForInclusion: any = { ...selectedCondition };
+      creditConditionForInclusion.covenant_code = creditConditionForInclusion.covenant?.code;
+      creditConditionForInclusion.product_code = creditConditionForInclusion.product?.code;
+      delete creditConditionForInclusion.covenant;
+      delete creditConditionForInclusion.product;
 
       // 2. Processar despesas/seguros corretamente usando item_number
-      let expensesForInclusion: any[] = [];
-      if (selectedCondition.expenses) {
-        if (selectedExpenseItemNumber !== 'none') {
-          expensesForInclusion = selectedCondition.expenses.map((exp: any) => {
-            if (String(exp.item_number) === selectedExpenseItemNumber) {
-              return { ...exp, exempt: 'Nao' }; // Marca o seguro escolhido para cobrança
-            }
-            return { ...exp, exempt: 'Sim' }; // Outros seguros isentos
-          });
-        } else {
-          // Se não há seguro selecionado, todos ficam isentos
-          expensesForInclusion = selectedCondition.expenses.map((exp: any) => ({
-            ...exp,
-            exempt: 'Sim'
-          }));
-        }
+      if (selectedExpenseItemNumber !== 'none' && creditConditionForInclusion.expenses) {
+        creditConditionForInclusion.expenses = creditConditionForInclusion.expenses.map(exp => {
+          if (String(exp.item_number) === selectedExpenseItemNumber) {
+            return { ...exp, exempt: 'Nao' }; // Marca o seguro escolhido para cobrança
+          }
+          return { ...exp, exempt: 'Sim' }; // Outros seguros isentos
+        });
+      } else if (creditConditionForInclusion.expenses) {
+        // Se não há seguro selecionado, todos ficam isentos
+        creditConditionForInclusion.expenses = creditConditionForInclusion.expenses.map(exp => ({
+          ...exp,
+          exempt: 'Sim'
+        }));
       }
 
       // 3. Limpar número de telefone
@@ -437,12 +355,8 @@ export function C6Simulation({
         credit_condition: creditConditionForInclusion,
         selected_expense_item_number: selectedExpenseItemNumber,
         phone_cleaned: cleanedPhone,
-        expenses_processed: expensesForInclusion.map(e => ({code: e.code, item_number: e.item_number, exempt: e.exempt}))
+        expenses_processed: creditConditionForInclusion.expenses?.map(e => ({code: e.code, item_number: e.item_number, exempt: e.exempt}))
       });
-
-      console.log('🔍 DEBUG - Selected condition original data:', selectedConditionAny);
-      console.log('🔍 DEBUG - client_amount from condition:', selectedConditionAny.client_amount);
-      console.log('🔍 DEBUG - requested_amount from condition:', selectedConditionAny.requested_amount);
 
       const response = await fetch('/api/c6-bank/include-proposal', {
         method: 'POST',
@@ -452,7 +366,6 @@ export function C6Simulation({
           benefit_data: benefitData,
           selected_contracts: c6Contracts.map((c: any) => c.Contrato),
           credit_condition: creditConditionForInclusion,
-          expenses: expensesForInclusion,
           selected_expense_item_number: selectedExpenseItemNumber === 'none' ? '' : selectedExpenseItemNumber,
           debug_expense: selectedExpenseItemNumber, // Log para debug
           proposal_data: {
@@ -475,8 +388,8 @@ export function C6Simulation({
               mobile_phone_area_code: cleanedPhone.substring(0, 2),
               mobile_phone_number: cleanedPhone.substring(2),
               bank_data: {
-                bank_code: digitizationData.banco.split('-')[0]?.trim() || digitizationData.banco.replace(/\D/g, ''),
-                agency_number: digitizationData.agencia,
+                bank_code: digitizationData.banco.replace(/\D/g, ''),
+                agency_number: digitizationData.agencia.replace(/\D/g, ''),
                 agency_digit: digitizationData.digitoAgencia,
                 account_type: digitizationData.tipoContaDescricao,
                 account_number: digitizationData.conta.length > 1 ? digitizationData.conta.slice(0, -1) : digitizationData.conta,
@@ -492,7 +405,7 @@ export function C6Simulation({
                 neighborhood: digitizationData.bairro,
                 city: digitizationData.cidade,
                 federation_unit: digitizationData.uf,
-                zip_code: digitizationData.cep.replace(/\D/g, '')
+                zip_code: digitizationData.cep
               },
               professional_data: {
                 enrollment: benefitData.Beneficiario.Beneficio
@@ -538,63 +451,64 @@ export function C6Simulation({
     try {
       setFormalizationAttempts(1);
       
-      // Primeira tentativa imediata
-      const initialResponse = await fetch(`/api/c6-bank/formalization-link/${proposalNum}`);
-      
-      if (initialResponse.ok) {
-        const linkData = await initialResponse.json();
-        if (linkData.url || linkData.formalizationUrl) {
-          setFormalizationUrl(linkData.url || linkData.formalizationUrl);
-          toast({
-            title: "Link de formalização obtido!",
-            description: "Encontrado na primeira tentativa",
-          });
-          return;
-        }
-      }
-
-      // Sistema de tentativas iniciado
-      toast({
-        title: "Sistema de tentativas iniciado",
-        description: "Buscando link automaticamente a cada 20 segundos (15 tentativas)",
+      const response = await fetch('/api/c6-bank/formalization-link-attempts', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ proposalNumber: proposalNum }),
       });
+
+      const data = await response.json();
       
-      // Continuar verificando a cada 20 segundos
-      const checkInterval = setInterval(async () => {
-        try {
-          const checkResponse = await fetch(`/api/c6-bank/formalization-link/${proposalNum}`);
-          
-          if (checkResponse.ok) {
-            const linkData = await checkResponse.json();
-            if (linkData.url || linkData.formalizationUrl) {
-              setFormalizationUrl(linkData.url || linkData.formalizationUrl);
-              clearInterval(checkInterval);
-              toast({
-                title: "Link de formalização obtido!",
-                description: `Encontrado na tentativa ${formalizationAttempts}`,
-              });
-              return;
-            }
-          }
-          
-          setFormalizationAttempts(prev => {
-            const newAttempt = prev + 1;
-            console.log(`🔄 Tentativa ${newAttempt}/15 para proposta ${proposalNum}`);
+      if (data.url || data.formalizationUrl) {
+        // Link encontrado imediatamente
+        setFormalizationUrl(data.url || data.formalizationUrl);
+        toast({
+          title: "Link de formalização obtido!",
+          description: `Encontrado na tentativa ${data.attemptInfo?.attemptUsed || 1}`,
+        });
+      } else {
+        // Sistema de tentativas iniciado
+        toast({
+          title: "Sistema de tentativas iniciado",
+          description: "Buscando link automaticamente a cada 5 minutos (15 tentativas)",
+        });
+        
+        // Continuar verificando manualmente periodicamente
+        const checkInterval = setInterval(async () => {
+          try {
+            const checkResponse = await fetch(`/api/c6-bank/formalization-link/${proposalNum}`);
             
-            if (newAttempt >= 15) {
-              clearInterval(checkInterval);
-              toast({
-                title: "Timeout",
-                description: "Link não disponível após 15 tentativas. Consulte o C6 Bank diretamente.",
-                variant: "destructive",
-              });
+            if (checkResponse.ok) {
+              const linkData = await checkResponse.json();
+              if (linkData.url || linkData.formalizationUrl) {
+                setFormalizationUrl(linkData.url || linkData.formalizationUrl);
+                clearInterval(checkInterval);
+                toast({
+                  title: "Link de formalização obtido!",
+                  description: "Cliente pode assinar o contrato",
+                });
+              }
             }
-            return newAttempt;
-          });
-        } catch (error) {
-          console.error('Erro ao verificar link:', error);
-        }
-      }, 20 * 1000); // 20 segundos
+            
+            setFormalizationAttempts(prev => {
+              const newAttempt = prev + 1;
+              if (newAttempt >= 15) {
+                clearInterval(checkInterval);
+                toast({
+                  title: "Timeout",
+                  description: "Link não disponível após 15 tentativas. Consulte o C6 Bank diretamente.",
+                  variant: "destructive",
+                });
+              }
+              return newAttempt;
+            });
+          } catch (error) {
+            console.error('Erro ao verificar link:', error);
+          }
+        }, 5 * 60 * 1000); // 5 minutos
+      }
       
     } catch (error) {
       console.error('Erro ao iniciar tentativas:', error);
@@ -612,21 +526,21 @@ export function C6Simulation({
         <Button 
           variant="outline" 
           size="sm" 
-          className={`bg-blue-50 hover:bg-green-100 text-green-700 border-green-200 ${className}`}
+          className={`bg-blue-50 hover:bg-blue-100 text-blue-700 border-blue-200 ${className}`}
           onClick={() => {
             setIsOpen(true);
             fetchBenefitData.mutate(cpf);
           }}
         >
           <Building2 className="h-3 w-3 mr-1" />
-          Simular
+          C6 Bank
         </Button>
       </DialogTrigger>
 
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <Building2 className="h-5 w-5 text-green-600" />
+            <Building2 className="h-5 w-5 text-blue-600" />
             Sistema C6 Bank - Refinanciamento
           </DialogTitle>
         </DialogHeader>
@@ -1025,8 +939,7 @@ export function C6Simulation({
                       <Input 
                         value={digitizationData.telefone}
                         onChange={(e) => {
-                          const numbersOnly = onlyNumbers(e.target.value);
-                          const formatted = formatPhone(numbersOnly);
+                          const formatted = formatPhone(e.target.value);
                           setDigitizationData(prev => ({...prev, telefone: formatted}));
                         }}
                         placeholder="(11) 99999-9999"
@@ -1053,8 +966,7 @@ export function C6Simulation({
                       <Input 
                         value={digitizationData.cep}
                         onChange={(e) => {
-                          const numbersOnly = onlyNumbers(e.target.value);
-                          const formatted = formatCEP(numbersOnly);
+                          const formatted = formatCEP(e.target.value);
                           setDigitizationData(prev => ({...prev, cep: formatted}));
                         }}
                         placeholder="00000-000"
@@ -1065,29 +977,14 @@ export function C6Simulation({
                       <Label>Logradouro *</Label>
                       <Input 
                         value={digitizationData.logradouro}
-                        onChange={(e) => {
-                          const fullAddress = e.target.value;
-                          const streetName = extractStreetName(fullAddress);
-                          const houseNumber = extractHouseNumber(fullAddress);
-                          
-                          setDigitizationData(prev => ({
-                            ...prev, 
-                            logradouro: streetName || fullAddress,
-                            numero: houseNumber || prev.numero
-                          }));
-                        }}
-                        placeholder="Ex: RUA CACHOEIRINHA 130, NOSSASENHORADA"
+                        onChange={(e) => setDigitizationData(prev => ({...prev, logradouro: e.target.value}))}
                       />
                     </div>
                     <div>
                       <Label>Número *</Label>
                       <Input 
                         value={digitizationData.numero}
-                        onChange={(e) => {
-                          const numbersOnly = onlyNumbers(e.target.value);
-                          setDigitizationData(prev => ({...prev, numero: numbersOnly}));
-                        }}
-                        placeholder="130"
+                        onChange={(e) => setDigitizationData(prev => ({...prev, numero: e.target.value}))}
                       />
                     </div>
                     <div>
@@ -1171,22 +1068,15 @@ export function C6Simulation({
                       <Label>Agência *</Label>
                       <Input 
                         value={digitizationData.agencia}
-                        onChange={(e) => {
-                          const numbersOnly = onlyNumbers(e.target.value);
-                          setDigitizationData(prev => ({...prev, agencia: numbersOnly}));
-                        }}
-                        placeholder="1234"
+                        onChange={(e) => setDigitizationData(prev => ({...prev, agencia: e.target.value}))}
                       />
                     </div>
                     <div>
                       <Label>Conta *</Label>
                       <Input 
                         value={digitizationData.conta}
-                        onChange={(e) => {
-                          const numbersOnly = onlyNumbers(e.target.value);
-                          setDigitizationData(prev => ({...prev, conta: numbersOnly}));
-                        }}
-                        placeholder="00000"
+                        onChange={(e) => setDigitizationData(prev => ({...prev, conta: e.target.value}))}
+                        placeholder="Ex: 0554444"
                       />
                     </div>
                     <div>
@@ -1264,29 +1154,6 @@ export function C6Simulation({
 
               <Button 
                 onClick={() => {
-                  // Validar campos obrigatórios antes de digitalizar
-                  const validationErrors = validateRequiredFields();
-                  
-                  if (validationErrors.length > 0) {
-                    toast({
-                      title: "Campos obrigatórios não preenchidos",
-                      description: `Preencha: ${validationErrors.slice(0, 3).join(', ')}${validationErrors.length > 3 ? ` e mais ${validationErrors.length - 3}` : ''}`,
-                      variant: "destructive",
-                    });
-                    return;
-                  }
-
-                  // --- VALIDAÇÃO DOS DADOS BANCÁRIOS ADICIONADA ---
-                  if (!digitizationData.banco || !digitizationData.agencia || !digitizationData.conta) {
-                    toast({
-                      title: "Dados Bancários Incompletos",
-                      description: "Os dados bancários não foram encontrados na consulta. Preencha-os manualmente antes de continuar.",
-                      variant: "destructive",
-                    });
-                    return; // Impede o envio
-                  }
-                  // -------------------------
-                  
                   console.log('Starting digitization with selected expense item_number:', selectedExpenseItemNumber);
                   digitizationMutation.mutate();
                 }} 
@@ -1361,7 +1228,7 @@ export function C6Simulation({
                     <Clock className="h-8 w-8 text-blue-600 mx-auto mb-2" />
                     <p className="text-blue-800">Aguardando link de formalização...</p>
                     <p className="text-sm text-gray-600">
-                      Tentativa {formalizationAttempts}/15 (Sistema automático a cada 20 segundos)
+                      Tentativa {formalizationAttempts}/15 (Sistema automático a cada 5 minutos)
                     </p>
                   </div>
                 </div>

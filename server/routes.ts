@@ -874,7 +874,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post('/api/c6-bank/include-proposal', requireAuthHybrid, async (req, res) => {
     try {
-      const { cpf, benefit_data, selected_contracts, credit_condition, expenses, proposal_data, selected_expense = '' } = req.body;
+      const { cpf, benefit_data, selected_contracts, credit_condition, proposal_data, selected_expense = '' } = req.body;
 
       // 1. Autenticar no C6 Bank
       const authResponse = await fetch('https://marketplace-proposal-service-api-p.c6bank.info/auth/token', {
@@ -895,22 +895,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const authData = await authResponse.json();
       const token = authData.access_token;
 
-      // 2. Preparar dados bancários com limpeza e validação
-      const bankData = proposal_data.client.bank_data;
+      // 2. Preparar dados bancários
       const paymentData = {
-        bank_code: String(bankData.bank_code).split('-')[0].trim().replace(/\D/g, ''),
-        agency_number: String(bankData.agency_number).replace(/\D/g, ''),
-        agency_digit: bankData.agency_digit || '0',
-        account_type: bankData.account_type,
-        account_number: String(bankData.account_number).replace(/\D/g, '').slice(0, -1),
-        account_digit: String(bankData.account_number).replace(/\D/g, '').slice(-1)
+        bank_code: proposal_data.client.bank_data.bank_code,
+        agency_number: proposal_data.client.bank_data.agency_number,
+        agency_digit: proposal_data.client.bank_data.agency_digit,
+        account_type: proposal_data.client.bank_data.account_type,
+        account_number: proposal_data.client.bank_data.account_number,
+        account_digit: proposal_data.client.bank_data.account_digit
       };
 
       // 3. O credit_condition já vem processado do frontend
       const creditConditionForInclusion = { ...credit_condition };
 
       // 4. Usar despesas já processadas do frontend
-      const expensesForInclusion = expenses || [];
+      const expensesForInclusion = credit_condition.expenses || [];
 
       // 4. Montar payload de inclusão
       const inclusionPayload = {
@@ -925,6 +924,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           tax_identifier_of_certified_agent: "46437248890"
         },
         credit_condition: creditConditionForInclusion,
+        payment: paymentData,
         client: {
           tax_identifier: proposal_data.client.tax_identifier,
           name: proposal_data.client.name,
@@ -943,18 +943,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
           email: proposal_data.client.email,
           mobile_phone_area_code: proposal_data.client.mobile_phone_area_code,
           mobile_phone_number: proposal_data.client.mobile_phone_number,
-          bank_data: paymentData, // CORREÇÃO: bank_data dentro do client conforme API
+          bank_data: paymentData,
           benefit_data: {
             receive_card_benefit: "Nao",
             federation_unit: benefit_data.Beneficiario?.UFBeneficio || "SP"
           },
           address: {
-            street: proposal_data.client.address.street,
-            number: proposal_data.client.address.number,
-            neighborhood: proposal_data.client.address.neighborhood,
-            city: proposal_data.client.address.city,
-            federation_unit: proposal_data.client.address.federation_unit,
-            zip_code: proposal_data.client.address.zip_code.replace(/\D/g, '') // Remove todos os caracteres não numéricos
+            ...proposal_data.client.address,
+            zip_code: proposal_data.client.address.zip_code.replace('-', '') // Remove hífen do CEP
           },
           professional_data: {
             enrollment: benefit_data.Beneficiario?.Beneficio
@@ -964,48 +960,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         expenses: expensesForInclusion
       };
 
-      // Validação dos campos obrigatórios antes do envio
-      const validationErrors = [];
-      
-      if (!creditConditionForInclusion.covenant_code) validationErrors.push('covenant_code ausente');
-      if (!creditConditionForInclusion.product_code) validationErrors.push('product_code ausente');
-      if (!creditConditionForInclusion.principal_amount) validationErrors.push('principal_amount ausente');
-      if (!creditConditionForInclusion.client_amount) validationErrors.push('client_amount ausente');
-      if (!creditConditionForInclusion.monthly_effective_total_cost_rate) validationErrors.push('monthly_effective_total_cost_rate ausente');
-      if (!inclusionPayload.client?.tax_identifier) validationErrors.push('CPF ausente');
-      if (!inclusionPayload.client?.name) validationErrors.push('Nome ausente');
-      if (!inclusionPayload.client?.birth_date) validationErrors.push('Data de nascimento ausente');
-      if (!inclusionPayload.client?.address?.zip_code || inclusionPayload.client.address.zip_code.length !== 8) {
-        validationErrors.push('CEP inválido (deve ter 8 dígitos)');
-      }
-      if (!paymentData.bank_code) validationErrors.push('Código do banco ausente');
-      if (!paymentData.agency_number) validationErrors.push('Agência ausente');
-      if (!paymentData.account_number) validationErrors.push('Conta ausente');
-      if (!inclusionPayload.client.bank_data) validationErrors.push('bank_data ausente no client');
-      
-      if (validationErrors.length > 0) {
-        console.error('❌ VALIDAÇÃO FALHOU:', validationErrors);
-        return res.status(400).json({
-          error: 'Campos obrigatórios faltando ou inválidos',
-          validation_errors: validationErrors,
-          received_data: {
-            covenant_code: creditConditionForInclusion.covenant_code,
-            product_code: creditConditionForInclusion.product_code,
-            principal_amount: creditConditionForInclusion.principal_amount,
-            client_amount: creditConditionForInclusion.client_amount,
-            monthly_effective_total_cost_rate: creditConditionForInclusion.monthly_effective_total_cost_rate,
-            cpf: inclusionPayload.client?.tax_identifier,
-            cep: inclusionPayload.client?.address?.zip_code,
-            bank_code: paymentData.bank_code,
-            agency: paymentData.agency_number,
-            account: paymentData.account_number
-          }
-        });
-      }
-
       // Log do payload completo antes do envio
       console.log('📤 PAYLOAD COMPLETO PARA C6:', JSON.stringify(inclusionPayload, null, 2));
-      console.log('🔍 BANK_DATA STRUCTURE:', JSON.stringify(paymentData, null, 2));
       
       // 5. Fazer inclusão no C6
       const inclusionResponse = await fetch('https://marketplace-proposal-service-api-p.c6bank.info/marketplace/proposal', {
