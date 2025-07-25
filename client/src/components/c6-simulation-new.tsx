@@ -213,6 +213,8 @@ export function C6Simulation({
       const beneficiario = data.Beneficiario;
       const bancarios = data.DadosBancarios;
 
+      console.log('🏦 Dados bancários recebidos:', bancarios);
+
       setDigitizationData({
         nomeCompleto: beneficiario.Nome || '',
         nomeMae: beneficiario.NomeMae || '',
@@ -235,9 +237,9 @@ export function C6Simulation({
         nomeConjuge: '',
         recebeCartaoBeneficio: 'Nao',
         ufBeneficio: beneficiario.UFBeneficio || beneficiario.UF || '',
-        banco: bancarios.Banco || '',
-        agencia: bancarios.AgenciaPagto || '',
-        conta: bancarios.ContaPagto || '',
+        banco: bancarios?.Banco || '',
+        agencia: bancarios?.AgenciaPagto || '',
+        conta: bancarios?.ContaPagto || '',
         digitoAgencia: '0',
         tipoContaDescricao: 'ContaCorrenteIndividual'
       });
@@ -391,12 +393,12 @@ export function C6Simulation({
               mobile_phone_area_code: cleanedPhone.substring(0, 2),
               mobile_phone_number: cleanedPhone.substring(2),
               bank_data: {
-                bank_code: digitizationData.banco.replace(/\D/g, ''),
-                agency_number: digitizationData.agencia.replace(/\D/g, ''),
-                agency_digit: digitizationData.digitoAgencia,
-                account_type: digitizationData.tipoContaDescricao,
-                account_number: digitizationData.conta.replace(/\D/g, '').length > 1 ? digitizationData.conta.replace(/\D/g, '').slice(0, -1) : digitizationData.conta.replace(/\D/g, ''),
-                account_digit: digitizationData.conta.replace(/\D/g, '').length > 1 ? digitizationData.conta.replace(/\D/g, '').slice(-1) : ""
+                bank_code: digitizationData.banco ? digitizationData.banco.replace(/\D/g, '') : (benefitData?.DadosBancarios?.Banco || ''),
+                agency_number: digitizationData.agencia ? digitizationData.agencia.replace(/\D/g, '') : (benefitData?.DadosBancarios?.AgenciaPagto || ''),
+                agency_digit: digitizationData.digitoAgencia || '0',
+                account_type: digitizationData.tipoContaDescricao || 'ContaCorrenteIndividual',
+                account_number: digitizationData.conta ? (digitizationData.conta.replace(/\D/g, '').length > 1 ? digitizationData.conta.replace(/\D/g, '').slice(0, -1) : digitizationData.conta.replace(/\D/g, '')) : (benefitData?.DadosBancarios?.ContaPagto || ''),
+                account_digit: digitizationData.conta ? (digitizationData.conta.replace(/\D/g, '').length > 1 ? digitizationData.conta.replace(/\D/g, '').slice(-1) : "") : ''
               },
               benefit_data: {
                 receive_card_benefit: digitizationData.recebeCartaoBeneficio,
@@ -470,10 +472,10 @@ export function C6Simulation({
                 bank_data: {
                   bank_code: benefitData?.DadosBancarios?.Banco || null,
                   agency_number: benefitData?.DadosBancarios?.AgenciaPagto || null,
-                  agency_digit: benefitData?.DadosBancarios?.AgenciaDigito || null,
-                  account_type: benefitData?.DadosBancarios?.TipoConta || null,
+                  agency_digit: '0',
+                  account_type: 'ContaCorrenteIndividual',
                   account_number: benefitData?.DadosBancarios?.ContaPagto || null,
-                  account_digit: benefitData?.DadosBancarios?.ContaDigito || null
+                  account_digit: ''
                 }
               }
             },
