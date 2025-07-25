@@ -134,15 +134,19 @@ export default function DigitalizacoesPage() {
 
       const data = await response.json();
       
-      // Exibir informações da proposta em um toast ou modal
+      // Exibir informações da proposta em um toast
       toast({
         title: "Proposta Consultada",
         description: `Status: ${data.status || 'N/A'} - Valor: R$ ${data.amount || 0}`,
       });
-    } catch (error) {
+    } catch (error: any) {
+      const errorMessage = error?.response?.status === 404 ? 
+        "Proposta não encontrada no sistema C6 Bank" :
+        "Não foi possível consultar a proposta";
+      
       toast({
         title: "Erro na Consulta",
-        description: "Não foi possível consultar a proposta",
+        description: errorMessage,
         variant: "destructive",
       });
     }
@@ -173,10 +177,14 @@ export default function DigitalizacoesPage() {
           `Última movimentação: ${ultimaMovimentacao.description} em ${ultimaMovimentacao.date}` :
           "Nenhuma movimentação encontrada",
       });
-    } catch (error) {
+    } catch (error: any) {
+      const errorMessage = error?.response?.status === 404 ? 
+        "Movimentações ainda não disponíveis para esta proposta" :
+        "Não foi possível consultar a movimentação";
+      
       toast({
         title: "Erro na Movimentação",
-        description: "Não foi possível consultar a movimentação",
+        description: errorMessage,
         variant: "destructive",
       });
     }

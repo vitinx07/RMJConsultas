@@ -1349,7 +1349,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Endpoint para consultar proposta específica
+  // Endpoint para consultar proposta específica (seguindo API C6 oficial)
   app.post('/api/c6-bank/consultar-proposta', requireAuthHybrid, async (req, res) => {
     try {
       const { proposalNumber } = req.body;
@@ -1379,7 +1379,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const authData = await authResponse.json();
       const token = authData.access_token;
 
-      // 2. Consultar proposta
+      // 2. Consultar proposta usando marketplace API
       const response = await fetch(`https://marketplace-proposal-service-api-p.c6bank.info/marketplace/proposal/consult?proposalNumber=${proposalNumber}`, {
         method: 'GET',
         headers: {
@@ -1389,6 +1389,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
       
       if (!response.ok) {
+        const errorText = await response.text();
+        console.log('❌ Erro na consulta da proposta:', errorText);
+        
+        if (response.status === 404) {
+          return res.status(404).json({ 
+            error: 'Proposta não encontrada',
+            message: `A proposta ${proposalNumber} não foi localizada no sistema C6 Bank. Verifique se o número está correto.`,
+            proposalNumber 
+          });
+        }
+        
         throw new Error(`API C6 retornou status ${response.status}`);
       }
       
@@ -1407,7 +1418,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Endpoint para consultar movimentação da proposta
+  // Endpoint para consultar movimentação da proposta (seguindo API C6 oficial)
   app.post('/api/c6-bank/consultar-movimentacao', requireAuthHybrid, async (req, res) => {
     try {
       const { proposalNumber } = req.body;
@@ -1437,8 +1448,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const authData = await authResponse.json();
       const token = authData.access_token;
 
-      // 2. Consultar movimentação (endpoint fictício - ajustar conforme API real)
-      const response = await fetch(`https://marketplace-proposal-service-api-p.c6bank.info/marketplace/proposal/movements?proposalNumber=${proposalNumber}`, {
+      // 2. Consultar movimentação usando marketplace API
+      const response = await fetch(`https://marketplace-proposal-service-api-p.c6bank.info/marketplace/proposal/movement?proposalNumber=${proposalNumber}`, {
         method: 'GET',
         headers: {
           'Authorization': token,
@@ -1447,6 +1458,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
       
       if (!response.ok) {
+        const errorText = await response.text();
+        console.log('❌ Erro na consulta de movimentação:', errorText);
+        
+        if (response.status === 404) {
+          return res.status(404).json({ 
+            error: 'Movimentação não encontrada',
+            message: `Não foi possível localizar movimentações para a proposta ${proposalNumber}. A proposta pode ainda estar em processamento inicial.`,
+            proposalNumber 
+          });
+        }
+        
         throw new Error(`API C6 retornou status ${response.status}`);
       }
       
@@ -1454,8 +1476,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       res.json({
         proposalNumber,
-        movements: data.movements || [],
-        totalMovements: data.movements?.length || 0
+        movements: data.movements || data.movement_history || [],
+        totalMovements: (data.movements || data.movement_history || []).length
       });
       
     } catch (error) {
