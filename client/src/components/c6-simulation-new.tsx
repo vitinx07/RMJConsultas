@@ -260,6 +260,16 @@ export function C6Simulation({
       const beneficiario = data.Beneficiario;
       const bancarios = data.DadosBancarios;
 
+      // Extrair dados do endereço completo se disponível
+      const enderecoCompleto = beneficiario.Endereco || '';
+      const streetName = extractStreetName(enderecoCompleto);
+      const houseNumber = extractHouseNumber(enderecoCompleto);
+
+      console.log('Dados bancários disponíveis:', bancarios);
+      console.log('Endereço completo:', enderecoCompleto);
+      console.log('Rua extraída:', streetName);
+      console.log('Número extraído:', houseNumber);
+
       setDigitizationData({
         nomeCompleto: beneficiario.Nome || '',
         nomeMae: beneficiario.NomeMae || '',
@@ -267,8 +277,8 @@ export function C6Simulation({
         telefone: beneficiario.Telefone ? formatPhone(beneficiario.Telefone) : '',
         email: beneficiario.Email || 'naoinformado@gmail.com',
         cep: beneficiario.CEP ? formatCEP(beneficiario.CEP) : '',
-        logradouro: beneficiario.Logradouro || beneficiario.Endereco || '',
-        numero: beneficiario.Numero || 'S/N',
+        logradouro: streetName || beneficiario.Logradouro || enderecoCompleto,
+        numero: houseNumber || beneficiario.Numero || 'S/N',
         complemento: beneficiario.Complemento || '',
         bairro: beneficiario.Bairro || '',
         cidade: beneficiario.Cidade || '',
@@ -282,10 +292,10 @@ export function C6Simulation({
         nomeConjuge: '',
         recebeCartaoBeneficio: 'Nao',
         ufBeneficio: beneficiario.UFBeneficio || beneficiario.UF || '',
-        banco: bancarios.Banco || '',
-        agencia: bancarios.AgenciaPagto || '',
-        conta: bancarios.ContaPagto || '',
-        digitoAgencia: '0',
+        banco: `${bancarios?.Banco || ''} - ${bancarios?.NomeBanco || 'Banco'}`.trim(),
+        agencia: String(bancarios?.Agencia || bancarios?.AgenciaPagto || ''),
+        conta: String(bancarios?.Conta || bancarios?.ContaPagto || ''),
+        digitoAgencia: bancarios?.DigitoAgencia || '0',
         tipoContaDescricao: 'ContaCorrenteIndividual'
       });
 
@@ -1148,7 +1158,7 @@ export function C6Simulation({
                           const numbersOnly = onlyNumbers(e.target.value);
                           setDigitizationData(prev => ({...prev, conta: numbersOnly}));
                         }}
-                        placeholder="0554444"
+                        placeholder="00000"
                       />
                     </div>
                     <div>
