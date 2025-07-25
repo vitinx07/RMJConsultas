@@ -197,7 +197,7 @@ export function C6Simulation({
     },
     onSuccess: (data) => {
       setCreditConditions(data.credit_conditions || []);
-      setStep('digitization');
+      // NÃO muda o step - permanece no mesmo card mostrando a tabela
       toast({
         title: "Simulação concluída",
         description: `${data.credit_conditions?.length || 0} condição(ões) encontrada(s)`,
@@ -537,9 +537,10 @@ export function C6Simulation({
                     <table className="w-full border-collapse border border-gray-200">
                       <thead>
                         <tr className="bg-gray-50">
+                          <th className="border border-gray-200 px-4 py-2 text-left">Tabela</th>
                           <th className="border border-gray-200 px-4 py-2 text-left">Prazo (meses)</th>
                           <th className="border border-gray-200 px-4 py-2 text-left">Parcela</th>
-                          <th className="border border-gray-200 px-4 py-2 text-left">Valor Liberado</th>
+                          <th className="border border-gray-200 px-4 py-2 text-left">Troco</th>
                           <th className="border border-gray-200 px-4 py-2 text-left">Taxa</th>
                           <th className="border border-gray-200 px-4 py-2 text-center">Ação</th>
                         </tr>
@@ -548,16 +549,20 @@ export function C6Simulation({
                         {creditConditions.map((condition, index) => (
                           <tr key={index} className="hover:bg-gray-50">
                             <td className="border border-gray-200 px-4 py-2 font-medium">
-                              {condition.installment_quantity}
+                              {condition.covenant?.description || `Tabela ${condition.covenant?.code || index + 1}`}
+                            </td>
+                            <td className="border border-gray-200 px-4 py-2">
+                              {condition.installment_quantity} meses
                             </td>
                             <td className="border border-gray-200 px-4 py-2">
                               R$ {condition.installment_amount?.toFixed(2)}
                             </td>
-                            <td className="border border-gray-200 px-4 py-2">
-                              R$ {condition.net_amount?.toFixed(2)}
+                            <td className="border border-gray-200 px-4 py-2 text-green-600 font-medium">
+                              R$ {condition.client_amount?.toFixed(2)}
                             </td>
                             <td className="border border-gray-200 px-4 py-2">
-                              {condition.interest_rate ? `${condition.interest_rate}%` : 'N/A'}
+                              {condition.covenant?.rate_percentage ? `${condition.covenant.rate_percentage}%` : 
+                               condition.rate_percentage ? `${condition.rate_percentage}%` : 'N/A'}
                             </td>
                             <td className="border border-gray-200 px-4 py-2 text-center">
                               <Button
