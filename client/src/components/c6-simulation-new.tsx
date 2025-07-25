@@ -73,7 +73,7 @@ export function C6Simulation({
   className = ""
 }: C6SimulationProps) {
   const [isOpen, setIsOpen] = useState(false);
-  const [step, setStep] = useState<'contracts' | 'simulation' | 'digitization' | 'formalization'>('contracts');
+  const [step, setStep] = useState<'loading' | 'contracts' | 'simulation' | 'digitization' | 'formalization'>('loading');
   const [benefitData, setBenefitData] = useState<BenefitData | null>(null);
   const [selectedContracts, setSelectedContracts] = useState<string[]>([]);
   const [installmentQuantity, setInstallmentQuantity] = useState(84);
@@ -143,7 +143,7 @@ export function C6Simulation({
         conta: bancarios.ContaPagto || ''
       });
 
-      setStep('simulation');
+      setStep('contracts');
     },
     onError: (error) => {
       toast({
@@ -157,14 +157,22 @@ export function C6Simulation({
   // Simulação C6
   const simulationMutation = useMutation({
     mutationFn: async () => {
-      if (!benefitData) throw new Error('Dados do beneficiário não encontrados');
+      if (!benefitData || selectedContracts.length === 0) {
+        throw new Error('Selecione pelo menos um contrato para simular');
+      }
       
       const c6Contracts = benefitData.Emprestimos?.filter((emp: any) => 
         emp.Banco === '626' || emp.NomeBanco?.toLowerCase().includes('ficsa')
       ) || [];
       
-      const contractIds = c6Contracts.map((c: any) => c.Contrato);
-      const totalParcela = c6Contracts.reduce((sum: number, c: any) => sum + (c.ValorParcela || 0), 0);
+      // Usar apenas contratos selecionados
+      const selectedContractData = c6Contracts.filter((c: any) => 
+        selectedContracts.includes(c.Contrato)
+      );
+      
+      const totalParcela = selectedContractData.reduce((sum: number, c: any) => 
+        sum + (c.ValorParcela || 0), 0
+      );
 
       const response = await fetch('/api/c6-bank/simulate', {
         method: 'POST',
@@ -172,7 +180,7 @@ export function C6Simulation({
         body: JSON.stringify({
           cpf: benefitData.Beneficiario.CPF,
           installment_quantity: installmentQuantity,
-          selected_contracts: contractIds,
+          selected_contracts: selectedContracts, // Usar contratos selecionados
           simulation_type: 'POR_VALOR_PARCELA',
           installment_amount: totalParcela
         }),
@@ -342,13 +350,117 @@ export function C6Simulation({
           </DialogTitle>
         </DialogHeader>
 
-        {step === 'contracts' && (
+        {step === 'loading' && (
           <div className="flex items-center justify-center py-8">
             <div className="flex items-center gap-3">
               <Loader2 className="h-6 w-6 animate-spin text-blue-600" />
               <span>Carregando dados do beneficiário...</span>
             </div>
           </div>
+        )}
+
+        {step === 'contracts' && benefitData && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <FileText className="h-5 w-5" />
+                Selecionar Contratos C6 Bank
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <p className="text-sm text-gray-600">
+                Selecione os contratos que deseja incluir no refinanciamento:
+              </p>
+              
+              {(() => {
+                const c6Contracts = benefitData.Emprestimos?.filter((emp: any) => 
+                  emp.Banco === '626' || emp.NomeBanco?.toLowerCase().includes('ficsa')
+                ) || [];
+                
+                if (c6Contracts.length === 0) {
+                  return (
+                    <Alert>
+                      <AlertTriangle className="h-4 w-4" />
+                      <AlertDescription>
+                        Nenhum contrato C6 Bank encontrado para este CPF.
+                      </AlertDescription>
+                    </Alert>
+                  );
+                }
+                
+                return (
+                  <div className="space-y-3">
+                    {c6Contracts.map((contract: any, index: number) => (
+                      <div 
+                        key={contract.Contrato}
+                        className={`p-3 border rounded cursor-pointer transition-colors ${
+                          selectedContracts.includes(contract.Contrato) 
+                            ? 'border-blue-500 bg-blue-50' 
+                            : 'border-gray-200 hover:border-gray-300'
+                        }`}
+                        onClick={() => {
+                          setSelectedContracts(prev => {
+                            if (prev.includes(contract.Contrato)) {
+                              return prev.filter(c => c !== contract.Contrato);
+                            } else {
+                              return [...prev, contract.Contrato];
+                            }
+                          });
+                        }}
+                      >
+                        <div className="flex justify-between items-center">
+                          <div>
+                            <div className="font-medium">Contrato: {contract.Contrato}</div>
+                            <div className="text-sm text-gray-600">
+                              Parcela: R$ {contract.ValorParcela?.toFixed(2)}
+                            </div>
+                            {contract.SaldoDevedor && (
+                              <div className="text-sm text-gray-600">
+                                Saldo Devedor: R$ {contract.SaldoDevedor.toFixed(2)}
+                              </div>
+                            )}
+                          </div>
+                          <div className={`w-4 h-4 rounded border-2 ${
+                            selectedContracts.includes(contract.Contrato)
+                              ? 'bg-blue-500 border-blue-500'
+                              : 'border-gray-300'
+                          }`}>
+                            {selectedContracts.includes(contract.Contrato) && (
+                              <CheckCircle className="w-4 h-4 text-white" />
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                    
+                    {selectedContracts.length > 0 && (
+                      <div className="bg-blue-50 p-3 rounded">
+                        <div className="text-sm font-medium text-blue-800">
+                          Total selecionado: {selectedContracts.length} contrato(s)
+                        </div>
+                        <div className="text-sm text-blue-600">
+                          Parcela total: R$ {
+                            c6Contracts
+                              .filter((c: any) => selectedContracts.includes(c.Contrato))
+                              .reduce((sum: number, c: any) => sum + (c.ValorParcela || 0), 0)
+                              .toFixed(2)
+                          }
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                );
+              })()}
+              
+              <Button 
+                onClick={() => setStep('simulation')} 
+                disabled={selectedContracts.length === 0}
+                className="w-full"
+              >
+                Continuar para Simulação
+              </Button>
+            </CardContent>
+          </Card>
         )}
 
         {step === 'simulation' && (

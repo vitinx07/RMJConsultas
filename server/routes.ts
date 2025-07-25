@@ -800,7 +800,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const token = authData.access_token;
 
       // 2. Buscar dados do cliente
-      const clientData = await fetch(`${process.env.REPLIT_DEV_DOMAIN || 'http://localhost:5000'}/api/multicorban/cpf`, {
+      const baseUrl = req.headers.host?.includes('replit.dev') || req.headers.host?.includes('worf.replit.dev') 
+        ? `https://${req.headers.host}` 
+        : 'http://localhost:5000';
+      
+      const clientData = await fetch(`${baseUrl}/api/multicorban/cpf`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
