@@ -738,6 +738,13 @@ export function BenefitDetails({ benefit }: BenefitDetailsProps) {
                                 const originalBankCode = emprestimo.Banco || emprestimo.CodigoBanco || '';
                                 const bankNameFromAPI = emprestimo.NomeBanco || '';
                                 
+                                // Debug para ver os códigos de banco
+                                console.log('Bank Debug:', {
+                                  originalBankCode,
+                                  bankNameFromAPI,
+                                  contrato: emprestimo.Contrato
+                                });
+                                
                                 // Verificar por código
                                 if (originalBankCode === '041' || originalBankCode === '41') {
                                   return (
@@ -771,8 +778,8 @@ export function BenefitDetails({ benefit }: BenefitDetailsProps) {
                                   );
                                 }
 
-                                // Verificar C6 Bank (código 336)
-                                if (originalBankCode === '336' || originalBankCode === '336 - C6 BANK') {
+                                // Verificar C6 Bank (código 626)
+                                if (originalBankCode === '626' || originalBankCode === '626 - Banco C6' || originalBankCode === '336' || originalBankCode === '336 - C6 BANK') {
                                   return (
                                     <C6Simulation
                                       cpf={Beneficiario.CPF}
@@ -782,8 +789,11 @@ export function BenefitDetails({ benefit }: BenefitDetailsProps) {
                                   );
                                 }
 
-                                // Verificar por nome C6 Bank
-                                if (bankNameFromAPI && bankNameFromAPI.toLowerCase().includes('c6 bank')) {
+                                // Verificar por nome C6 Bank ou Banco C6
+                                if (bankNameFromAPI && (
+                                  bankNameFromAPI.toLowerCase().includes('c6 bank') ||
+                                  bankNameFromAPI.toLowerCase().includes('banco c6')
+                                )) {
                                   return (
                                     <C6Simulation
                                       cpf={Beneficiario.CPF}
