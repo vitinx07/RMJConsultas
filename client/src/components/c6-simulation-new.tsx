@@ -628,7 +628,7 @@ export function C6Simulation({
                         onChange={(e) => setInstallmentQuantity(Number(e.target.value))}
                         className="w-full p-2 border border-gray-300 rounded-md"
                       >
-                        {[72, 84, 96, 108, 120].map(months => (
+                        {[96].map(months => (
                           <option key={months} value={months}>{months} meses</option>
                         ))}
                       </select>

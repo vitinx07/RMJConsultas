@@ -905,14 +905,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         account_digit: proposal_data.client.bank_data.account_digit
       };
 
-      // 3. Preparar condição de crédito para inclusão
-      const creditConditionForInclusion = {
-        ...credit_condition,
-        covenant_code: credit_condition.covenant.code,
-        product_code: credit_condition.product.code
-      };
-      delete creditConditionForInclusion.covenant;
-      delete creditConditionForInclusion.product;
+      // 3. O credit_condition já vem processado do frontend
+      const creditConditionForInclusion = { ...credit_condition };
 
       // 4. Usar despesas já processadas do frontend
       const expensesForInclusion = credit_condition.expenses || [];
