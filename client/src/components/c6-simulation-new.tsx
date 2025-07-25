@@ -97,7 +97,7 @@ export function C6Simulation({
   const [manualInstallmentAmount, setManualInstallmentAmount] = useState<number | null>(null);
   const [creditConditions, setCreditConditions] = useState<CreditCondition[]>([]);
   const [selectedCondition, setSelectedCondition] = useState<CreditCondition | null>(null);
-  const [selectedExpenses, setSelectedExpenses] = useState<string[]>([]);
+  const [selectedExpense, setSelectedExpense] = useState<string>('');
   const [proposalNumber, setProposalNumber] = useState<string>('');
   const [formalizationUrl, setFormalizationUrl] = useState<string>('');
   const [formalizationAttempts, setFormalizationAttempts] = useState(0);
@@ -270,7 +270,7 @@ export function C6Simulation({
           benefit_data: benefitData,
           selected_contracts: c6Contracts.map((c: any) => c.Contrato),
           credit_condition: selectedCondition,
-          selected_expenses: selectedExpenses,
+          selected_expense: selectedExpense,
           proposal_data: {
             client: {
               tax_identifier: benefitData.Beneficiario.CPF,
@@ -957,20 +957,38 @@ export function C6Simulation({
                 <div className="space-y-4 border-t pt-4">
                   <h3 className="font-semibold text-lg">Seguros e Serviços Opcionais</h3>
                   <div className="space-y-3">
+                    {/* Opção Nenhum Seguro */}
+                    <div className="border rounded-lg p-3 bg-gray-50">
+                      <div className="flex items-center space-x-3">
+                        <input
+                          type="radio"
+                          id="no-expense"
+                          name="expense-selection"
+                          value=""
+                          checked={selectedExpense === ''}
+                          onChange={(e) => {
+                            setSelectedExpense(e.target.value);
+                          }}
+                          className="h-4 w-4"
+                        />
+                        <Label htmlFor="no-expense" className="font-medium">
+                          Nenhum seguro/serviço adicional
+                        </Label>
+                      </div>
+                    </div>
+                    
                     {selectedCondition.expenses.map((expense, index) => (
                       <div key={expense.code} className="border rounded-lg p-3">
                         <div className="flex items-start justify-between">
                           <div className="flex items-center space-x-3">
                             <input
-                              type="checkbox"
+                              type="radio"
                               id={`expense-${expense.code}`}
-                              checked={selectedExpenses.includes(expense.code)}
+                              name="expense-selection"
+                              value={expense.code}
+                              checked={selectedExpense === expense.code}
                               onChange={(e) => {
-                                if (e.target.checked) {
-                                  setSelectedExpenses(prev => [...prev, expense.code]);
-                                } else {
-                                  setSelectedExpenses(prev => prev.filter(code => code !== expense.code));
-                                }
+                                setSelectedExpense(e.target.value);
                               }}
                               className="h-4 w-4"
                             />
