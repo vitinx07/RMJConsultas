@@ -97,7 +97,7 @@ export function C6Simulation({
   const [manualInstallmentAmount, setManualInstallmentAmount] = useState<number | null>(null);
   const [creditConditions, setCreditConditions] = useState<CreditCondition[]>([]);
   const [selectedCondition, setSelectedCondition] = useState<CreditCondition | null>(null);
-  const [selectedExpense, setSelectedExpense] = useState<string>('none'); // Default: sem seguro
+  const [selectedExpenseItemNumber, setSelectedExpenseItemNumber] = useState<string>('none'); // Default: sem seguro
   const [proposalNumber, setProposalNumber] = useState<string>('');
   const [formalizationUrl, setFormalizationUrl] = useState<string>('');
   const [formalizationAttempts, setFormalizationAttempts] = useState(0);
@@ -298,7 +298,7 @@ export function C6Simulation({
       }
       setCreditConditions(data.credit_conditions || []);
       // Reset expense selection quando nova simulação
-      setSelectedExpense('none');
+      setSelectedExpenseItemNumber('none');
       // NÃO muda o step - permanece no mesmo card mostrando a tabela
       toast({
         title: "Simulação concluída",
@@ -328,10 +328,10 @@ export function C6Simulation({
       delete creditConditionForInclusion.covenant;
       delete creditConditionForInclusion.product;
 
-      // 2. Processar despesas/seguros corretamente
-      if (selectedExpense !== 'none' && creditConditionForInclusion.expenses) {
+      // 2. Processar despesas/seguros corretamente usando item_number
+      if (selectedExpenseItemNumber !== 'none' && creditConditionForInclusion.expenses) {
         creditConditionForInclusion.expenses = creditConditionForInclusion.expenses.map(exp => {
-          if (exp.code === selectedExpense) {
+          if (String(exp.item_number) === selectedExpenseItemNumber) {
             return { ...exp, exempt: 'Nao' }; // Marca o seguro escolhido para cobrança
           }
           return { ...exp, exempt: 'Sim' }; // Outros seguros isentos
@@ -353,9 +353,9 @@ export function C6Simulation({
 
       console.log('🚀 Enviando para inclusão:', {
         credit_condition: creditConditionForInclusion,
-        selected_expense: selectedExpense,
+        selected_expense_item_number: selectedExpenseItemNumber,
         phone_cleaned: cleanedPhone,
-        expenses_processed: creditConditionForInclusion.expenses?.map(e => ({code: e.code, exempt: e.exempt}))
+        expenses_processed: creditConditionForInclusion.expenses?.map(e => ({code: e.code, item_number: e.item_number, exempt: e.exempt}))
       });
 
       const response = await fetch('/api/c6-bank/include-proposal', {
@@ -366,8 +366,8 @@ export function C6Simulation({
           benefit_data: benefitData,
           selected_contracts: c6Contracts.map((c: any) => c.Contrato),
           credit_condition: creditConditionForInclusion,
-          selected_expense: selectedExpense === 'none' ? '' : selectedExpense,
-          debug_expense: selectedExpense, // Log para debug
+          selected_expense_item_number: selectedExpenseItemNumber === 'none' ? '' : selectedExpenseItemNumber,
+          debug_expense: selectedExpenseItemNumber, // Log para debug
           proposal_data: {
             client: {
               tax_identifier: benefitData.Beneficiario.CPF,
@@ -1093,54 +1093,30 @@ export function C6Simulation({
               {selectedCondition?.expenses && selectedCondition.expenses.length > 0 && (
                 <div className="space-y-4 border-t pt-4">
                   <h3 className="font-semibold text-lg">Seguros e Serviços Opcionais</h3>
-                  <div className="space-y-4">
-                    <div>
-                      <Label>Selecione o seguro desejado *</Label>
-                      <select 
-                        value={selectedExpense}
-                        onChange={(e) => {
-                          const newValue = e.target.value;
-                          console.log('🔥 CHANGE EVENT - Seguro selecionado:', newValue);
-                          console.log('🔥 Event target selectedIndex:', e.target.selectedIndex);
-                          console.log('🔥 All expenses codes:', selectedCondition.expenses?.map(exp => exp.code));
-                          setSelectedExpense(newValue);
-                        }}
-                        className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white"
-                        style={{ minHeight: '44px' }}
-                      >
-                        <option value="none">✅ Sem seguro adicional (Recomendado) - R$ 0,00</option>
-                        {selectedCondition.expenses.map((expense, index) => {
-                          console.log('📦 Renderizando expense:', index, expense.code, expense.description_type, expense.amount);
-                          return (
-                            <option 
-                              key={`expense-${index}-${expense.code}`} 
-                              value={expense.code}
-                              disabled={false}
-                            >
-                              {expense.description_type} - R$ {expense.amount.toFixed(2)}
-                            </option>
-                          );
-                        })}
-                      </select>
-                    </div>
-
-                    {/* Debug: Mostrar expense selecionado */}
-                    {selectedExpense !== 'none' && (
-                      <div className="text-sm text-blue-600 bg-blue-50 p-2 rounded">
-                        <strong>Seguro selecionado:</strong> {
-                          selectedCondition.expenses.find(e => e.code === selectedExpense)?.description_type || 'N/A'
-                        } - R$ {
-                          selectedCondition.expenses.find(e => e.code === selectedExpense)?.amount.toFixed(2) || '0.00'
-                        }
-                      </div>
-                    )}
+                  <div>
+                    <Label>Selecione o seguro desejado</Label>
+                    <select 
+                      value={selectedExpenseItemNumber}
+                      onChange={(e) => setSelectedExpenseItemNumber(e.target.value)}
+                      className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white"
+                    >
+                      <option value="none">✅ Sem seguro adicional (Recomendado) - R$ 0,00</option>
+                      {selectedCondition.expenses.map((expense) => (
+                        <option 
+                          key={expense.item_number} 
+                          value={expense.item_number}
+                        >
+                          {expense.description_type} - R$ {expense.amount.toFixed(2)}
+                        </option>
+                      ))}
+                    </select>
                   </div>
                 </div>
               )}
 
               <Button 
                 onClick={() => {
-                  console.log('Starting digitization with selected expense:', selectedExpense);
+                  console.log('Starting digitization with selected expense item_number:', selectedExpenseItemNumber);
                   digitizationMutation.mutate();
                 }} 
                 disabled={digitizationMutation.isPending || !selectedCondition}
