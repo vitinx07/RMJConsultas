@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -18,7 +18,10 @@ import {
   DollarSign,
   Calendar,
   CreditCard,
-  Shield
+  Shield,
+  RefreshCw,
+  XCircle,
+  AlertTriangle
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
@@ -50,6 +53,7 @@ interface C6Digitization {
 export default function DigitalizacoesPage() {
   const { user } = useAuth();
   const { toast } = useToast();
+  const queryClient = useQueryClient();
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [dateFilter, setDateFilter] = useState<string>("all");
@@ -57,6 +61,37 @@ export default function DigitalizacoesPage() {
   const { data: digitizations = [], isLoading, refetch } = useQuery({
     queryKey: ['/api/c6-digitizations'],
     enabled: !!user,
+  });
+
+  // Mutation para atualizar status das digitalizações
+  const refreshStatusMutation = useMutation({
+    mutationFn: async () => {
+      const response = await fetch('/api/c6-digitizations/refresh-status', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+      });
+      
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Erro ao atualizar status');
+      }
+      
+      return response.json();
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ['/api/c6-digitizations'] });
+      toast({
+        title: "Status Atualizados",
+        description: `${data.updatedCount} digitalizações foram atualizadas com sucesso`,
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Erro na Atualização",
+        description: error.message || "Não foi possível atualizar os status das digitalizações",
+        variant: "destructive",
+      });
+    }
   });
 
   const copyToClipboard = async (text: string, label: string) => {
@@ -188,14 +223,23 @@ export default function DigitalizacoesPage() {
               </select>
             </div>
             
-            <div className="flex items-end">
+            <div className="flex items-end gap-2">
               <Button 
                 variant="outline" 
                 onClick={() => refetch()}
-                className="w-full"
+                className="flex-1"
               >
                 <Download className="h-4 w-4 mr-2" />
-                Atualizar
+                Recarregar
+              </Button>
+              <Button
+                onClick={() => refreshStatusMutation.mutate()}
+                disabled={refreshStatusMutation.isPending}
+                variant="default"
+                className="flex-1 gap-2"
+              >
+                <RefreshCw className={`h-4 w-4 ${refreshStatusMutation.isPending ? 'animate-spin' : ''}`} />
+                {refreshStatusMutation.isPending ? 'Verificando...' : 'Verificar Status'}
               </Button>
             </div>
           </div>

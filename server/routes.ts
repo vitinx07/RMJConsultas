@@ -2100,6 +2100,90 @@ consultation = await storage.getConsultationByCpf(cpf as string, userId);
     }
   });
 
+  // Endpoint para atualizar status de todas as digitalizações
+  app.post("/api/c6-digitizations/refresh-status", requireAuthHybrid, requireAnyRole, async (req, res) => {
+    try {
+      const userId = req.user!.role === 'administrator' || req.user!.role === 'gerente' ? undefined : req.user!.id;
+      const digitizations = await storage.getC6DigitizationsByUser(userId);
+      let updatedCount = 0;
+      const updates = [];
+      
+      for (const digitization of digitizations) {
+        if (digitization.status === 'pending' && digitization.proposalNumber) {
+          try {
+            // Buscar status atual da proposta C6
+            const statusResponse = await fetch(`http://localhost:5000/api/c6-bank/proposal-status/${digitization.proposalNumber}`, {
+              method: 'GET',
+              headers: {
+                'Authorization': req.headers.authorization || '',
+                'Cookie': req.headers.cookie || ''
+              }
+            });
+
+            if (statusResponse.ok) {
+              const statusData = await statusResponse.json();
+              let newStatus = digitization.status;
+              let formalizationLink = digitization.formalizationLink;
+              
+              // Mapear status da API C6 para nossos status
+              if (statusData.status === 'APPROVED' || statusData.situation === 'APROVADA') {
+                newStatus = 'approved';
+                
+                // Tentar buscar link de formalização
+                try {
+                  const linkResponse = await fetch(`http://localhost:5000/api/c6-bank/formalization-link/${digitization.proposalNumber}`, {
+                    method: 'GET',
+                    headers: {
+                      'Authorization': req.headers.authorization || '',
+                      'Cookie': req.headers.cookie || ''
+                    }
+                  });
+                  
+                  if (linkResponse.ok) {
+                    const linkData = await linkResponse.json();
+                    if (linkData.url || linkData.formalizationUrl) {
+                      formalizationLink = linkData.url || linkData.formalizationUrl;
+                    }
+                  }
+                } catch (linkError) {
+                  console.log(`Link ainda não disponível para proposta ${digitization.proposalNumber}`);
+                }
+                
+              } else if (statusData.situation === 'REPROVADA' || statusData.status === 'REJECTED') {
+                newStatus = 'rejected';
+              } else if (statusData.situation === 'EM ANÁLISE' || statusData.status === 'CREDIT_ANALYSIS') {
+                newStatus = 'pending';
+              }
+              
+              // Atualizar se houve mudança
+              if (newStatus !== digitization.status || formalizationLink !== digitization.formalizationLink) {
+                await storage.updateC6DigitizationStatus(digitization.id, newStatus, formalizationLink);
+                updatedCount++;
+                updates.push({
+                  proposalNumber: digitization.proposalNumber,
+                  oldStatus: digitization.status,
+                  newStatus,
+                  formalizationLink
+                });
+              }
+            }
+          } catch (error) {
+            console.error(`Erro ao atualizar status da proposta ${digitization.proposalNumber}:`, error);
+          }
+        }
+      }
+      
+      res.json({ 
+        message: 'Status das digitalizações atualizados com sucesso',
+        updatedCount,
+        updates
+      });
+    } catch (error) {
+      console.error('Erro ao atualizar status das digitalizações:', error);
+      res.status(500).json({ error: 'Erro interno do servidor' });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

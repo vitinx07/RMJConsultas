@@ -439,12 +439,14 @@ export function C6Simulation({
           (exp: any) => String(exp.item_number) === selectedExpenseItemNumber
         )?.description || '';
 
+        const requestedAmount = selectedCondition?.client_amount || 0;
+        
         console.log('🗂️ Salvando digitalização no histórico:', {
-          cpf: benefitData.Beneficiario.CPF,
-          clientName: benefitData.Beneficiario.Nome,
+          cpf: benefitData?.Beneficiario.CPF,
+          clientName: benefitData?.Beneficiario.Nome,
           proposalNumber: data.proposal_number,
           requestedAmount: requestedAmount,
-          requestedAmountParsed: parseFloat(requestedAmount),
+          requestedAmountParsed: parseFloat(String(requestedAmount)),
           selectedContracts,
           selectedInsurance: selectedInsuranceDescription
         });
@@ -453,13 +455,13 @@ export function C6Simulation({
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            cpf: benefitData.Beneficiario.CPF,
-            clientName: benefitData.Beneficiario.Nome,
+            cpf: benefitData?.Beneficiario.CPF || '',
+            clientName: benefitData?.Beneficiario.Nome || '',
             proposalNumber: data.proposal_number,
             selectedContracts: selectedContracts,
             creditCondition: selectedCondition,
             selectedInsurance: selectedInsuranceDescription,
-            requestedAmount: parseFloat(requestedAmount) || 0,
+            requestedAmount: parseFloat(String(requestedAmount)) || 0,
             installmentAmount: selectedCondition?.installment_amount || 0,
             clientAmount: selectedCondition?.client_amount || 0,
           }),
