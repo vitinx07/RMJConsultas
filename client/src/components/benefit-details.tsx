@@ -34,6 +34,7 @@ import { Benefit } from "@shared/schema";
 import { formatCurrency, formatDate, formatDateWithAge, formatCPF, formatBankAccount, getBenefitSpeciesName, getBankName, getBankCodeFromName } from "@/lib/utils";
 import { BankIcon } from "@/components/bank-icon";
 import { BanrisulSimulation } from "@/components/banrisul-simulation";
+import { C6Simulation } from "@/components/c6-simulation";
 
 interface BenefitDetailsProps {
   benefit: Benefit;
@@ -765,6 +766,28 @@ export function BenefitDetails({ benefit }: BenefitDetailsProps) {
                                       dataContrato={emprestimo.DataAverbacao || new Date().toISOString()}
                                       valorParcela={emprestimo.ValorParcela}
                                       conveniada="000020"
+                                      className="w-full"
+                                    />
+                                  );
+                                }
+
+                                // Verificar C6 Bank (código 336)
+                                if (originalBankCode === '336' || originalBankCode === '336 - C6 BANK') {
+                                  return (
+                                    <C6Simulation
+                                      cpf={Beneficiario.CPF}
+                                      dataNascimento={Beneficiario.DataNascimento}
+                                      className="w-full"
+                                    />
+                                  );
+                                }
+
+                                // Verificar por nome C6 Bank
+                                if (bankNameFromAPI && bankNameFromAPI.toLowerCase().includes('c6 bank')) {
+                                  return (
+                                    <C6Simulation
+                                      cpf={Beneficiario.CPF}
+                                      dataNascimento={Beneficiario.DataNascimento}
                                       className="w-full"
                                     />
                                   );

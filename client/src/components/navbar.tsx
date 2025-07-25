@@ -19,7 +19,6 @@ import {
   X,
   UserCog,
   Clock,
-  Building2,
 } from "lucide-react";
 
 const roleLabels = {
@@ -143,17 +142,6 @@ export function Navbar() {
                   >
                     <Bell className="h-4 w-4 mr-2" />
                     Notificações
-                  </Button>
-                </Link>
-
-                <Link href="/simulacao-c6">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className={getNavButtonClass("/simulacao-c6")}
-                  >
-                    <Building2 className="h-4 w-4 mr-2" />
-                    C6 Bank
                   </Button>
                 </Link>
 
@@ -319,20 +307,6 @@ export function Navbar() {
                   >
                     <Bell className="h-4 w-4 mr-3" />
                     Notificações
-                  </Button>
-                </Link>
-
-                <Link
-                  href="/simulacao-c6"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                >
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className={`w-full justify-start ${getNavButtonClass("/simulacao-c6")}`}
-                  >
-                    <Building2 className="h-4 w-4 mr-3" />
-                    C6 Bank
                   </Button>
                 </Link>
 
