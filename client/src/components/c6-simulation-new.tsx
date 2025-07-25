@@ -292,6 +292,10 @@ export function C6Simulation({
       return response.json();
     },
     onSuccess: (data) => {
+      console.log('🎯 SIMULATION SUCCESS - Credit conditions:', data.credit_conditions?.length);
+      if (data.credit_conditions?.[0]?.expenses) {
+        console.log('🎯 First condition expenses:', data.credit_conditions[0].expenses.map(e => ({code: e.code, desc: e.description_type})));
+      }
       setCreditConditions(data.credit_conditions || []);
       // Reset expense selection quando nova simulação
       setSelectedExpense('none');
@@ -1063,7 +1067,9 @@ export function C6Simulation({
                         value={selectedExpense}
                         onChange={(e) => {
                           const newValue = e.target.value;
-                          console.log('Seguro selecionado:', newValue);
+                          console.log('🔥 CHANGE EVENT - Seguro selecionado:', newValue);
+                          console.log('🔥 Event target selectedIndex:', e.target.selectedIndex);
+                          console.log('🔥 All expenses codes:', selectedCondition.expenses?.map(exp => exp.code));
                           setSelectedExpense(newValue);
                         }}
                         className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white"
@@ -1071,12 +1077,12 @@ export function C6Simulation({
                       >
                         <option value="none">✅ Sem seguro adicional (Recomendado) - R$ 0,00</option>
                         {selectedCondition.expenses.map((expense, index) => {
-                          console.log('Expense disponível:', expense.code, expense.description_type, expense.amount);
+                          console.log('📦 Renderizando expense:', index, expense.code, expense.description_type, expense.amount);
                           return (
                             <option 
                               key={`expense-${index}-${expense.code}`} 
                               value={expense.code}
-                              style={{ padding: '8px' }}
+                              disabled={false}
                             >
                               {expense.description_type} - R$ {expense.amount.toFixed(2)}
                             </option>
