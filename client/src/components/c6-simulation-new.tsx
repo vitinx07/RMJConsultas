@@ -101,7 +101,7 @@ export function C6Simulation({
   const [proposalNumber, setProposalNumber] = useState<string>('');
   const [formalizationUrl, setFormalizationUrl] = useState<string>('');
   const [formalizationAttempts, setFormalizationAttempts] = useState(0);
-  
+
   // Dados para digitalização (pré-preenchidos)
   const [bankSuggestions, setBankSuggestions] = useState<Array<{code: string, name: string}>>([]);
   const [showBankSuggestions, setShowBankSuggestions] = useState(false);
@@ -151,7 +151,7 @@ export function C6Simulation({
       setShowBankSuggestions(false);
       return;
     }
-    
+
     const filtered = bankList.filter(bank => 
       bank.code.includes(query) || 
       bank.name.toLowerCase().includes(query.toLowerCase())
@@ -188,7 +188,7 @@ export function C6Simulation({
     digitoAgencia: '0',
     tipoContaDescricao: 'ContaCorrenteIndividual'
   });
-  
+
   const { toast } = useToast();
 
   // Buscar dados completos do CPF
@@ -206,11 +206,11 @@ export function C6Simulation({
     },
     onSuccess: (data) => {
       setBenefitData(data);
-      
+
       // Pré-preencher dados
       const beneficiario = data.Beneficiario;
       const bancarios = data.DadosBancarios;
-      
+
       setDigitizationData({
         nomeCompleto: beneficiario.Nome || '',
         nomeMae: beneficiario.NomeMae || '',
@@ -257,16 +257,16 @@ export function C6Simulation({
       if (!benefitData || selectedContracts.length === 0) {
         throw new Error('Selecione pelo menos um contrato para simular');
       }
-      
+
       const c6Contracts = benefitData.Emprestimos?.filter((emp: any) => 
         emp.Banco === '626' || emp.NomeBanco?.toLowerCase().includes('ficsa')
       ) || [];
-      
+
       // Usar apenas contratos selecionados
       const selectedContractData = c6Contracts.filter((c: any) => 
         selectedContracts.includes(c.Contrato)
       );
-      
+
       const totalParcela = manualInstallmentAmount || 
         selectedContractData.reduce((sum: number, c: any) => 
           sum + (c.ValorParcela || 0), 0
@@ -394,7 +394,7 @@ export function C6Simulation({
         title: "Proposta digitalizada",
         description: `Número da proposta: ${data.proposal_number}`,
       });
-      
+
       // Iniciar busca do link
       setTimeout(() => {
         searchFormalizationLink(data.proposal_number);
@@ -412,13 +412,13 @@ export function C6Simulation({
   // Buscar link de formalização
   const searchFormalizationLink = async (proposalNum: string) => {
     setFormalizationAttempts(0);
-    
+
     const attempts = setInterval(async () => {
       try {
         setFormalizationAttempts(prev => prev + 1);
-        
+
         const response = await fetch(`/api/c6-bank/formalization-link/${proposalNum}`);
-        
+
         if (response.ok) {
           const data = await response.json();
           if (data.status === 'ACTIVE') {
@@ -430,7 +430,7 @@ export function C6Simulation({
             });
           }
         }
-        
+
         if (formalizationAttempts >= 10) {
           clearInterval(attempts);
           toast({
@@ -461,7 +461,7 @@ export function C6Simulation({
           C6 Bank
         </Button>
       </DialogTrigger>
-      
+
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
@@ -494,12 +494,12 @@ export function C6Simulation({
                 <p className="text-sm text-gray-600">
                   Selecione os contratos que deseja incluir no refinanciamento:
                 </p>
-                
+
                 {(() => {
                   const c6Contracts = benefitData.Emprestimos?.filter((emp: any) => 
                     emp.Banco === '626' || emp.NomeBanco?.toLowerCase().includes('ficsa')
                   ) || [];
-                  
+
                   if (c6Contracts.length === 0) {
                     return (
                       <Alert>
@@ -510,7 +510,7 @@ export function C6Simulation({
                       </Alert>
                     );
                   }
-                  
+
                   return (
                     <div className="space-y-3">
                       {c6Contracts.map((contract: any, index: number) => (
@@ -555,7 +555,7 @@ export function C6Simulation({
                           </div>
                         </div>
                       ))}
-                      
+
                       {selectedContracts.length > 0 && (
                         <div className="bg-blue-50 p-3 rounded">
                           <div className="text-sm font-medium text-blue-800">
@@ -580,7 +580,7 @@ export function C6Simulation({
               {selectedContracts.length > 0 && (
                 <div className="space-y-4 border-t pt-4">
                   <h3 className="font-semibold text-lg">2. Simulação de Refinanciamento</h3>
-                  
+
                   <div className="grid grid-cols-2 gap-4">
                     <div>
                       <label className="block text-sm font-medium mb-2">
@@ -596,7 +596,7 @@ export function C6Simulation({
                         ))}
                       </select>
                     </div>
-                    
+
                     <div>
                       <label className="block text-sm font-medium mb-2">
                         Parcela Atual Total
@@ -650,7 +650,7 @@ export function C6Simulation({
               {creditConditions.length > 0 && (
                 <div className="space-y-4 border-t pt-4">
                   <h3 className="font-semibold text-lg">3. Escolha a Condição de Crédito</h3>
-                  
+
                   <div className="overflow-x-auto">
                     <table className="w-full border-collapse border border-gray-200">
                       <thead>
@@ -1062,42 +1062,37 @@ export function C6Simulation({
                       <select 
                         value={selectedExpense}
                         onChange={(e) => {
-                          console.log('Seguro selecionado:', e.target.value);
-                          setSelectedExpense(e.target.value);
+                          const newValue = e.target.value;
+                          console.log('Seguro selecionado:', newValue);
+                          setSelectedExpense(newValue);
                         }}
-                        className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white"
+                        style={{ minHeight: '44px' }}
                       >
                         <option value="none">✅ Sem seguro adicional (Recomendado) - R$ 0,00</option>
-                        {selectedCondition.expenses.map((expense) => {
-                          console.log('Expense disponível:', expense.code, expense.description_type);
+                        {selectedCondition.expenses.map((expense, index) => {
+                          console.log('Expense disponível:', expense.code, expense.description_type, expense.amount);
                           return (
-                            <option key={expense.code} value={expense.code}>
+                            <option 
+                              key={`expense-${index}-${expense.code}`} 
+                              value={expense.code}
+                              style={{ padding: '8px' }}
+                            >
                               {expense.description_type} - R$ {expense.amount.toFixed(2)}
                             </option>
                           );
                         })}
                       </select>
                     </div>
-                    
-                    {/* Preview da opção selecionada */}
-                    {selectedExpense !== null && (
-                      <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
-                        <div className="flex justify-between items-center">
-                          <span className="font-medium text-green-700">
-                            Seguro selecionado: {
-                              selectedExpense === 'none' 
-                                ? 'Sem seguro adicional' 
-                                : selectedCondition.expenses.find(e => e.code === selectedExpense)?.description_type
-                            }
-                          </span>
-                          <span className="text-green-600 font-medium">
-                            R$ {
-                              selectedExpense === 'none' 
-                                ? '0,00' 
-                                : selectedCondition.expenses.find(e => e.code === selectedExpense)?.amount.toFixed(2)
-                            }
-                          </span>
-                        </div>
+
+                    {/* Debug: Mostrar expense selecionado */}
+                    {selectedExpense !== 'none' && (
+                      <div className="text-sm text-blue-600 bg-blue-50 p-2 rounded">
+                        <strong>Seguro selecionado:</strong> {
+                          selectedCondition.expenses.find(e => e.code === selectedExpense)?.description_type || 'N/A'
+                        } - R$ {
+                          selectedCondition.expenses.find(e => e.code === selectedExpense)?.amount.toFixed(2) || '0.00'
+                        }
                       </div>
                     )}
                   </div>
@@ -1144,7 +1139,7 @@ export function C6Simulation({
                     <CheckCircle className="h-8 w-8 text-green-600 mx-auto mb-2" />
                     <p className="text-green-800 font-medium">Link de formalização disponível!</p>
                   </div>
-                  
+
                   <div className="space-y-2">
                     <Label htmlFor="formalization-link">Link para Cópia</Label>
                     <div className="flex gap-2">
@@ -1166,7 +1161,7 @@ export function C6Simulation({
                       </Button>
                     </div>
                   </div>
-                  
+
                   <Button 
                     onClick={() => window.open(formalizationUrl, '_blank')}
                     className="w-full bg-green-600 hover:bg-green-700"
