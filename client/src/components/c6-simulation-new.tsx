@@ -364,156 +364,205 @@ export function C6Simulation({
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <FileText className="h-5 w-5" />
-                Selecionar Contratos C6 Bank
+                Sistema C6 Bank - Refinanciamento
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <p className="text-sm text-gray-600">
-                Selecione os contratos que deseja incluir no refinanciamento:
-              </p>
-              
-              {(() => {
-                const c6Contracts = benefitData.Emprestimos?.filter((emp: any) => 
-                  emp.Banco === '626' || emp.NomeBanco?.toLowerCase().includes('ficsa')
-                ) || [];
+            <CardContent className="space-y-6">
+              {/* Seção 1: Seleção de Contratos */}
+              <div className="space-y-4">
+                <h3 className="font-semibold text-lg">1. Selecionar Contratos C6 Bank</h3>
+                <p className="text-sm text-gray-600">
+                  Selecione os contratos que deseja incluir no refinanciamento:
+                </p>
                 
-                if (c6Contracts.length === 0) {
+                {(() => {
+                  const c6Contracts = benefitData.Emprestimos?.filter((emp: any) => 
+                    emp.Banco === '626' || emp.NomeBanco?.toLowerCase().includes('ficsa')
+                  ) || [];
+                  
+                  if (c6Contracts.length === 0) {
+                    return (
+                      <Alert>
+                        <AlertTriangle className="h-4 w-4" />
+                        <AlertDescription>
+                          Nenhum contrato C6 Bank encontrado para este CPF.
+                        </AlertDescription>
+                      </Alert>
+                    );
+                  }
+                  
                   return (
-                    <Alert>
-                      <AlertTriangle className="h-4 w-4" />
-                      <AlertDescription>
-                        Nenhum contrato C6 Bank encontrado para este CPF.
-                      </AlertDescription>
-                    </Alert>
+                    <div className="space-y-3">
+                      {c6Contracts.map((contract: any, index: number) => (
+                        <div 
+                          key={contract.Contrato}
+                          className={`p-3 border rounded cursor-pointer transition-colors ${
+                            selectedContracts.includes(contract.Contrato) 
+                              ? 'border-blue-500 bg-blue-50' 
+                              : 'border-gray-200 hover:border-gray-300'
+                          }`}
+                          onClick={() => {
+                            setSelectedContracts(prev => {
+                              if (prev.includes(contract.Contrato)) {
+                                return prev.filter(c => c !== contract.Contrato);
+                              } else {
+                                return [...prev, contract.Contrato];
+                              }
+                            });
+                          }}
+                        >
+                          <div className="flex justify-between items-center">
+                            <div>
+                              <div className="font-medium">Contrato: {contract.Contrato}</div>
+                              <div className="text-sm text-gray-600">
+                                Parcela: R$ {contract.ValorParcela?.toFixed(2)}
+                              </div>
+                              {contract.SaldoDevedor && (
+                                <div className="text-sm text-gray-600">
+                                  Saldo Devedor: R$ {contract.SaldoDevedor.toFixed(2)}
+                                </div>
+                              )}
+                            </div>
+                            <div className={`w-4 h-4 rounded border-2 ${
+                              selectedContracts.includes(contract.Contrato)
+                                ? 'bg-blue-500 border-blue-500'
+                                : 'border-gray-300'
+                            }`}>
+                              {selectedContracts.includes(contract.Contrato) && (
+                                <CheckCircle className="w-4 h-4 text-white" />
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                      
+                      {selectedContracts.length > 0 && (
+                        <div className="bg-blue-50 p-3 rounded">
+                          <div className="text-sm font-medium text-blue-800">
+                            Total selecionado: {selectedContracts.length} contrato(s)
+                          </div>
+                          <div className="text-sm text-blue-600">
+                            Parcela total: R$ {
+                              c6Contracts
+                                .filter((c: any) => selectedContracts.includes(c.Contrato))
+                                .reduce((sum: number, c: any) => sum + (c.ValorParcela || 0), 0)
+                                .toFixed(2)
+                            }
+                          </div>
+                        </div>
+                      )}
+                    </div>
                   );
-                }
-                
-                return (
-                  <div className="space-y-3">
-                    {c6Contracts.map((contract: any, index: number) => (
-                      <div 
-                        key={contract.Contrato}
-                        className={`p-3 border rounded cursor-pointer transition-colors ${
-                          selectedContracts.includes(contract.Contrato) 
-                            ? 'border-blue-500 bg-blue-50' 
+                })()}
+              </div>
+
+              {/* Seção 2: Simulação */}
+              {selectedContracts.length > 0 && (
+                <div className="space-y-4 border-t pt-4">
+                  <h3 className="font-semibold text-lg">2. Simulação de Refinanciamento</h3>
+                  
+                  <div className="grid grid-cols-1 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium mb-2">
+                        Prazo Desejado (meses)
+                      </label>
+                      <select
+                        value={installmentQuantity}
+                        onChange={(e) => setInstallmentQuantity(Number(e.target.value))}
+                        className="w-full p-2 border border-gray-300 rounded-md"
+                      >
+                        {[72, 84, 96, 108, 120].map(months => (
+                          <option key={months} value={months}>{months} meses</option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+
+                  <Button 
+                    onClick={() => simulationMutation.mutate()} 
+                    disabled={simulationMutation.isPending}
+                    className="w-full"
+                  >
+                    {simulationMutation.isPending ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Simulando...
+                      </>
+                    ) : (
+                      <>
+                        <Calculator className="mr-2 h-4 w-4" />
+                        Simular Refinanciamento
+                      </>
+                    )}
+                  </Button>
+                </div>
+              )}
+
+              {/* Seção 3: Escolha da Condição de Crédito */}
+              {creditConditions.length > 0 && (
+                <div className="space-y-4 border-t pt-4">
+                  <h3 className="font-semibold text-lg">3. Escolha a Condição de Crédito</h3>
+                  
+                  <div className="grid gap-3">
+                    {creditConditions.map((condition, index) => (
+                      <div
+                        key={index}
+                        className={`p-4 border rounded-lg cursor-pointer transition-colors ${
+                          selectedCondition === index
+                            ? 'border-blue-500 bg-blue-50'
                             : 'border-gray-200 hover:border-gray-300'
                         }`}
-                        onClick={() => {
-                          setSelectedContracts(prev => {
-                            if (prev.includes(contract.Contrato)) {
-                              return prev.filter(c => c !== contract.Contrato);
-                            } else {
-                              return [...prev, contract.Contrato];
-                            }
-                          });
-                        }}
+                        onClick={() => setSelectedCondition(index)}
                       >
                         <div className="flex justify-between items-center">
                           <div>
-                            <div className="font-medium">Contrato: {contract.Contrato}</div>
-                            <div className="text-sm text-gray-600">
-                              Parcela: R$ {contract.ValorParcela?.toFixed(2)}
+                            <div className="font-medium">
+                              Prazo: {condition.installment_quantity} meses
                             </div>
-                            {contract.SaldoDevedor && (
-                              <div className="text-sm text-gray-600">
-                                Saldo Devedor: R$ {contract.SaldoDevedor.toFixed(2)}
-                              </div>
-                            )}
+                            <div className="text-sm text-gray-600">
+                              Parcela: R$ {condition.installment_amount?.toFixed(2)}
+                            </div>
+                            <div className="text-sm text-gray-600">
+                              Valor Liberado: R$ {condition.net_amount?.toFixed(2)}
+                            </div>
                           </div>
-                          <div className={`w-4 h-4 rounded border-2 ${
-                            selectedContracts.includes(contract.Contrato)
+                          <div className={`w-4 h-4 rounded-full border-2 ${
+                            selectedCondition === index
                               ? 'bg-blue-500 border-blue-500'
                               : 'border-gray-300'
                           }`}>
-                            {selectedContracts.includes(contract.Contrato) && (
-                              <CheckCircle className="w-4 h-4 text-white" />
+                            {selectedCondition === index && (
+                              <div className="w-2 h-2 bg-white rounded-full m-0.5"></div>
                             )}
                           </div>
                         </div>
                       </div>
                     ))}
-                    
-                    {selectedContracts.length > 0 && (
-                      <div className="bg-blue-50 p-3 rounded">
-                        <div className="text-sm font-medium text-blue-800">
-                          Total selecionado: {selectedContracts.length} contrato(s)
-                        </div>
-                        <div className="text-sm text-blue-600">
-                          Parcela total: R$ {
-                            c6Contracts
-                              .filter((c: any) => selectedContracts.includes(c.Contrato))
-                              .reduce((sum: number, c: any) => sum + (c.ValorParcela || 0), 0)
-                              .toFixed(2)
-                          }
-                        </div>
-                      </div>
-                    )}
                   </div>
-                );
-              })()}
-              
-              <Button 
-                onClick={() => setStep('simulation')} 
-                disabled={selectedContracts.length === 0}
-                className="w-full"
-              >
-                Continuar para Simulação
-              </Button>
+
+                  <div className="flex gap-3">
+                    <Button 
+                      variant="outline" 
+                      onClick={() => setCreditConditions([])}
+                      className="flex-1"
+                    >
+                      Voltar
+                    </Button>
+                    <Button 
+                      onClick={() => setStep('digitization')} 
+                      disabled={selectedCondition === null}
+                      className="flex-1"
+                    >
+                      Continuar para Digitalização
+                    </Button>
+                  </div>
+                </div>
+              )}
             </CardContent>
           </Card>
         )}
 
-        {step === 'simulation' && (
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Calculator className="h-5 w-5" />
-                Simulação de Refinanciamento
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label>Prazo Desejado (meses)</Label>
-                  <Select value={installmentQuantity.toString()} onValueChange={(v) => setInstallmentQuantity(parseInt(v))}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="60">60 meses</SelectItem>
-                      <SelectItem value="72">72 meses</SelectItem>
-                      <SelectItem value="84">84 meses</SelectItem>
-                      <SelectItem value="96">96 meses</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                
-                <div>
-                  <Label>Parcela Atual Total</Label>
-                  <Input 
-                    value={benefitData?.Emprestimos?.filter((emp: any) => 
-                      emp.Banco === '626' || emp.NomeBanco?.toLowerCase().includes('ficsa')
-                    ).reduce((sum: number, c: any) => sum + (c.ValorParcela || 0), 0).toFixed(2) || '0.00'}
-                    readOnly
-                    className="bg-gray-50"
-                  />
-                </div>
-              </div>
 
-              <Button 
-                onClick={() => simulationMutation.mutate()} 
-                disabled={simulationMutation.isPending}
-                className="w-full"
-              >
-                {simulationMutation.isPending ? (
-                  <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Simulando...</>
-                ) : (
-                  <><Calculator className="mr-2 h-4 w-4" /> Simular Refinanciamento</>
-                )}
-              </Button>
-            </CardContent>
-          </Card>
-        )}
 
         {step === 'digitization' && (
           <Card>
