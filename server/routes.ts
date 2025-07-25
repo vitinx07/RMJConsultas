@@ -948,7 +948,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
             receive_card_benefit: "Nao",
             federation_unit: benefit_data.Beneficiario?.UFBeneficio || "SP"
           },
-          address: proposal_data.client.address,
+          address: {
+            ...proposal_data.client.address,
+            zip_code: proposal_data.client.address.zip_code.replace('-', '') // Remove hífen do CEP
+          },
           professional_data: {
             enrollment: benefit_data.Beneficiario?.Beneficio
           }
