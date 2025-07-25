@@ -97,7 +97,7 @@ export function C6Simulation({
   const [manualInstallmentAmount, setManualInstallmentAmount] = useState<number | null>(null);
   const [creditConditions, setCreditConditions] = useState<CreditCondition[]>([]);
   const [selectedCondition, setSelectedCondition] = useState<CreditCondition | null>(null);
-  const [selectedExpense, setSelectedExpense] = useState<string>('');
+  const [selectedExpense, setSelectedExpense] = useState<string>(''); // Default: sem seguro
   const [proposalNumber, setProposalNumber] = useState<string>('');
   const [formalizationUrl, setFormalizationUrl] = useState<string>('');
   const [formalizationAttempts, setFormalizationAttempts] = useState(0);
@@ -293,6 +293,8 @@ export function C6Simulation({
     },
     onSuccess: (data) => {
       setCreditConditions(data.credit_conditions || []);
+      // Reset expense selection quando nova simulação
+      setSelectedExpense('');
       // NÃO muda o step - permanece no mesmo card mostrando a tabela
       toast({
         title: "Simulação concluída",
@@ -1054,77 +1056,66 @@ export function C6Simulation({
               {selectedCondition?.expenses && selectedCondition.expenses.length > 0 && (
                 <div className="space-y-4 border-t pt-4">
                   <h3 className="font-semibold text-lg">Seguros e Serviços Opcionais</h3>
-                  <div className="space-y-3">
-                    {/* Opção Nenhum Seguro */}
-                    <div className="border rounded-lg p-3 bg-blue-50 border-blue-200">
-                      <div className="flex items-center space-x-3">
-                        <input
-                          type="radio"
-                          id="no-expense"
-                          style={{ cursor: 'pointer' }}
-                          name="expense-selection"
-                          value=""
-                          checked={selectedExpense === ''}
-                          onChange={(e) => {
-                            console.log('No expense selected, value:', e.target.value);
-                            setSelectedExpense(e.target.value);
-                          }}
-                          className="h-5 w-5 text-blue-600 focus:ring-blue-500 cursor-pointer"
-                        />
-                        <span className="font-medium text-blue-700">
-                          ✅ Sem seguro adicional (Recomendado)
-                        </span>
-                      </div>
+                  <div className="space-y-4">
+                    <div>
+                      <Label>Selecione o seguro desejado *</Label>
+                      <Select 
+                        value={selectedExpense} 
+                        onValueChange={(value) => {
+                          console.log('Seguro selecionado via Select:', value);
+                          setSelectedExpense(value);
+                        }}
+                      >
+                        <SelectTrigger className="w-full">
+                          <SelectValue placeholder="Escolha uma opção de seguro" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="">
+                            <div className="flex justify-between items-center w-full">
+                              <span>✅ Sem seguro adicional (Recomendado)</span>
+                              <span className="text-green-600 font-medium ml-4">R$ 0,00</span>
+                            </div>
+                          </SelectItem>
+                          {selectedCondition.expenses.map((expense) => (
+                            <SelectItem key={expense.code} value={expense.code}>
+                              <div className="flex justify-between items-center w-full">
+                                <div>
+                                  <span className="font-medium">{expense.description_type}</span>
+                                  {expense.description && (
+                                    <p className="text-xs text-gray-600">{expense.description}</p>
+                                  )}
+                                </div>
+                                <span className="text-blue-600 font-medium ml-4">
+                                  R$ {expense.amount.toFixed(2)}
+                                </span>
+                              </div>
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                     </div>
                     
-                    {selectedCondition.expenses.map((expense, index) => (
-                      <div key={expense.code} className={`border rounded-lg p-3 transition-all duration-200 ${
-                        selectedExpense === expense.code 
-                          ? 'border-green-300 bg-green-50' 
-                          : 'border-gray-200'
-                      }`}>
-                        <div className="flex items-start justify-between">
-                          <div className="flex items-center space-x-3">
-                            <input
-                              type="radio"
-                              id={`expense-${expense.code}`}
-                              style={{ cursor: 'pointer' }}
-                              name="expense-selection"
-                              value={expense.code}
-                              checked={selectedExpense === expense.code}
-                              onChange={(e) => {
-                                console.log('Selected expense:', e.target.value);
-                                setSelectedExpense(e.target.value);
-                              }}
-                              className="h-5 w-5 text-green-600 focus:ring-green-500 cursor-pointer"
-                            />
-                            <div>
-                              <span className={`font-medium ${
-                                selectedExpense === expense.code ? 'text-green-700' : 'text-gray-700'
-                              }`}>
-                                {expense.description_type}
-                              </span>
-                              {expense.description && (
-                                <p className="text-sm text-gray-600 mt-1">{expense.description}</p>
-                              )}
-                              {expense.observation && (
-                                <p className="text-xs text-gray-500 mt-1">{expense.observation}</p>
-                              )}
-                            </div>
-                          </div>
-                          <div className="text-right">
-                            <span className={`font-medium ${
-                              selectedExpense === expense.code ? 'text-green-600' : 'text-blue-600'
-                            }`}>
-                              R$ {expense.amount.toFixed(2)}
-                            </span>
-                            {expense.financed_expense && (
-                              <p className="text-xs text-green-600">Financiado</p>
-                            )}
-                          </div>
+                    {/* Preview da opção selecionada */}
+                    {selectedExpense !== null && (
+                      <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
+                        <div className="flex justify-between items-center">
+                          <span className="font-medium text-green-700">
+                            Seguro selecionado: {
+                              selectedExpense === '' 
+                                ? 'Sem seguro adicional' 
+                                : selectedCondition.expenses.find(e => e.code === selectedExpense)?.description_type
+                            }
+                          </span>
+                          <span className="text-green-600 font-medium">
+                            R$ {
+                              selectedExpense === '' 
+                                ? '0,00' 
+                                : selectedCondition.expenses.find(e => e.code === selectedExpense)?.amount.toFixed(2)
+                            }
+                          </span>
                         </div>
                       </div>
-                    ))}
+                    )}
                   </div>
                 </div>
               )}
