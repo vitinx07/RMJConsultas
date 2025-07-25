@@ -21,10 +21,13 @@ import {
   Shield,
   RefreshCw,
   XCircle,
-  AlertTriangle
+  AlertTriangle,
+  TrendingUp,
+  Eye
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
+import Navbar from "@/components/navbar";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
@@ -116,13 +119,81 @@ export default function DigitalizacoesPage() {
     return numValue.toFixed(2);
   };
 
+  // Função para consultar proposta na API C6
+  const consultarProposta = async (proposalNumber: string) => {
+    try {
+      const response = await fetch('/api/c6-bank/consultar-proposta', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ proposalNumber }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Erro ao consultar proposta');
+      }
+
+      const data = await response.json();
+      
+      // Exibir informações da proposta em um toast ou modal
+      toast({
+        title: "Proposta Consultada",
+        description: `Status: ${data.status || 'N/A'} - Valor: R$ ${data.amount || 0}`,
+      });
+    } catch (error) {
+      toast({
+        title: "Erro na Consulta",
+        description: "Não foi possível consultar a proposta",
+        variant: "destructive",
+      });
+    }
+  };
+
+  // Função para consultar movimentação da proposta
+  const consultarMovimentacao = async (proposalNumber: string) => {
+    try {
+      const response = await fetch('/api/c6-bank/consultar-movimentacao', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ proposalNumber }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Erro ao consultar movimentação');
+      }
+
+      const data = await response.json();
+      
+      // Exibir movimentação em um toast
+      const movimentacoes = data.movements || [];
+      const ultimaMovimentacao = movimentacoes[movimentacoes.length - 1];
+      
+      toast({
+        title: "Movimentação da Proposta",
+        description: ultimaMovimentacao ? 
+          `Última movimentação: ${ultimaMovimentacao.description} em ${ultimaMovimentacao.date}` :
+          "Nenhuma movimentação encontrada",
+      });
+    } catch (error) {
+      toast({
+        title: "Erro na Movimentação",
+        description: "Não foi possível consultar a movimentação",
+        variant: "destructive",
+      });
+    }
+  };
+
   const getStatusBadgeVariant = (status: string) => {
     switch (status) {
       case 'approved':
+      case 'APROVADA':
         return 'default';
       case 'rejected':
+      case 'REJEITADA':
+      case 'CANCELADA':
         return 'destructive';
       case 'pending':
+      case 'PENDENTE':
+      case 'EM_ANALISE':
       default:
         return 'secondary';
     }
@@ -131,10 +202,17 @@ export default function DigitalizacoesPage() {
   const getStatusLabel = (status: string) => {
     switch (status) {
       case 'approved':
-        return 'Aprovado';
+      case 'APROVADA':
+        return 'Aprovada';
       case 'rejected':
-        return 'Rejeitado';
+      case 'REJEITADA':
+        return 'Rejeitada';
+      case 'CANCELADA':
+        return 'Cancelada';
+      case 'EM_ANALISE':
+        return 'Em Análise de Crédito';
       case 'pending':
+      case 'PENDENTE':
       default:
         return 'Pendente';
     }
@@ -176,7 +254,9 @@ export default function DigitalizacoesPage() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-6 pt-20">
+    <>
+      <Navbar />
+      <div className="container mx-auto px-4 py-6 pt-20">
       <div className="mb-6">
         <h1 className="text-3xl font-bold mb-2">Histórico de Digitalizações C6 Bank</h1>
         <p className="text-muted-foreground">
@@ -210,8 +290,10 @@ export default function DigitalizacoesPage() {
               >
                 <option value="all">Todos</option>
                 <option value="pending">Pendente</option>
-                <option value="approved">Aprovado</option>
-                <option value="rejected">Rejeitado</option>
+                <option value="EM_ANALISE">Em Análise</option>
+                <option value="approved">Aprovada</option>
+                <option value="rejected">Rejeitada</option>
+                <option value="CANCELADA">Cancelada</option>
               </select>
             </div>
             
@@ -368,16 +450,37 @@ export default function DigitalizacoesPage() {
                     </div>
                   </div>
 
-                  {/* Operador */}
+                  {/* Operador e Ações */}
                   <div className="space-y-3">
                     <h4 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide">
                       Operador
                     </h4>
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 mb-3">
                       <User className="h-4 w-4 text-muted-foreground" />
                       <span className="text-sm">
                         {digitization.user?.firstName || digitization.user?.username || "N/A"}
                       </span>
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => consultarProposta(digitization.proposalNumber)}
+                        className="w-full flex items-center gap-2"
+                      >
+                        <Eye className="h-4 w-4" />
+                        Consultar Proposta
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => consultarMovimentacao(digitization.proposalNumber)}
+                        className="w-full flex items-center gap-2"
+                      >
+                        <TrendingUp className="h-4 w-4" />
+                        Ver Movimentação
+                      </Button>
                     </div>
                   </div>
                 </div>
@@ -421,6 +524,7 @@ export default function DigitalizacoesPage() {
           ))}
         </div>
       )}
-    </div>
+      </div>
+    </>
   );
 }

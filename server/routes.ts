@@ -1349,6 +1349,121 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Endpoint para consultar proposta específica
+  app.post('/api/c6-bank/consultar-proposta', requireAuthHybrid, async (req, res) => {
+    try {
+      const { proposalNumber } = req.body;
+      
+      if (!proposalNumber) {
+        return res.status(400).json({ error: 'Número da proposta é obrigatório' });
+      }
+      
+      console.log(`🔍 Consultando proposta ${proposalNumber}...`);
+      
+      // 1. Autenticar no C6 Bank
+      const authResponse = await fetch('https://marketplace-proposal-service-api-p.c6bank.info/auth/token', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded'
+        },
+        body: new URLSearchParams({
+          username: '46437248890_003130',
+          password: 'Nipo4810**'
+        })
+      });
+
+      if (!authResponse.ok) {
+        throw new Error('Falha na autenticação C6 Bank');
+      }
+
+      const authData = await authResponse.json();
+      const token = authData.access_token;
+
+      // 2. Consultar proposta
+      const response = await fetch(`https://marketplace-proposal-service-api-p.c6bank.info/marketplace/proposal/consult?proposalNumber=${proposalNumber}`, {
+        method: 'GET',
+        headers: {
+          'Authorization': token,
+          'Accept': 'application/json'
+        }
+      });
+      
+      if (!response.ok) {
+        throw new Error(`API C6 retornou status ${response.status}`);
+      }
+      
+      const data = await response.json();
+      
+      res.json({
+        proposalNumber,
+        status: data.status || 'N/A',
+        amount: data.amount || 0,
+        details: data
+      });
+      
+    } catch (error) {
+      console.error('❌ Erro ao consultar proposta:', error);
+      res.status(500).json({ error: 'Erro ao consultar proposta na API C6' });
+    }
+  });
+
+  // Endpoint para consultar movimentação da proposta
+  app.post('/api/c6-bank/consultar-movimentacao', requireAuthHybrid, async (req, res) => {
+    try {
+      const { proposalNumber } = req.body;
+      
+      if (!proposalNumber) {
+        return res.status(400).json({ error: 'Número da proposta é obrigatório' });
+      }
+      
+      console.log(`📊 Consultando movimentação da proposta ${proposalNumber}...`);
+      
+      // 1. Autenticar no C6 Bank  
+      const authResponse = await fetch('https://marketplace-proposal-service-api-p.c6bank.info/auth/token', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded'
+        },
+        body: new URLSearchParams({
+          username: '46437248890_003130',
+          password: 'Nipo4810**'
+        })
+      });
+
+      if (!authResponse.ok) {
+        throw new Error('Falha na autenticação C6 Bank');
+      }
+
+      const authData = await authResponse.json();
+      const token = authData.access_token;
+
+      // 2. Consultar movimentação (endpoint fictício - ajustar conforme API real)
+      const response = await fetch(`https://marketplace-proposal-service-api-p.c6bank.info/marketplace/proposal/movements?proposalNumber=${proposalNumber}`, {
+        method: 'GET',
+        headers: {
+          'Authorization': token,
+          'Accept': 'application/json'
+        }
+      });
+      
+      if (!response.ok) {
+        throw new Error(`API C6 retornou status ${response.status}`);
+      }
+      
+      const data = await response.json();
+      
+      res.json({
+        proposalNumber,
+        movements: data.movements || [],
+        totalMovements: data.movements?.length || 0
+      });
+      
+    } catch (error) {
+      console.error('❌ Erro ao consultar movimentação:', error);
+      res.status(500).json({ error: 'Erro ao consultar movimentação na API C6' });
+    }
+  });
+
   // Banrisul API endpoints
   app.post("/api/banrisul/contracts", requireAuthHybrid, requireAnyRole, async (req, res) => {
     try {
