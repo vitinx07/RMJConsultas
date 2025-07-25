@@ -527,7 +527,7 @@ export function C6Simulation({
           } catch (error) {
             console.error('Erro ao verificar link:', error);
           }
-        }, 5 * 60 * 1000); // 5 minutos
+        }, 20 * 1000); // 5 minutos
       }
       
     } catch (error) {
@@ -546,14 +546,14 @@ export function C6Simulation({
         <Button 
           variant="outline" 
           size="sm" 
-          className={`bg-blue-50 hover:bg-blue-100 text-blue-700 border-blue-200 ${className}`}
+          className={`bg-green-50 hover:bg-green-100 text-green-700 border-green-200 ${className}`}
           onClick={() => {
             setIsOpen(true);
             fetchBenefitData.mutate(cpf);
           }}
         >
           <Building2 className="h-3 w-3 mr-1" />
-          C6 Bank
+          Simular
         </Button>
       </DialogTrigger>
 
@@ -1248,7 +1248,7 @@ export function C6Simulation({
                     <Clock className="h-8 w-8 text-blue-600 mx-auto mb-2" />
                     <p className="text-blue-800">Aguardando link de formalização...</p>
                     <p className="text-sm text-gray-600">
-                      Tentativa {formalizationAttempts}/15 (Sistema automático a cada 5 minutos)
+                      Tentativa {formalizationAttempts}/15 (Sistema automático a cada 20 segundos)
                     </p>
                   </div>
                 </div>
