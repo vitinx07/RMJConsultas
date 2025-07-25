@@ -1061,6 +1061,7 @@ export function C6Simulation({
                         <input
                           type="radio"
                           id="no-expense"
+                          style={{ cursor: 'pointer' }}
                           name="expense-selection"
                           value=""
                           checked={selectedExpense === ''}
@@ -1068,25 +1069,26 @@ export function C6Simulation({
                             console.log('No expense selected, value:', e.target.value);
                             setSelectedExpense(e.target.value);
                           }}
-                          className="h-4 w-4 text-blue-600 focus:ring-blue-500"
+                          className="h-5 w-5 text-blue-600 focus:ring-blue-500 cursor-pointer"
                         />
-                        <Label htmlFor="no-expense" className="font-medium text-blue-700 cursor-pointer">
+                        <span className="font-medium text-blue-700">
                           ✅ Sem seguro adicional (Recomendado)
-                        </Label>
+                        </span>
                       </div>
                     </div>
                     
                     {selectedCondition.expenses.map((expense, index) => (
-                      <div key={expense.code} className={`border rounded-lg p-3 transition-all duration-200 hover:shadow-md ${
+                      <div key={expense.code} className={`border rounded-lg p-3 transition-all duration-200 ${
                         selectedExpense === expense.code 
                           ? 'border-green-300 bg-green-50' 
-                          : 'border-gray-200 hover:border-gray-300'
+                          : 'border-gray-200'
                       }`}>
                         <div className="flex items-start justify-between">
                           <div className="flex items-center space-x-3">
                             <input
                               type="radio"
                               id={`expense-${expense.code}`}
+                              style={{ cursor: 'pointer' }}
                               name="expense-selection"
                               value={expense.code}
                               checked={selectedExpense === expense.code}
@@ -1094,14 +1096,14 @@ export function C6Simulation({
                                 console.log('Selected expense:', e.target.value);
                                 setSelectedExpense(e.target.value);
                               }}
-                              className="h-4 w-4 text-green-600 focus:ring-green-500"
+                              className="h-5 w-5 text-green-600 focus:ring-green-500 cursor-pointer"
                             />
                             <div>
-                              <Label htmlFor={`expense-${expense.code}`} className={`font-medium cursor-pointer ${
+                              <span className={`font-medium ${
                                 selectedExpense === expense.code ? 'text-green-700' : 'text-gray-700'
                               }`}>
                                 {expense.description_type}
-                              </Label>
+                              </span>
                               {expense.description && (
                                 <p className="text-sm text-gray-600 mt-1">{expense.description}</p>
                               )}
