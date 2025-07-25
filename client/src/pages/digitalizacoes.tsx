@@ -210,8 +210,19 @@ export default function DigitalizacoesPage() {
             <div className="grid grid-cols-1 gap-2 text-sm">
               <div className="flex">
                 <span className="font-medium w-48">Situação:</span>
-                <Badge variant={loanTrack.situation === 'APR' ? 'default' : 'secondary'}>
-                  {loanTrack.situation || 'N/A'}
+                <Badge 
+                  variant={data.status === 'APROVADA' ? 'default' : 'secondary'}
+                  className={`${
+                    data.status === 'APROVADA' 
+                      ? 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400' 
+                      : data.status === 'REJEITADA'
+                      ? 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400'
+                      : data.status === 'CANCELADA'
+                      ? 'bg-gray-100 text-gray-800 dark:bg-gray-900/20 dark:text-gray-400'
+                      : 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400'
+                  }`}
+                >
+                  {data.status || 'Em análise'}
                 </Badge>
               </div>
               <div className="flex">
@@ -284,6 +295,12 @@ export default function DigitalizacoesPage() {
                   <span className="font-medium w-48">Último Vencimento:</span>
                   <span>{formatDate(creditCondition.last_due_date)}</span>
                 </div>
+                <div className="flex">
+                  <span className="font-medium w-48">Tabela Utilizada:</span>
+                  <span className="text-blue-600 dark:text-blue-400 font-mono">
+                    {creditCondition.table_code || dadosCompletos.table_used || 'N/A'}
+                  </span>
+                </div>
               </div>
 
               {/* Taxas */}
@@ -298,20 +315,43 @@ export default function DigitalizacoesPage() {
                   </div>
                 </div>
               )}
+
+              {/* Seguro */}
+              {(dadosCompletos.insurance_package || dadosCompletos.insurance_details) && (
+                <div className="mt-4 p-3 bg-yellow-50 dark:bg-yellow-900/20 rounded">
+                  <h4 className="font-semibold mb-2 text-yellow-800 dark:text-yellow-200">🛡️ Seguro</h4>
+                  <div className="grid grid-cols-1 gap-1 text-xs">
+                    {dadosCompletos.insurance_package && (
+                      <div>
+                        <span className="font-medium">Pacote:</span> {dadosCompletos.insurance_package}
+                      </div>
+                    )}
+                    {dadosCompletos.insurance_details && (
+                      <div>
+                        <span className="font-medium">Detalhes:</span> {dadosCompletos.insurance_details}
+                      </div>
+                    )}
+                    {dadosCompletos.insurance_value && (
+                      <div>
+                        <span className="font-medium">Valor:</span> R$ {dadosCompletos.insurance_value.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
             </div>
           )}
 
-          {/* LIBERAÇÕES */}
-          {liberations.length > 0 && (
+          {/* LIBERAÇÕES (apenas do cliente) */}
+          {liberations.filter((lib: any) => lib.beneficiary_type === 'Cliente').length > 0 && (
             <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg">
               <h3 className="font-bold text-lg mb-3 text-gray-800 dark:text-gray-200">
-                🏦 LIBERAÇÕES
+                🏦 LIBERAÇÕES PARA O CLIENTE
               </h3>
               <div className="space-y-3">
-                {liberations.map((lib: any, index: number) => (
+                {liberations.filter((lib: any) => lib.beneficiary_type === 'Cliente').map((lib: any, index: number) => (
                   <div key={index} className="bg-white dark:bg-gray-800 p-3 rounded border">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm">
-                      <div><span className="font-medium">Beneficiário:</span> {lib.beneficiary_type}</div>
                       <div><span className="font-medium">Valor:</span> R$ {(lib.value || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</div>
                       <div><span className="font-medium">Forma:</span> {lib.way_liberation}</div>
                       <div><span className="font-medium">Documento:</span> {lib.document_type}</div>
@@ -669,7 +709,7 @@ export default function DigitalizacoesPage() {
                     </h4>
                     <div className="space-y-2">
                       <div className="flex justify-between">
-                        <span className="text-sm">Valor Solicitado:</span>
+                        <span className="text-sm">Valor Bruto:</span>
                         <span className="font-medium text-green-600">
                           R$ {formatCurrency(digitization.requestedAmount)}
                         </span>
@@ -720,7 +760,9 @@ export default function DigitalizacoesPage() {
                     <div className="flex items-center gap-2">
                       <Shield className="h-4 w-4 text-muted-foreground" />
                       <span className="text-sm">
-                        {digitization.selectedInsurance || "Não informado"}
+                        {digitization.selectedInsurance 
+                          ? `Pacote: ${digitization.selectedInsurance}` 
+                          : "Não informado"}
                       </span>
                     </div>
                   </div>
@@ -751,20 +793,6 @@ export default function DigitalizacoesPage() {
                           <Eye className="h-4 w-4" />
                         )}
                         Consultar Proposta
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => consultarMovimentacao(digitization.proposalNumber)}
-                        disabled={isConsultingMovement === digitization.proposalNumber}
-                        className="w-full flex items-center gap-2"
-                      >
-                        {isConsultingMovement === digitization.proposalNumber ? (
-                          <RefreshCw className="h-4 w-4 animate-spin" />
-                        ) : (
-                          <TrendingUp className="h-4 w-4" />
-                        )}
-                        Ver Movimentação
                       </Button>
                     </div>
                   </div>
