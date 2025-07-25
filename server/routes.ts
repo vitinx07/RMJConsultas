@@ -876,6 +876,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { cpf, benefit_data, selected_contracts, credit_condition, proposal_data, selected_expense = '' } = req.body;
 
+      // 0. Validação de contratos selecionados
+      if (!selected_contracts || selected_contracts.length === 0) {
+        return res.status(400).json({ 
+          error: 'Nenhum contrato selecionado para refinanciamento',
+          userMessage: 'Por favor, selecione pelo menos um contrato para refinanciar'
+        });
+      }
+
+      // Validar formato dos contratos (devem ter pelo menos 8 dígitos)
+      const invalidContracts = selected_contracts.filter((contract: string) => 
+        !contract || contract.length < 8 || !/^\d+$/.test(contract)
+      );
+
+      if (invalidContracts.length > 0) {
+        return res.status(400).json({ 
+          error: 'Contratos com formato inválido detectados',
+          userMessage: `Os seguintes contratos têm formato inválido: ${invalidContracts.join(', ')}. Contratos devem ter pelo menos 8 dígitos numéricos.`,
+          invalidContracts
+        });
+      }
+
+      console.log('✅ Contratos validados:', selected_contracts);
+
       // 1. Autenticar no C6 Bank
       const authResponse = await fetch('https://marketplace-proposal-service-api-p.c6bank.info/auth/token', {
         method: 'POST',
@@ -979,21 +1002,65 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!inclusionResponse.ok) {
         const errorData = await inclusionResponse.json();
         console.error('❌ C6 INCLUSION ERROR (Status ' + inclusionResponse.status + '):', errorData);
-        console.error('📋 PAYLOAD QUE CAUSOU ERRO:', JSON.stringify(inclusionPayload, null, 2));
         
-        // Verificar campos obrigatórios específicos
+        // Analisar tipos específicos de erro e fornecer mensagens amigáveis
+        let userMessage = 'Erro na digitalização da proposta';
+        let shouldRetry = false;
+        
+        if (errorData.details && Array.isArray(errorData.details)) {
+          for (const detail of errorData.details) {
+            const message = detail.message || '';
+            
+            // Erro de operação não encontrada
+            if (message.includes('não foi encontrada na base de dados')) {
+              const contractMatch = message.match(/Operação (\d+)/);
+              const contract = contractMatch ? contractMatch[1] : 'desconhecido';
+              userMessage = `O contrato ${contract} não foi encontrado na base do C6 Bank. Verifique se o número está correto e se é elegível para refinanciamento.`;
+              break;
+            }
+            
+            // Erro de valor menor ou igual
+            if (message.includes('valor menor ou igual') || message.includes('minimum') || message.includes('maximum')) {
+              userMessage = 'O valor da parcela está fora dos limites permitidos. Ajuste o valor e tente novamente.';
+              shouldRetry = true;
+              break;
+            }
+            
+            // Erro de validação de dados
+            if (message.includes('Validation error') || message.includes('campo obrigatório')) {
+              userMessage = 'Dados obrigatórios estão faltando ou incorretos. Verifique as informações preenchidas.';
+              break;
+            }
+            
+            // Erro de CPF
+            if (message.includes('CPF') || message.includes('tax_identifier')) {
+              userMessage = 'Problema com o CPF informado. Verifique se está correto e válido.';
+              break;
+            }
+            
+            // Erro de banco
+            if (message.includes('bank_data') || message.includes('conta') || message.includes('agencia')) {
+              userMessage = 'Dados bancários incorretos. Verifique banco, agência e conta.';
+              break;
+            }
+          }
+        }
+        
+        // Log detalhado para debug
         console.log('🔍 CAMPOS CRÍTICOS:');
         console.log('  - covenant_code:', creditConditionForInclusion.covenant_code);
         console.log('  - product_code:', creditConditionForInclusion.product_code);
         console.log('  - client name:', inclusionPayload.client?.name);
         console.log('  - cpf:', inclusionPayload.client?.tax_identifier);
+        console.log('  - contracts:', selected_contracts);
         console.log('  - expenses count:', inclusionPayload.expenses?.length);
         
         return res.status(inclusionResponse.status).json({
-          error: 'Erro na inclusão da proposta C6 Bank',
+          error: userMessage,
           details: errorData,
           status: inclusionResponse.status,
-          payload: inclusionPayload
+          canRetry: shouldRetry,
+          technicalError: errorData.message || 'Erro técnico não especificado'
         });
       }
 

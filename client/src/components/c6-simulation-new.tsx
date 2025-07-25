@@ -330,7 +330,7 @@ export function C6Simulation({
 
       // 2. Processar despesas/seguros corretamente usando item_number
       if (selectedExpenseItemNumber !== 'none' && creditConditionForInclusion.expenses) {
-        creditConditionForInclusion.expenses = creditConditionForInclusion.expenses.map(exp => {
+        creditConditionForInclusion.expenses = creditConditionForInclusion.expenses.map((exp: any) => {
           if (String(exp.item_number) === selectedExpenseItemNumber) {
             return { ...exp, exempt: 'Nao' }; // Marca o seguro escolhido para cobrança
           }
@@ -338,7 +338,7 @@ export function C6Simulation({
         });
       } else if (creditConditionForInclusion.expenses) {
         // Se não há seguro selecionado, todos ficam isentos
-        creditConditionForInclusion.expenses = creditConditionForInclusion.expenses.map(exp => ({
+        creditConditionForInclusion.expenses = creditConditionForInclusion.expenses.map((exp: any) => ({
           ...exp,
           exempt: 'Sim'
         }));
@@ -355,7 +355,7 @@ export function C6Simulation({
         credit_condition: creditConditionForInclusion,
         selected_expense_item_number: selectedExpenseItemNumber,
         phone_cleaned: cleanedPhone,
-        expenses_processed: creditConditionForInclusion.expenses?.map(e => ({code: e.code, item_number: e.item_number, exempt: e.exempt}))
+        expenses_processed: creditConditionForInclusion.expenses?.map((e: any) => ({code: e.code, item_number: e.item_number, exempt: e.exempt}))
       });
 
       const response = await fetch('/api/c6-bank/include-proposal', {
@@ -437,10 +437,29 @@ export function C6Simulation({
         startFormalizationAttempts(data.proposal_number);
       }, 2000);
     },
-    onError: (error) => {
+    onError: (error: any) => {
+      console.error('Digitization error:', error);
+      
+      // Exibir mensagem específica do erro
+      let errorMessage = "Erro na digitalização";
+      let errorDescription = error.message;
+      
+      // Se o erro tem detalhes específicos do backend
+      if (error.response?.data) {
+        const errorData = error.response.data;
+        errorMessage = errorData.error || "Erro na digitalização";
+        
+        // Verificar se é um erro que permite retry
+        if (errorData.canRetry) {
+          errorDescription = errorMessage + " Você pode ajustar os valores e tentar novamente.";
+        } else {
+          errorDescription = errorMessage;
+        }
+      }
+      
       toast({
-        title: "Erro na digitalização",
-        description: error.message,
+        title: errorMessage,
+        description: errorDescription,
         variant: "destructive",
       });
     }
