@@ -715,7 +715,67 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // C6 Bank API endpoints
+  // C6 Bank contracts endpoint (simplified)
+  app.post('/api/c6/contracts', requireAuthHybrid, async (req, res) => {
+    try {
+      const { cpf } = req.body;
+      
+      // Esta é uma simulação para o sistema atual
+      // Em uma implementação real, buscaria contratos do C6 Bank via API
+      const mockContracts = [
+        {
+          contrato: "9044297711",
+          dataContrato: "2023-01-15",
+          valorParcela: 350.50,
+          refinanciavel: true,
+          saldoDevedor: 5200.00,
+          quantidadeParcelas: 84,
+          convenio: "INSS"
+        },
+        {
+          contrato: "010121587986",
+          dataContrato: "2022-11-20",
+          valorParcela: 280.75,
+          refinanciavel: true,
+          saldoDevedor: 4100.00,
+          quantidadeParcelas: 72,
+          convenio: "INSS"
+        }
+      ];
+
+      res.json(mockContracts);
+    } catch (error) {
+      console.error('Erro ao buscar contratos C6:', error);
+      res.status(500).json({ error: 'Erro ao buscar contratos C6 Bank' });
+    }
+  });
+
+  // C6 Bank simulate endpoint (simplified)
+  app.post('/api/c6/simulate', requireAuthHybrid, async (req, res) => {
+    try {
+      const { cpf, dataNascimento, valorDesejado, prazoDesejado, contratos } = req.body;
+      
+      // Esta é uma simulação para o sistema atual
+      // Em uma implementação real, faria simulação via API do C6 Bank
+      const mockSimulation = [
+        {
+          prazo: prazoDesejado || "84",
+          valorAF: valorDesejado * 0.15,
+          valorParcela: valorDesejado / parseInt(prazoDesejado || "84"),
+          valorTotal: valorDesejado * 1.25,
+          taxa: 1.85,
+          plano: "C6 REFINANCIAMENTO"
+        }
+      ];
+
+      res.json(mockSimulation);
+    } catch (error) {
+      console.error('Erro na simulação C6:', error);
+      res.status(500).json({ error: 'Erro na simulação C6 Bank' });
+    }
+  });
+
+  // C6 Bank API endpoints (full implementation)
   app.post('/api/c6-bank/simulate', requireAuthHybrid, async (req, res) => {
     try {
       const { cpf, installment_quantity, selected_contracts, simulation_type, requested_amount, installment_amount } = req.body;

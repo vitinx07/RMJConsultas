@@ -738,13 +738,6 @@ export function BenefitDetails({ benefit }: BenefitDetailsProps) {
                                 const originalBankCode = emprestimo.Banco || emprestimo.CodigoBanco || '';
                                 const bankNameFromAPI = emprestimo.NomeBanco || '';
                                 
-                                // Debug para ver os códigos de banco
-                                console.log('Bank Debug:', {
-                                  originalBankCode,
-                                  bankNameFromAPI,
-                                  contrato: emprestimo.Contrato
-                                });
-                                
                                 // Verificar por código
                                 if (originalBankCode === '041' || originalBankCode === '41') {
                                   return (
@@ -789,10 +782,12 @@ export function BenefitDetails({ benefit }: BenefitDetailsProps) {
                                   );
                                 }
 
-                                // Verificar por nome C6 Bank ou Banco C6
+                                // Verificar por nome C6 Bank, Banco C6, ou Ficsa (C6 Consignado)
                                 if (bankNameFromAPI && (
                                   bankNameFromAPI.toLowerCase().includes('c6 bank') ||
-                                  bankNameFromAPI.toLowerCase().includes('banco c6')
+                                  bankNameFromAPI.toLowerCase().includes('banco c6') ||
+                                  bankNameFromAPI.toLowerCase().includes('ficsa') ||
+                                  bankNameFromAPI.toLowerCase().includes('c6 consignado')
                                 )) {
                                   return (
                                     <C6Simulation
