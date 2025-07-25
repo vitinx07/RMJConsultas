@@ -388,7 +388,8 @@ export function C6Simulation({
         installment_quantity: selectedCondition.installment_quantity,
         installment_amount: selectedCondition.installment_amount,
         requested_amount: selectedConditionAny.requested_amount,
-        principal_amount: selectedConditionAny.requested_amount || selectedConditionAny.principal_amount, // Campo obrigatório
+        principal_amount: selectedConditionAny.principal_amount || selectedConditionAny.requested_amount, // Campo obrigatório
+        client_amount: selectedConditionAny.client_amount || selectedConditionAny.principal_amount || selectedConditionAny.requested_amount, // Campo obrigatório
         iof_amount: selectedConditionAny.iof_amount,
         interest_amount: selectedConditionAny.interest_amount,
         total_amount: selectedConditionAny.total_amount,
@@ -432,6 +433,10 @@ export function C6Simulation({
         phone_cleaned: cleanedPhone,
         expenses_processed: expensesForInclusion.map(e => ({code: e.code, item_number: e.item_number, exempt: e.exempt}))
       });
+
+      console.log('🔍 DEBUG - Selected condition original data:', selectedConditionAny);
+      console.log('🔍 DEBUG - client_amount from condition:', selectedConditionAny.client_amount);
+      console.log('🔍 DEBUG - requested_amount from condition:', selectedConditionAny.requested_amount);
 
       const response = await fetch('/api/c6-bank/include-proposal', {
         method: 'POST',
