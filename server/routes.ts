@@ -899,6 +899,45 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       console.log('✅ Contratos validados:', selected_contracts);
 
+      // 0.1 Validar se contratos pertencem ao beneficiário consultado
+      const allContracts = benefit_data.Emprestimos || [];
+      const existingContracts = allContracts.map((emp: any) => emp.Contrato);
+      const nonExistentContracts = selected_contracts.filter((contract: string) => 
+        !existingContracts.includes(contract)
+      );
+
+      if (nonExistentContracts.length > 0) {
+        console.log('❌ Contratos não encontrados:', nonExistentContracts);
+        console.log('📋 Contratos disponíveis:', existingContracts);
+        return res.status(400).json({ 
+          error: 'Contratos não encontrados no beneficiário',
+          userMessage: `Os contratos ${nonExistentContracts.join(', ')} não foram encontrados nos dados do beneficiário. Verifique a seleção de contratos.`,
+          nonExistentContracts,
+          availableContracts: existingContracts
+        });
+      }
+
+      // 0.2 Validar se são contratos C6 Bank
+      const c6Contracts = allContracts.filter((emp: any) => 
+        emp.Banco === '626' || emp.NomeBanco?.toLowerCase().includes('ficsa') || emp.NomeBanco?.toLowerCase().includes('c6')
+      );
+      
+      const c6ContractNumbers = c6Contracts.map((c: any) => c.Contrato);
+      const nonC6Contracts = selected_contracts.filter((contract: string) => 
+        !c6ContractNumbers.includes(contract)
+      );
+
+      if (nonC6Contracts.length > 0) {
+        return res.status(400).json({ 
+          error: 'Contratos não são do C6 Bank',
+          userMessage: `Os contratos ${nonC6Contracts.join(', ')} não são do C6 Bank. Apenas contratos C6 podem ser refinanciados.`,
+          nonC6Contracts,
+          c6Contracts: c6ContractNumbers
+        });
+      }
+
+      console.log('✅ Todos contratos validados como C6 Bank:', selected_contracts);
+
       // 1. Autenticar no C6 Bank
       const authResponse = await fetch('https://marketplace-proposal-service-api-p.c6bank.info/auth/token', {
         method: 'POST',

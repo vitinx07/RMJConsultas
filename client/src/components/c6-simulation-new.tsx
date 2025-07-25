@@ -347,12 +347,13 @@ export function C6Simulation({
       // 3. Limpar número de telefone
       const cleanedPhone = digitizationData.telefone.replace(/\D/g, ''); // Remove tudo que não for dígito
 
-      const c6Contracts = benefitData.Emprestimos?.filter((emp: any) => 
-        emp.Banco === '626' || emp.NomeBanco?.toLowerCase().includes('ficsa')
-      ) || [];
+      // IMPORTANTE: Usar apenas os contratos selecionados pelo usuário
+      console.log('📋 Contratos selecionados para digitalização:', selectedContracts);
+      console.log('📋 Contratos que foram usados na simulação:', selectedContracts);
 
       console.log('🚀 Enviando para inclusão:', {
         credit_condition: creditConditionForInclusion,
+        selected_contracts: selectedContracts, // Usar contratos selecionados
         selected_expense_item_number: selectedExpenseItemNumber,
         phone_cleaned: cleanedPhone,
         expenses_processed: creditConditionForInclusion.expenses?.map((e: any) => ({code: e.code, item_number: e.item_number, exempt: e.exempt}))
@@ -364,7 +365,7 @@ export function C6Simulation({
         body: JSON.stringify({
           cpf: benefitData.Beneficiario.CPF,
           benefit_data: benefitData,
-          selected_contracts: c6Contracts.map((c: any) => c.Contrato),
+          selected_contracts: selectedContracts, // Usar mesmos contratos da simulação
           credit_condition: creditConditionForInclusion,
           selected_expense_item_number: selectedExpenseItemNumber === 'none' ? '' : selectedExpenseItemNumber,
           debug_expense: selectedExpenseItemNumber, // Log para debug
