@@ -294,7 +294,7 @@ export function C6Simulation({
     onSuccess: (data) => {
       console.log('🎯 SIMULATION SUCCESS - Credit conditions:', data.credit_conditions?.length);
       if (data.credit_conditions?.[0]?.expenses) {
-        console.log('🎯 First condition expenses:', data.credit_conditions[0].expenses.map(e => ({code: e.code, desc: e.description_type})));
+        console.log('🎯 First condition expenses:', data.credit_conditions[0].expenses.map((e: any) => ({code: e.code, desc: e.description_type})));
       }
       setCreditConditions(data.credit_conditions || []);
       // Reset expense selection quando nova simulação
@@ -321,9 +321,42 @@ export function C6Simulation({
         throw new Error('Dados incompletos para digitalização');
       }
 
+      // 1. Corrigir formato do credit_condition para inclusão (flatten)
+      const creditConditionForInclusion: any = { ...selectedCondition };
+      creditConditionForInclusion.covenant_code = creditConditionForInclusion.covenant?.code;
+      creditConditionForInclusion.product_code = creditConditionForInclusion.product?.code;
+      delete creditConditionForInclusion.covenant;
+      delete creditConditionForInclusion.product;
+
+      // 2. Processar despesas/seguros corretamente
+      if (selectedExpense !== 'none' && creditConditionForInclusion.expenses) {
+        creditConditionForInclusion.expenses = creditConditionForInclusion.expenses.map(exp => {
+          if (exp.code === selectedExpense) {
+            return { ...exp, exempt: 'Nao' }; // Marca o seguro escolhido para cobrança
+          }
+          return { ...exp, exempt: 'Sim' }; // Outros seguros isentos
+        });
+      } else if (creditConditionForInclusion.expenses) {
+        // Se não há seguro selecionado, todos ficam isentos
+        creditConditionForInclusion.expenses = creditConditionForInclusion.expenses.map(exp => ({
+          ...exp,
+          exempt: 'Sim'
+        }));
+      }
+
+      // 3. Limpar número de telefone
+      const cleanedPhone = digitizationData.telefone.replace(/\D/g, ''); // Remove tudo que não for dígito
+
       const c6Contracts = benefitData.Emprestimos?.filter((emp: any) => 
         emp.Banco === '626' || emp.NomeBanco?.toLowerCase().includes('ficsa')
       ) || [];
+
+      console.log('🚀 Enviando para inclusão:', {
+        credit_condition: creditConditionForInclusion,
+        selected_expense: selectedExpense,
+        phone_cleaned: cleanedPhone,
+        expenses_processed: creditConditionForInclusion.expenses?.map(e => ({code: e.code, exempt: e.exempt}))
+      });
 
       const response = await fetch('/api/c6-bank/include-proposal', {
         method: 'POST',
@@ -332,7 +365,7 @@ export function C6Simulation({
           cpf: benefitData.Beneficiario.CPF,
           benefit_data: benefitData,
           selected_contracts: c6Contracts.map((c: any) => c.Contrato),
-          credit_condition: selectedCondition,
+          credit_condition: creditConditionForInclusion,
           selected_expense: selectedExpense === 'none' ? '' : selectedExpense,
           debug_expense: selectedExpense, // Log para debug
           proposal_data: {
@@ -352,8 +385,8 @@ export function C6Simulation({
               income_amount: parseFloat(benefitData.ResumoFinanceiro.ValorBeneficio || '0'),
               mother_name: digitizationData.nomeMae,
               email: digitizationData.email,
-              mobile_phone_area_code: digitizationData.telefone.substring(0, 2),
-              mobile_phone_number: digitizationData.telefone.substring(2),
+              mobile_phone_area_code: cleanedPhone.substring(0, 2),
+              mobile_phone_number: cleanedPhone.substring(2),
               bank_data: {
                 bank_code: digitizationData.banco.replace(/\D/g, ''),
                 agency_number: digitizationData.agencia.replace(/\D/g, ''),

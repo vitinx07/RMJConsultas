@@ -914,11 +914,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       delete creditConditionForInclusion.covenant;
       delete creditConditionForInclusion.product;
 
-      // 4. Preparar despesas selecionadas
-      const expensesForInclusion = credit_condition.expenses?.map((expense: any) => ({
-        ...expense,
-        exempt: selected_expense === expense.code ? 'Nao' : 'Sim'
-      })) || [];
+      // 4. Usar despesas já processadas do frontend
+      const expensesForInclusion = credit_condition.expenses || [];
 
       // 4. Montar payload de inclusão
       const inclusionPayload = {
