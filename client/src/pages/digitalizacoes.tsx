@@ -110,6 +110,12 @@ export default function DigitalizacoesPage() {
     }
   };
 
+  // Função auxiliar para formatar valores monetários com segurança
+  const formatCurrency = (value: number | null | undefined): string => {
+    const numValue = Number(value) || 0;
+    return numValue.toFixed(2);
+  };
+
   const getStatusBadgeVariant = (status: string) => {
     switch (status) {
       case 'approved':
@@ -308,19 +314,19 @@ export default function DigitalizacoesPage() {
                       <div className="flex justify-between">
                         <span className="text-sm">Valor Solicitado:</span>
                         <span className="font-medium text-green-600">
-                          R$ {(digitization.requestedAmount || 0).toFixed(2)}
+                          R$ {formatCurrency(digitization.requestedAmount)}
                         </span>
                       </div>
                       <div className="flex justify-between">
                         <span className="text-sm">Parcela:</span>
                         <span className="font-medium">
-                          R$ {(digitization.installmentAmount || 0).toFixed(2)}
+                          R$ {formatCurrency(digitization.installmentAmount)}
                         </span>
                       </div>
                       <div className="flex justify-between">
                         <span className="text-sm font-semibold">Troco:</span>
                         <span className="font-bold text-blue-600">
-                          R$ {(digitization.clientAmount || 0).toFixed(2)}
+                          R$ {formatCurrency(digitization.clientAmount)}
                         </span>
                       </div>
                     </div>
