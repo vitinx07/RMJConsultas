@@ -1349,7 +1349,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Endpoint para consultar proposta específica (seguindo API C6 oficial)
+  // Endpoint para consultar proposta específica (GET conforme documentação C6)
   app.post('/api/c6-bank/consultar-proposta', requireAuthHybrid, async (req, res) => {
     try {
       const { proposalNumber } = req.body;
@@ -1379,8 +1379,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const authData = await authResponse.json();
       const token = authData.access_token;
 
-      // 2. Consultar proposta usando marketplace API
-      const response = await fetch(`https://marketplace-proposal-service-api-p.c6bank.info/marketplace/proposal/consult?proposalNumber=${proposalNumber}`, {
+      // 2. Consultar proposta usando GET conforme documentação
+      const response = await fetch(`https://marketplace-proposal-service-api-p.c6bank.info/marketplace/proposal?proposalNumber=${proposalNumber}`, {
         method: 'GET',
         headers: {
           'Authorization': token,
@@ -1418,7 +1418,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Endpoint para consultar movimentação da proposta (seguindo API C6 oficial)
+  // Endpoint para consultar movimentação da proposta (GET para consulta conforme documentação)
   app.post('/api/c6-bank/consultar-movimentacao', requireAuthHybrid, async (req, res) => {
     try {
       const { proposalNumber } = req.body;
@@ -1448,8 +1448,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const authData = await authResponse.json();
       const token = authData.access_token;
 
-      // 2. Consultar movimentação usando marketplace API
-      const response = await fetch(`https://marketplace-proposal-service-api-p.c6bank.info/marketplace/proposal/movement?proposalNumber=${proposalNumber}`, {
+      // 2. Consultar movimentação usando GET (mesma proposta inclui movimentações)
+      const response = await fetch(`https://marketplace-proposal-service-api-p.c6bank.info/marketplace/proposal?proposalNumber=${proposalNumber}`, {
         method: 'GET',
         headers: {
           'Authorization': token,
