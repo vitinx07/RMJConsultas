@@ -89,6 +89,9 @@ export function C6Simulation({
   dataNascimento,
   className = ""
 }: C6SimulationProps) {
+  const { toast } = useToast();
+  
+  // Todos os hooks useState devem estar no topo
   const [isOpen, setIsOpen] = useState(false);
   const [step, setStep] = useState<'loading' | 'contracts' | 'simulation' | 'digitization' | 'formalization'>('loading');
   const [benefitData, setBenefitData] = useState<BenefitData | null>(null);
@@ -105,6 +108,36 @@ export function C6Simulation({
   // Dados para digitalização (pré-preenchidos)
   const [bankSuggestions, setBankSuggestions] = useState<Array<{code: string, name: string}>>([]);
   const [showBankSuggestions, setShowBankSuggestions] = useState(false);
+  
+  // Estado para dados de digitalização - movido para o topo
+  const [digitizationData, setDigitizationData] = useState({
+    nomeCompleto: '',
+    nomeMae: '',
+    rg: '',
+    telefone: '',
+    email: '',
+    cep: '',
+    logradouro: '',
+    numero: '',
+    complemento: '',
+    bairro: '',
+    cidade: '',
+    uf: '',
+    estadoCivil: 'Solteiro',
+    sexo: 'Masculino',
+    ufRg: 'SP',
+    orgaoExpedidor: 'SSP',
+    dataEmissaoRg: '2010-01-01',
+    pessoaPoliticamenteExposta: 'Nao',
+    nomeConjuge: '',
+    recebeCartaoBeneficio: 'Nao',
+    ufBeneficio: '',
+    banco: '',
+    agencia: '',
+    conta: '',
+    digitoAgencia: '0',
+    tipoContaDescricao: 'ContaCorrenteIndividual'
+  });
 
   const bankList = [
     { code: "001", name: "Banco do Brasil" },
@@ -159,37 +192,6 @@ export function C6Simulation({
     setBankSuggestions(filtered.slice(0, 5));
     setShowBankSuggestions(true);
   };
-
-  const [digitizationData, setDigitizationData] = useState({
-    nomeCompleto: '',
-    nomeMae: '',
-    rg: '',
-    telefone: '',
-    email: '',
-    cep: '',
-    logradouro: '',
-    numero: '',
-    complemento: '',
-    bairro: '',
-    cidade: '',
-    uf: '',
-    estadoCivil: 'Solteiro',
-    sexo: 'Masculino',
-    ufRg: 'SP',
-    orgaoExpedidor: 'SSP',
-    dataEmissaoRg: '2010-01-01',
-    pessoaPoliticamenteExposta: 'Nao',
-    nomeConjuge: '',
-    recebeCartaoBeneficio: 'Nao',
-    ufBeneficio: '',
-    banco: '',
-    agencia: '',
-    conta: '',
-    digitoAgencia: '0',
-    tipoContaDescricao: 'ContaCorrenteIndividual'
-  });
-
-  const { toast } = useToast();
 
   // Buscar dados completos do CPF
   const fetchBenefitData = useMutation({
@@ -451,6 +453,7 @@ export function C6Simulation({
           selectedInsurance: selectedInsuranceDescription
         });
 
+        // Salvar no histórico de digitalizações
         const digitizationResult = await fetch('/api/c6-digitizations', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
