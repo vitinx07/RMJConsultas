@@ -203,26 +203,44 @@ export default function DigitalizacoesPage() {
           </div>
 
           {/* STATUS ATUAL */}
-          <div className="bg-yellow-50 dark:bg-yellow-900/20 p-4 rounded-lg">
-            <h3 className="font-bold text-lg mb-3 text-gray-800 dark:text-gray-200">
-              🔄 STATUS ATUAL
+          <div className={`p-4 rounded-lg border-2 ${
+            loanTrack.current_activity_description === 'CANCELADA' || dadosCompletos.formalization_status === 'CANCELADO'
+              ? 'bg-red-50 dark:bg-red-900/20 border-red-300 dark:border-red-600'
+              : 'bg-yellow-50 dark:bg-yellow-900/20 border-yellow-300 dark:border-yellow-600'
+          }`}>
+            <h3 className={`font-bold text-lg mb-3 ${
+              loanTrack.current_activity_description === 'CANCELADA' || dadosCompletos.formalization_status === 'CANCELADO'
+                ? 'text-red-800 dark:text-red-200'
+                : 'text-gray-800 dark:text-gray-200'
+            }`}>
+              {loanTrack.current_activity_description === 'CANCELADA' || dadosCompletos.formalization_status === 'CANCELADO'
+                ? '❌ STATUS ATUAL - CANCELADA'
+                : '🔄 STATUS ATUAL'}
             </h3>
             <div className="grid grid-cols-1 gap-2 text-sm">
               <div className="flex">
                 <span className="font-medium w-48">Situação:</span>
                 <Badge 
-                  variant={data.status === 'APROVADA' ? 'default' : 'secondary'}
+                  variant={
+                    loanTrack.current_activity_description === 'CANCELADA' || dadosCompletos.formalization_status === 'CANCELADO'
+                      ? 'destructive' 
+                      : loanTrack.situation === 'APR' 
+                      ? 'default' 
+                      : 'secondary'
+                  }
                   className={`${
-                    data.status === 'APROVADA' 
-                      ? 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400' 
-                      : data.status === 'REJEITADA'
+                    loanTrack.current_activity_description === 'CANCELADA' || dadosCompletos.formalization_status === 'CANCELADO'
+                      ? 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400 border-red-300' 
+                      : loanTrack.situation === 'APR'
+                      ? 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400'
+                      : dadosCompletos.formalization_status === 'REJEITADA'
                       ? 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400'
-                      : data.status === 'CANCELADA'
-                      ? 'bg-gray-100 text-gray-800 dark:bg-gray-900/20 dark:text-gray-400'
                       : 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400'
                   }`}
                 >
-                  {data.status || 'Em análise'}
+                  {loanTrack.current_activity_description === 'CANCELADA' || dadosCompletos.formalization_status === 'CANCELADO'
+                    ? 'CANCELADA'
+                    : loanTrack.current_activity_description || dadosCompletos.formalization_status || loanTrack.situation || 'Em análise'}
                 </Badge>
               </div>
               <div className="flex">
