@@ -134,10 +134,27 @@ export default function DigitalizacoesPage() {
 
       const data = await response.json();
       
-      // Exibir informações da proposta em um toast
+      // Exibir informações detalhadas da proposta
+      const cliente = data.cliente || {};
+      const valorFormatado = new Intl.NumberFormat('pt-BR', {
+        style: 'currency',
+        currency: 'BRL'
+      }).format(data.valorSolicitado || 0);
+
       toast({
-        title: "Proposta Consultada",
-        description: `Status: ${data.status || 'N/A'} - Valor: R$ ${data.amount || 0}`,
+        title: "Proposta Consultada com Sucesso",
+        description: `Cliente: ${cliente.nome} | Situação: ${data.situacao} | Valor: ${valorFormatado}`,
+        duration: 5000,
+      });
+
+      // Log detalhado no console para debugging
+      console.log('📋 Detalhes completos da proposta:', {
+        numero: data.proposalNumber,
+        cliente: cliente,
+        situacao: data.situacao,
+        atividade: data.atividadeAtual,
+        observacoes: data.observacoes,
+        dadosCompletos: data.dadosCompletos
       });
     } catch (error: any) {
       const errorMessage = error?.response?.status === 404 ? 
@@ -167,15 +184,25 @@ export default function DigitalizacoesPage() {
 
       const data = await response.json();
       
-      // Exibir movimentação em um toast
+      // Exibir movimentações detalhadas
       const movimentacoes = data.movements || [];
-      const ultimaMovimentacao = movimentacoes[movimentacoes.length - 1];
-      
+      const observacoes = data.observations || [];
+      const totalItens = movimentacoes.length + observacoes.length;
+
       toast({
-        title: "Movimentação da Proposta",
-        description: ultimaMovimentacao ? 
-          `Última movimentação: ${ultimaMovimentacao.description} em ${ultimaMovimentacao.date}` :
-          "Nenhuma movimentação encontrada",
+        title: "Movimentação Consultada",
+        description: `Situação: ${data.situacao || 'N/A'} | ${totalItens} registros encontrados`,
+        duration: 5000,
+      });
+
+      // Log detalhado no console para debugging
+      console.log('📊 Movimentações da proposta:', {
+        numero: data.proposalNumber,
+        situacao: data.situacao,
+        atividade: data.atividadeAtual,
+        movimentacoes: movimentacoes,
+        observacoes: observacoes,
+        loanTrack: data.loanTrack
       });
     } catch (error: any) {
       const errorMessage = error?.response?.status === 404 ? 

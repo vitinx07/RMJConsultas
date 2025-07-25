@@ -1379,12 +1379,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const authData = await authResponse.json();
       const token = authData.access_token;
 
-      // 2. Consultar proposta usando GET conforme documentação
+      // 2. Consultar proposta detalhada usando GET conforme documentação
       const response = await fetch(`https://marketplace-proposal-service-api-p.c6bank.info/marketplace/proposal?proposalNumber=${proposalNumber}`, {
         method: 'GET',
         headers: {
           'Authorization': token,
-          'Accept': 'application/json'
+          'Accept': 'application/vnd.c6bank_fgts_consult_v2+json'
         }
       });
       
@@ -1405,12 +1405,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const data = await response.json();
       
-      res.json({
-        proposalNumber,
-        status: data.status || 'N/A',
-        amount: data.amount || 0,
-        details: data
-      });
+      // Extrair informações detalhadas da proposta
+      const proposalDetails = {
+        proposalNumber: data.proposal_number || proposalNumber,
+        cliente: {
+          nome: data.client?.name || 'N/A',
+          cpf: data.client?.tax_identifier || 'N/A',
+          matricula: data.client?.enrollment || 'N/A'
+        },
+        situacao: data.situation || 'N/A',
+        atividadeAtual: data.current_activity_description || 'N/A',
+        valorSolicitado: data.requested_amount || 0,
+        valorParcela: data.installment_amount || 0,
+        quantidadeParcelas: data.installment_quantity || 0,
+        observacoes: data.loan_track?.observations || data.observations || [],
+        historicoMovimentacao: data.loan_track || null,
+        dadosCompletos: data
+      };
+      
+      console.log('✅ Proposta consultada com detalhes completos');
+      
+      res.json(proposalDetails);
       
     } catch (error) {
       console.error('❌ Erro ao consultar proposta:', error);
@@ -1448,12 +1463,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const authData = await authResponse.json();
       const token = authData.access_token;
 
-      // 2. Consultar movimentação usando GET (mesma proposta inclui movimentações)
+      // 2. Consultar movimentação detalhada usando GET
       const response = await fetch(`https://marketplace-proposal-service-api-p.c6bank.info/marketplace/proposal?proposalNumber=${proposalNumber}`, {
         method: 'GET',
         headers: {
           'Authorization': token,
-          'Accept': 'application/json'
+          'Accept': 'application/vnd.c6bank_fgts_consult_v2+json'
         }
       });
       
@@ -1474,10 +1489,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const data = await response.json();
       
+      // Extrair movimentações e histórico detalhado
+      const movimentacoes = data.loan_track?.movements || data.movements || data.movement_history || [];
+      const observacoes = data.loan_track?.observations || data.observations || [];
+      
       res.json({
         proposalNumber,
-        movements: data.movements || data.movement_history || [],
-        totalMovements: (data.movements || data.movement_history || []).length
+        movements: movimentacoes,
+        observations: observacoes,
+        loanTrack: data.loan_track,
+        totalMovements: movimentacoes.length,
+        situacao: data.situation,
+        atividadeAtual: data.current_activity_description
       });
       
     } catch (error) {
