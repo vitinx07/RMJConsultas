@@ -103,6 +103,63 @@ export function C6Simulation({
   const [formalizationAttempts, setFormalizationAttempts] = useState(0);
   
   // Dados para digitalização (pré-preenchidos)
+  const [bankSuggestions, setBankSuggestions] = useState<Array<{code: string, name: string}>>([]);
+  const [showBankSuggestions, setShowBankSuggestions] = useState(false);
+
+  const bankList = [
+    { code: "001", name: "Banco do Brasil" },
+    { code: "033", name: "Santander" },
+    { code: "104", name: "Caixa Econômica Federal" },
+    { code: "237", name: "Bradesco" },
+    { code: "341", name: "Itaú" },
+    { code: "745", name: "Citibank" },
+    { code: "399", name: "HSBC" },
+    { code: "422", name: "Safra" },
+    { code: "070", name: "BRB" },
+    { code: "756", name: "Sicoob" },
+    { code: "748", name: "Sicredi" },
+    { code: "626", name: "C6 Bank" },
+    { code: "260", name: "Nu Pagamentos (Nubank)" },
+    { code: "290", name: "Pagseguro" },
+    { code: "336", name: "C6 Consignado" }
+  ];
+
+  // Função para aplicar máscara de telefone
+  const formatPhone = (value: string) => {
+    const cleaned = value.replace(/\D/g, '');
+    const match = cleaned.match(/^(\d{0,2})(\d{0,5})(\d{0,4})$/);
+    if (match) {
+      return `${match[1] ? `(${match[1]}` : ''}${match[2] ? `) ${match[2]}` : ''}${match[3] ? `-${match[3]}` : ''}`;
+    }
+    return value;
+  };
+
+  // Função para aplicar máscara de CEP
+  const formatCEP = (value: string) => {
+    const cleaned = value.replace(/\D/g, '');
+    const match = cleaned.match(/^(\d{0,5})(\d{0,3})$/);
+    if (match) {
+      return `${match[1]}${match[2] ? `-${match[2]}` : ''}`;
+    }
+    return value;
+  };
+
+  // Função para buscar bancos
+  const searchBanks = (query: string) => {
+    if (!query) {
+      setBankSuggestions([]);
+      setShowBankSuggestions(false);
+      return;
+    }
+    
+    const filtered = bankList.filter(bank => 
+      bank.code.includes(query) || 
+      bank.name.toLowerCase().includes(query.toLowerCase())
+    );
+    setBankSuggestions(filtered.slice(0, 5));
+    setShowBankSuggestions(true);
+  };
+
   const [digitizationData, setDigitizationData] = useState({
     nomeCompleto: '',
     nomeMae: '',
@@ -158,9 +215,9 @@ export function C6Simulation({
         nomeCompleto: beneficiario.Nome || '',
         nomeMae: beneficiario.NomeMae || '',
         rg: beneficiario.RG || beneficiario.Rg || '',
-        telefone: beneficiario.Telefone || '',
+        telefone: beneficiario.Telefone ? formatPhone(beneficiario.Telefone) : '',
         email: beneficiario.Email || 'naoinformado@gmail.com',
-        cep: beneficiario.CEP || '',
+        cep: beneficiario.CEP ? formatCEP(beneficiario.CEP) : '',
         logradouro: beneficiario.Logradouro || beneficiario.Endereco || '',
         numero: beneficiario.Numero || 'S/N',
         complemento: beneficiario.Complemento || '',
@@ -801,8 +858,12 @@ export function C6Simulation({
                       <Label>Telefone *</Label>
                       <Input 
                         value={digitizationData.telefone}
-                        onChange={(e) => setDigitizationData(prev => ({...prev, telefone: e.target.value}))}
-                        placeholder="11999999999"
+                        onChange={(e) => {
+                          const formatted = formatPhone(e.target.value);
+                          setDigitizationData(prev => ({...prev, telefone: formatted}));
+                        }}
+                        placeholder="(11) 99999-9999"
+                        maxLength={15}
                       />
                     </div>
                     <div>
@@ -824,7 +885,12 @@ export function C6Simulation({
                       <Label>CEP *</Label>
                       <Input 
                         value={digitizationData.cep}
-                        onChange={(e) => setDigitizationData(prev => ({...prev, cep: e.target.value}))}
+                        onChange={(e) => {
+                          const formatted = formatCEP(e.target.value);
+                          setDigitizationData(prev => ({...prev, cep: formatted}));
+                        }}
+                        placeholder="00000-000"
+                        maxLength={9}
                       />
                     </div>
                     <div>
@@ -882,12 +948,41 @@ export function C6Simulation({
                 <div>
                   <h3 className="font-semibold text-lg mb-3">Dados Bancários</h3>
                   <div className="grid grid-cols-2 gap-4">
-                    <div>
+                    <div className="relative">
                       <Label>Banco *</Label>
                       <Input 
                         value={digitizationData.banco}
-                        onChange={(e) => setDigitizationData(prev => ({...prev, banco: e.target.value}))}
+                        onChange={(e) => {
+                          const value = e.target.value;
+                          setDigitizationData(prev => ({...prev, banco: value}));
+                          searchBanks(value);
+                        }}
+                        onFocus={() => {
+                          if (digitizationData.banco) {
+                            searchBanks(digitizationData.banco);
+                          }
+                        }}
+                        onBlur={() => {
+                          setTimeout(() => setShowBankSuggestions(false), 200);
+                        }}
+                        placeholder="Digite código ou nome do banco"
                       />
+                      {showBankSuggestions && bankSuggestions.length > 0 && (
+                        <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-auto">
+                          {bankSuggestions.map((bank) => (
+                            <div
+                              key={bank.code}
+                              className="px-3 py-2 hover:bg-gray-100 cursor-pointer text-sm"
+                              onClick={() => {
+                                setDigitizationData(prev => ({...prev, banco: `${bank.code} - ${bank.name}`}));
+                                setShowBankSuggestions(false);
+                              }}
+                            >
+                              <span className="font-medium">{bank.code}</span> - {bank.name}
+                            </div>
+                          ))}
+                        </div>
+                      )}
                     </div>
                     <div>
                       <Label>Agência *</Label>
@@ -958,7 +1053,7 @@ export function C6Simulation({
                   <h3 className="font-semibold text-lg">Seguros e Serviços Opcionais</h3>
                   <div className="space-y-3">
                     {/* Opção Nenhum Seguro */}
-                    <div className="border rounded-lg p-3 bg-gray-50">
+                    <div className="border rounded-lg p-3 bg-blue-50 border-blue-200">
                       <div className="flex items-center space-x-3">
                         <input
                           type="radio"
@@ -969,16 +1064,20 @@ export function C6Simulation({
                           onChange={(e) => {
                             setSelectedExpense(e.target.value);
                           }}
-                          className="h-4 w-4"
+                          className="h-4 w-4 text-blue-600 focus:ring-blue-500"
                         />
-                        <Label htmlFor="no-expense" className="font-medium">
-                          Nenhum seguro/serviço adicional
+                        <Label htmlFor="no-expense" className="font-medium text-blue-700 cursor-pointer">
+                          ✅ Sem seguro adicional (Recomendado)
                         </Label>
                       </div>
                     </div>
                     
                     {selectedCondition.expenses.map((expense, index) => (
-                      <div key={expense.code} className="border rounded-lg p-3">
+                      <div key={expense.code} className={`border rounded-lg p-3 transition-all duration-200 hover:shadow-md ${
+                        selectedExpense === expense.code 
+                          ? 'border-green-300 bg-green-50' 
+                          : 'border-gray-200 hover:border-gray-300'
+                      }`}>
                         <div className="flex items-start justify-between">
                           <div className="flex items-center space-x-3">
                             <input
@@ -990,10 +1089,12 @@ export function C6Simulation({
                               onChange={(e) => {
                                 setSelectedExpense(e.target.value);
                               }}
-                              className="h-4 w-4"
+                              className="h-4 w-4 text-green-600 focus:ring-green-500"
                             />
                             <div>
-                              <Label htmlFor={`expense-${expense.code}`} className="font-medium">
+                              <Label htmlFor={`expense-${expense.code}`} className={`font-medium cursor-pointer ${
+                                selectedExpense === expense.code ? 'text-green-700' : 'text-gray-700'
+                              }`}>
                                 {expense.description_type}
                               </Label>
                               {expense.description && (
@@ -1005,7 +1106,9 @@ export function C6Simulation({
                             </div>
                           </div>
                           <div className="text-right">
-                            <span className="font-medium text-blue-600">
+                            <span className={`font-medium ${
+                              selectedExpense === expense.code ? 'text-green-600' : 'text-blue-600'
+                            }`}>
                               R$ {expense.amount.toFixed(2)}
                             </span>
                             {expense.financed_expense && (
