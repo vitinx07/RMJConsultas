@@ -1071,24 +1071,11 @@ export function C6Simulation({
                         </SelectTrigger>
                         <SelectContent>
                           <SelectItem value="none">
-                            <div className="flex justify-between items-center w-full">
-                              <span>✅ Sem seguro adicional (Recomendado)</span>
-                              <span className="text-green-600 font-medium ml-4">R$ 0,00</span>
-                            </div>
+                            ✅ Sem seguro adicional (Recomendado) - R$ 0,00
                           </SelectItem>
                           {selectedCondition.expenses.map((expense) => (
                             <SelectItem key={expense.code} value={expense.code}>
-                              <div className="flex justify-between items-center w-full">
-                                <div>
-                                  <span className="font-medium">{expense.description_type}</span>
-                                  {expense.description && (
-                                    <p className="text-xs text-gray-600">{expense.description}</p>
-                                  )}
-                                </div>
-                                <span className="text-blue-600 font-medium ml-4">
-                                  R$ {expense.amount.toFixed(2)}
-                                </span>
-                              </div>
+                              {expense.description_type} - R$ {expense.amount.toFixed(2)}
                             </SelectItem>
                           ))}
                         </SelectContent>
