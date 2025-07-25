@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { 
   Clock, 
   FileText, 
@@ -133,8 +134,8 @@ export default function DigitalizacoesPage() {
     }
   };
 
-  // Componente para exibir o relatório detalhado da proposta
-  const ProposalReportCard = ({ data }: { data: any }) => {
+  // Componente para exibir o relatório detalhado da proposta em modal
+  const ProposalReportModal = ({ data, isOpen, onClose }: { data: any, isOpen: boolean, onClose: () => void }) => {
     if (!data) return null;
 
     const dadosCompletos = data.dadosCompletos || {};
@@ -145,22 +146,25 @@ export default function DigitalizacoesPage() {
     const origins = dadosCompletos.origins || [];
 
     return (
-      <Card className="w-full mt-6 border-2 border-blue-200 dark:border-blue-800">
-        <CardHeader className="pb-4">
-          <div className="text-center">
-            <CardTitle className="text-xl font-bold text-blue-800 dark:text-blue-200">
-              ═══════════════════════════════════════════════════
-            </CardTitle>
-            <CardTitle className="text-2xl font-bold text-blue-900 dark:text-blue-100 my-2">
-              RELATÓRIO DA PROPOSTA
-            </CardTitle>
-            <CardTitle className="text-xl font-bold text-blue-800 dark:text-blue-200">
-              ═══════════════════════════════════════════════════
-            </CardTitle>
-          </div>
-        </CardHeader>
-        
-        <CardContent className="space-y-6">
+      <Dialog open={isOpen} onOpenChange={onClose}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="text-center">
+              <div className="text-center">
+                <div className="text-lg font-bold text-blue-800 dark:text-blue-200">
+                  ═════════════════════════════════════════════════
+                </div>
+                <div className="text-xl font-bold text-blue-900 dark:text-blue-100 my-2">
+                  RELATÓRIO DA PROPOSTA
+                </div>
+                <div className="text-lg font-bold text-blue-800 dark:text-blue-200">
+                  ═════════════════════════════════════════════════
+                </div>
+              </div>
+            </DialogTitle>
+          </DialogHeader>
+          
+          <div className="space-y-6 mt-4">
           {/* DADOS PRINCIPAIS */}
           <div className="bg-gray-50 dark:bg-gray-900 p-4 rounded-lg">
             <h3 className="font-bold text-lg mb-3 text-gray-800 dark:text-gray-200">
@@ -350,15 +354,16 @@ export default function DigitalizacoesPage() {
           <div className="text-center pt-4">
             <Button 
               variant="outline" 
-              onClick={() => setProposalReport(null)}
+              onClick={onClose}
               className="px-6"
             >
               <XCircle className="w-4 h-4 mr-2" />
               Fechar Relatório
             </Button>
           </div>
-        </CardContent>
-      </Card>
+          </div>
+        </DialogContent>
+      </Dialog>
     );
   };
 
@@ -805,8 +810,12 @@ export default function DigitalizacoesPage() {
         </div>
       )}
       
-      {/* Relatório Detalhado da Proposta */}
-      {proposalReport && <ProposalReportCard data={proposalReport} />}
+      {/* Modal do Relatório Detalhado da Proposta */}
+      <ProposalReportModal 
+        data={proposalReport} 
+        isOpen={!!proposalReport} 
+        onClose={() => setProposalReport(null)} 
+      />
       </div>
     </>
   );
