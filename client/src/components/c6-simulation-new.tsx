@@ -1059,27 +1059,21 @@ export function C6Simulation({
                   <div className="space-y-4">
                     <div>
                       <Label>Selecione o seguro desejado *</Label>
-                      <Select 
-                        value={selectedExpense} 
-                        onValueChange={(value) => {
-                          console.log('Seguro selecionado via Select:', value);
-                          setSelectedExpense(value);
+                      <select 
+                        value={selectedExpense}
+                        onChange={(e) => {
+                          console.log('Seguro selecionado:', e.target.value);
+                          setSelectedExpense(e.target.value);
                         }}
+                        className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                       >
-                        <SelectTrigger className="w-full">
-                          <SelectValue placeholder="Escolha uma opção de seguro" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="none">
-                            ✅ Sem seguro adicional (Recomendado) - R$ 0,00
-                          </SelectItem>
-                          {selectedCondition.expenses.map((expense) => (
-                            <SelectItem key={expense.code} value={expense.code}>
-                              {expense.description_type} - R$ {expense.amount.toFixed(2)}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                        <option value="none">✅ Sem seguro adicional (Recomendado) - R$ 0,00</option>
+                        {selectedCondition.expenses.map((expense) => (
+                          <option key={expense.code} value={expense.code}>
+                            {expense.description_type} - R$ {expense.amount.toFixed(2)}
+                          </option>
+                        ))}
+                      </select>
                     </div>
                     
                     {/* Preview da opção selecionada */}
