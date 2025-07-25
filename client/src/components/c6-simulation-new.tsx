@@ -424,7 +424,7 @@ export function C6Simulation({
     },
     onSuccess: (data) => {
       console.log('Digitalização successful:', data);
-      console.log('Expense selected at success:', selectedExpense);
+      console.log('Expense selected at success:', selectedExpenseItemNumber);
       setProposalNumber(data.proposal_number);
       setStep('formalization');
       toast({
