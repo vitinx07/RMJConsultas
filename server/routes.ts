@@ -874,7 +874,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post('/api/c6-bank/include-proposal', requireAuthHybrid, async (req, res) => {
     try {
-      const { cpf, benefit_data, selected_contracts, credit_condition, proposal_data, selected_expense = '' } = req.body;
+      const { cpf, benefit_data, selected_contracts, credit_condition, expenses, proposal_data, selected_expense = '' } = req.body;
 
       // 1. Autenticar no C6 Bank
       const authResponse = await fetch('https://marketplace-proposal-service-api-p.c6bank.info/auth/token', {
@@ -909,7 +909,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const creditConditionForInclusion = { ...credit_condition };
 
       // 4. Usar despesas já processadas do frontend
-      const expensesForInclusion = credit_condition.expenses || [];
+      const expensesForInclusion = expenses || [];
 
       // 4. Montar payload de inclusão
       const inclusionPayload = {

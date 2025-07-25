@@ -381,26 +381,41 @@ export function C6Simulation({
       }
 
       // 1. Corrigir formato do credit_condition para inclusão (flatten)
-      const creditConditionForInclusion: any = { ...selectedCondition };
-      creditConditionForInclusion.covenant_code = creditConditionForInclusion.covenant?.code;
-      creditConditionForInclusion.product_code = creditConditionForInclusion.product?.code;
-      delete creditConditionForInclusion.covenant;
-      delete creditConditionForInclusion.product;
+      const selectedConditionAny = selectedCondition as any;
+      const creditConditionForInclusion: any = {
+        covenant_code: selectedCondition.covenant?.code,
+        product_code: selectedCondition.product?.code,
+        installment_quantity: selectedCondition.installment_quantity,
+        installment_amount: selectedCondition.installment_amount,
+        requested_amount: selectedConditionAny.requested_amount,
+        iof_amount: selectedConditionAny.iof_amount,
+        interest_amount: selectedConditionAny.interest_amount,
+        total_amount: selectedConditionAny.total_amount,
+        coefficient: selectedConditionAny.coefficient,
+        interest_rate: selectedCondition.interest_rate,
+        cet_monthly: selectedConditionAny.cet_monthly,
+        cet_yearly: selectedConditionAny.cet_yearly,
+        first_due_date: selectedConditionAny.first_due_date,
+        last_due_date: selectedConditionAny.last_due_date
+      };
 
       // 2. Processar despesas/seguros corretamente usando item_number
-      if (selectedExpenseItemNumber !== 'none' && creditConditionForInclusion.expenses) {
-        creditConditionForInclusion.expenses = creditConditionForInclusion.expenses.map(exp => {
-          if (String(exp.item_number) === selectedExpenseItemNumber) {
-            return { ...exp, exempt: 'Nao' }; // Marca o seguro escolhido para cobrança
-          }
-          return { ...exp, exempt: 'Sim' }; // Outros seguros isentos
-        });
-      } else if (creditConditionForInclusion.expenses) {
-        // Se não há seguro selecionado, todos ficam isentos
-        creditConditionForInclusion.expenses = creditConditionForInclusion.expenses.map(exp => ({
-          ...exp,
-          exempt: 'Sim'
-        }));
+      let expensesForInclusion: any[] = [];
+      if (selectedCondition.expenses) {
+        if (selectedExpenseItemNumber !== 'none') {
+          expensesForInclusion = selectedCondition.expenses.map((exp: any) => {
+            if (String(exp.item_number) === selectedExpenseItemNumber) {
+              return { ...exp, exempt: 'Nao' }; // Marca o seguro escolhido para cobrança
+            }
+            return { ...exp, exempt: 'Sim' }; // Outros seguros isentos
+          });
+        } else {
+          // Se não há seguro selecionado, todos ficam isentos
+          expensesForInclusion = selectedCondition.expenses.map((exp: any) => ({
+            ...exp,
+            exempt: 'Sim'
+          }));
+        }
       }
 
       // 3. Limpar número de telefone
@@ -414,7 +429,7 @@ export function C6Simulation({
         credit_condition: creditConditionForInclusion,
         selected_expense_item_number: selectedExpenseItemNumber,
         phone_cleaned: cleanedPhone,
-        expenses_processed: creditConditionForInclusion.expenses?.map(e => ({code: e.code, item_number: e.item_number, exempt: e.exempt}))
+        expenses_processed: expensesForInclusion.map(e => ({code: e.code, item_number: e.item_number, exempt: e.exempt}))
       });
 
       const response = await fetch('/api/c6-bank/include-proposal', {
@@ -425,6 +440,7 @@ export function C6Simulation({
           benefit_data: benefitData,
           selected_contracts: c6Contracts.map((c: any) => c.Contrato),
           credit_condition: creditConditionForInclusion,
+          expenses: expensesForInclusion,
           selected_expense_item_number: selectedExpenseItemNumber === 'none' ? '' : selectedExpenseItemNumber,
           debug_expense: selectedExpenseItemNumber, // Log para debug
           proposal_data: {
