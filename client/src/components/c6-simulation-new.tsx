@@ -11,7 +11,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Building2, Calculator, FileText, Loader2, CheckCircle, XCircle, Clock, AlertTriangle } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+
 
 interface BenefitData {
   Beneficiario: {
@@ -53,17 +53,28 @@ interface BenefitData {
 }
 
 interface CreditCondition {
-  covenant: { code: string; description: string };
+  covenant: { code: string; description: string; rate_percentage?: number };
   product: { code: string; description: string };
   client_amount: number;
   installment_amount: number;
   installment_quantity: number;
   interest_rate: number;
+  monthly_customer_rate?: number;
   total_amount: number;
   expenses?: Array<{
-    description_type: string;
+    code: string;
+    description: string;
+    type_code: string;
+    item_number: string;
+    group_code: string;
     amount: number;
     exempt: string;
+    financed_expense: boolean;
+    description_type: string;
+    observation: string;
+    changes_default: boolean;
+    minimum_amount: number;
+    maximum_amount: number;
   }>;
 }
 
@@ -86,7 +97,7 @@ export function C6Simulation({
   const [manualInstallmentAmount, setManualInstallmentAmount] = useState<number | null>(null);
   const [creditConditions, setCreditConditions] = useState<CreditCondition[]>([]);
   const [selectedCondition, setSelectedCondition] = useState<CreditCondition | null>(null);
-  const [selectedInsurance, setSelectedInsurance] = useState<number>(-1);
+  const [selectedExpenses, setSelectedExpenses] = useState<string[]>([]);
   const [proposalNumber, setProposalNumber] = useState<string>('');
   const [formalizationUrl, setFormalizationUrl] = useState<string>('');
   const [formalizationAttempts, setFormalizationAttempts] = useState(0);
@@ -259,7 +270,7 @@ export function C6Simulation({
           benefit_data: benefitData,
           selected_contracts: c6Contracts.map((c: any) => c.Contrato),
           credit_condition: selectedCondition,
-          insurance_type: selectedInsurance,
+          selected_expenses: selectedExpenses,
           proposal_data: {
             client: {
               tax_identifier: benefitData.Beneficiario.CPF,
@@ -606,8 +617,8 @@ export function C6Simulation({
                               R$ {condition.client_amount?.toFixed(2)}
                             </td>
                             <td className="border border-gray-200 px-4 py-2">
-                              {condition.covenant?.rate_percentage ? `${condition.covenant.rate_percentage}%` : 
-                               condition.rate_percentage ? `${condition.rate_percentage}%` : 
+                              {condition.monthly_customer_rate ? `${condition.monthly_customer_rate}%` :
+                               condition.covenant?.rate_percentage ? `${condition.covenant.rate_percentage}%` : 
                                condition.interest_rate ? `${condition.interest_rate}%` : 'N/A'}
                             </td>
                             <td className="border border-gray-200 px-4 py-2 text-center">
@@ -663,8 +674,8 @@ export function C6Simulation({
                   </div>
                   <div className="text-sm text-gray-600">
                     Parcela: R$ {selectedCondition.installment_amount.toFixed(2)} | 
-                    Taxa: {selectedCondition.covenant?.rate_percentage ? `${selectedCondition.covenant.rate_percentage}%` : 
-                           selectedCondition.rate_percentage ? `${selectedCondition.rate_percentage}%` : 
+                    Taxa: {selectedCondition.monthly_customer_rate ? `${selectedCondition.monthly_customer_rate}%` :
+                           selectedCondition.covenant?.rate_percentage ? `${selectedCondition.covenant.rate_percentage}%` : 
                            selectedCondition.interest_rate ? `${selectedCondition.interest_rate}%` : 'N/A'}
                   </div>
                 </div>
@@ -941,45 +952,54 @@ export function C6Simulation({
                 </div>
               </div>
 
-              {/* Seção de Seleção de Seguro */}
-              <div className="space-y-4 border-t pt-4">
-                <h3 className="font-semibold text-lg">Seleção de Seguro</h3>
-                <div className="space-y-3">
-                  <div className="flex items-center space-x-2">
-                    <input
-                      type="radio"
-                      id="sem-seguro"
-                      name="insurance"
-                      value="-1"
-                      checked={selectedInsurance === -1}
-                      onChange={(e) => setSelectedInsurance(parseInt(e.target.value))}
-                      className="h-4 w-4"
-                    />
-                    <Label htmlFor="sem-seguro" className="text-sm">
-                      Sem Seguro
-                    </Label>
-                  </div>
-                  
-                  <div className="flex items-center space-x-2">
-                    <input
-                      type="radio"
-                      id="seguro-prestamista"
-                      name="insurance"
-                      value="0"
-                      checked={selectedInsurance === 0}
-                      onChange={(e) => setSelectedInsurance(parseInt(e.target.value))}
-                      className="h-4 w-4"
-                    />
-                    <Label htmlFor="seguro-prestamista" className="text-sm">
-                      Seguro Prestamista (Recomendado)
-                    </Label>
-                  </div>
-                  
-                  <div className="text-xs text-gray-600 ml-6">
-                    O seguro prestamista protege o beneficiário e a família, quitando o saldo devedor em caso de morte ou invalidez permanente.
+              {/* Seção de Seleção de Seguros/Despesas */}
+              {selectedCondition?.expenses && selectedCondition.expenses.length > 0 && (
+                <div className="space-y-4 border-t pt-4">
+                  <h3 className="font-semibold text-lg">Seguros e Serviços Opcionais</h3>
+                  <div className="space-y-3">
+                    {selectedCondition.expenses.map((expense, index) => (
+                      <div key={expense.code} className="border rounded-lg p-3">
+                        <div className="flex items-start justify-between">
+                          <div className="flex items-center space-x-3">
+                            <input
+                              type="checkbox"
+                              id={`expense-${expense.code}`}
+                              checked={selectedExpenses.includes(expense.code)}
+                              onChange={(e) => {
+                                if (e.target.checked) {
+                                  setSelectedExpenses(prev => [...prev, expense.code]);
+                                } else {
+                                  setSelectedExpenses(prev => prev.filter(code => code !== expense.code));
+                                }
+                              }}
+                              className="h-4 w-4"
+                            />
+                            <div>
+                              <Label htmlFor={`expense-${expense.code}`} className="font-medium">
+                                {expense.description_type}
+                              </Label>
+                              {expense.description && (
+                                <p className="text-sm text-gray-600 mt-1">{expense.description}</p>
+                              )}
+                              {expense.observation && (
+                                <p className="text-xs text-gray-500 mt-1">{expense.observation}</p>
+                              )}
+                            </div>
+                          </div>
+                          <div className="text-right">
+                            <span className="font-medium text-blue-600">
+                              R$ {expense.amount.toFixed(2)}
+                            </span>
+                            {expense.financed_expense && (
+                              <p className="text-xs text-green-600">Financiado</p>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 </div>
-              </div>
+              )}
 
               <Button 
                 onClick={() => digitizationMutation.mutate()} 
