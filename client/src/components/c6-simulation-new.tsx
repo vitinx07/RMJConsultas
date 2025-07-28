@@ -291,9 +291,24 @@ export function C6Simulation({
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
         console.log('❌ ERRO DETALHADO FRONTEND C6:', errorData);
-        const errorMessage = errorData.error || 'Erro na simulação C6 Bank';
-        const c6Details = errorData.c6Message || errorData.details || '';
-        throw new Error(c6Details ? `${errorMessage}\n\nDetalhes: ${c6Details}` : errorMessage);
+        
+        // Extrair mensagem específica do C6 com tratamento melhorado
+        let errorMessage = errorData.error || 'Erro na simulação C6 Bank';
+        
+        // Verificar se há mensagens específicas do C6
+        if (errorData.c6Message && Array.isArray(errorData.c6Message)) {
+          const specificError = errorData.c6Message[0]?.message || errorData.c6Message[0];
+          if (typeof specificError === 'string') {
+            errorMessage = specificError;
+          }
+        } else if (errorData.details?.details && Array.isArray(errorData.details.details)) {
+          const c6Error = errorData.details.details[0];
+          if (c6Error?.message) {
+            errorMessage = c6Error.message;
+          }
+        }
+        
+        throw new Error(errorMessage);
       }
 
       return response.json();

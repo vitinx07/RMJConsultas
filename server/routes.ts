@@ -502,6 +502,49 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Helper function para tratamento específico de erros C6 Bank
+  const getC6ErrorMessage = (errorData: any): string => {
+    const details = errorData.details || [];
+    
+    for (const detail of details) {
+      const code = detail.code;
+      const message = detail.message;
+      
+      switch (code) {
+        case 'BVLPFUN-106':
+          return 'Campo obrigatório não preenchido ou com valor nulo. Verifique se todos os dados do cliente estão completos.';
+        case 'BVLPFUN-107':
+          return 'Formato de data inválido. Verifique se a data de nascimento está no formato correto (YYYY-MM-DD).';
+        case 'BVLPFUN-108':
+          return 'CPF inválido. Verifique se o CPF está correto e sem pontuação.';
+        case 'BVLPFUN-109':
+          return 'Matrícula inválida. A matrícula deve ter exatamente 10 dígitos.';
+        case 'BVLPFUN-110':
+          return 'Valor da renda inválido. Verifique se o valor está correto e maior que zero.';
+        case 'BVLPFUN-111':
+          return 'Contratos para refinanciamento não encontrados ou inválidos.';
+        case 'BVLPFUN-112':
+          return 'Valor de parcela inválido. Verifique se o valor está dentro dos limites permitidos.';
+        case 'BVLPFUN-113':
+          return 'Quantidade de parcelas inválida. Verifique se está dentro do range permitido.';
+        case 'BVLPFUN-114':
+          return 'Produto não permitido para este tipo de operação.';
+        case 'BVLPFUN-115':
+          return 'Convênio não encontrado ou inválido.';
+        default:
+          if (message?.includes('enrollment')) {
+            return 'Erro na matrícula: deve conter exatamente 10 dígitos numéricos.';
+          }
+          if (message?.includes('Nullable object')) {
+            return 'Campo obrigatório não preenchido. Verifique todos os dados do cliente.';
+          }
+          return message || 'Erro desconhecido na validação dos dados.';
+      }
+    }
+    
+    return errorData.message || 'Erro desconhecido no C6 Bank.';
+  };
+
   // Helper function to get user-friendly error messages
   const getErrorMessage = (status: number, errorText: string) => {
     switch (status) {
@@ -837,7 +880,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         ),
         client: {
           tax_identifier: beneficiario.CPF?.toString() || '',
-          enrollment: String(beneficiario.Beneficio || '').padStart(10, '0'),
+          enrollment: (() => {
+            // Corrigir matrícula conforme documentação C6
+            const rawBeneficio = beneficiario.Beneficio || beneficiario.NumeroBeneficio || '0';
+            const cleanBeneficio = String(rawBeneficio).replace(/\D/g, ''); // Remove não-números
+            return cleanBeneficio.padStart(10, '0'); // Preenche com zeros à esquerda
+          })(),
           birth_date: beneficiario.DataNascimento || '1950-01-01',
           income_amount: parseFloat(resumoFinanceiro?.ValorBeneficio || '5000')
         },
@@ -862,8 +910,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
           errorData,
           payload: simulationPayload
         });
+        
+        // Tratamento específico baseado na documentação C6
+        const c6ErrorMessage = getC6ErrorMessage(errorData);
+        
         return res.status(simulationResponse.status).json({
-          error: `Erro na simulação C6 Bank: ${errorData.message || 'Erro desconhecido'}`,
+          error: `Erro na simulação C6 Bank: ${c6ErrorMessage}`,
           details: errorData,
           c6Message: errorData.details || errorData.message || 'Sem detalhes adicionais'
         });
@@ -1021,7 +1073,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
             zip_code: proposal_data.client.address.zip_code.replace('-', '') // Remove hífen do CEP
           },
           professional_data: {
-            enrollment: String(benefit_data.Beneficiario?.Beneficio || '').padStart(10, '0')
+            enrollment: (() => {
+              // Corrigir matrícula conforme documentação C6
+              const rawBeneficio = benefit_data.Beneficiario?.Beneficio || benefit_data.Beneficiario?.NumeroBeneficio || '0';
+              const cleanBeneficio = String(rawBeneficio).replace(/\D/g, ''); // Remove não-números
+              return cleanBeneficio.padStart(10, '0'); // Preenche com zeros à esquerda
+            })()
           }
         },
         refinancing_contracts: selected_contracts,
