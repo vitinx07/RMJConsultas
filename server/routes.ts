@@ -864,7 +864,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: 'Dados do cliente não encontrados' });
       }
 
-      // 3. Montar payload de simulação
+      // 3. Montar payload de simulação com logs de debug
+      console.log('🔍 DADOS BRUTOS RECEBIDOS:', {
+        cpf: beneficiario.CPF,
+        beneficio: beneficiario.Beneficio,
+        numeroBeneficio: beneficiario.NumeroBeneficio,
+        dataNascimento: beneficiario.DataNascimento,
+        valorBeneficio: resumoFinanceiro?.ValorBeneficio
+      });
+      
       const simulationPayload = {
         operation_type: "REFINANCIAMENTO",
         product_type_code: "0002",
@@ -879,18 +887,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
           : { installment_amount }
         ),
         client: {
-          tax_identifier: beneficiario.CPF?.toString() || '',
+          tax_identifier: (() => {
+            // CPF deve ter exatamente 11 dígitos
+            const rawCpf = beneficiario.CPF?.toString() || '0';
+            const cleanCpf = rawCpf.replace(/\D/g, ''); // Remove pontos, hífens e outros
+            return cleanCpf.padStart(11, '0'); // Garante 11 dígitos
+          })(),
           enrollment: (() => {
-            // Corrigir matrícula conforme documentação C6
+            // Matrícula/Benefício deve ter exatamente 10 dígitos
             const rawBeneficio = beneficiario.Beneficio || beneficiario.NumeroBeneficio || '0';
             const cleanBeneficio = String(rawBeneficio).replace(/\D/g, ''); // Remove não-números
-            return cleanBeneficio.padStart(10, '0'); // Preenche com zeros à esquerda
+            return cleanBeneficio.padStart(10, '0'); // Garante 10 dígitos
           })(),
           birth_date: beneficiario.DataNascimento || '1950-01-01',
           income_amount: parseFloat(resumoFinanceiro?.ValorBeneficio || '5000')
         },
         refinancing_contracts: selected_contracts || []
       };
+
+      // Log do payload de simulação
+      console.log('📤 PAYLOAD SIMULAÇÃO C6:', JSON.stringify(simulationPayload, null, 2));
 
       // 4. Fazer simulação no C6
       const simulationResponse = await fetch('https://marketplace-proposal-service-api-p.c6bank.info/marketplace/proposal/simulation', {
@@ -1046,7 +1062,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         credit_condition: creditConditionForInclusion,
         payment: paymentData,
         client: {
-          tax_identifier: proposal_data.client.tax_identifier,
+          tax_identifier: (() => {
+            // CPF deve ter exatamente 11 dígitos
+            const rawCpf = proposal_data.client.tax_identifier?.toString() || '0';
+            const cleanCpf = rawCpf.replace(/\D/g, ''); // Remove pontos, hífens e outros
+            return cleanCpf.padStart(11, '0'); // Garante 11 dígitos
+          })(),
           name: proposal_data.client.name,
           document_type: proposal_data.client.document_type || "RG",
           document_number: proposal_data.client.document_number,
