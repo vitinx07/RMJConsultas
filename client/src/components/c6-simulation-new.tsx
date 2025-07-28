@@ -741,15 +741,17 @@ export function C6Simulation({
                         >
                           <div className="flex justify-between items-center">
                             <div>
-                              <div className="font-medium dark:text-gray-100">Contrato: {contract.Contrato}</div>
+                              <div className="font-medium dark:text-gray-100">
+                                Contrato: {contract.Contrato}
+                                {contract.ParcelasPagas && (
+                                  <span className="ml-2 text-green-600 dark:text-green-400">
+                                    ({contract.ParcelasPagas} pagas)
+                                  </span>
+                                )}
+                              </div>
                               <div className="text-sm text-gray-600 dark:text-gray-400">
                                 Parcela: R$ {contract.ValorParcela?.toFixed(2)}
                               </div>
-                              {contract.ParcelasPagas && (
-                                <div className="text-sm text-green-600 dark:text-green-400">
-                                  Parcelas Pagas: {contract.ParcelasPagas}
-                                </div>
-                              )}
                               {contract.SaldoDevedor && (
                                 <div className="text-sm text-gray-600 dark:text-gray-400">
                                   Saldo Devedor: R$ {contract.SaldoDevedor.toFixed(2)}

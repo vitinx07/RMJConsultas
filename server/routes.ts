@@ -477,7 +477,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Send emails
       for (const email of emailsToSend) {
         try {
-          const success = await emailService.sendCustomEmail(email, subject, message, isHtml, processedAttachments, customSender);
+          const success = await emailService.sendCustomEmail(email, subject, message, isHtml, processedAttachments);
           if (success) {
             successCount++;
           } else {
@@ -836,12 +836,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
           : { installment_amount }
         ),
         client: {
-          tax_identifier: beneficiario.CPF,
-          enrollment: String(beneficiario.Beneficio).padStart(10, '0'),
-          birth_date: beneficiario.DataNascimento,
+          tax_identifier: beneficiario.CPF?.toString() || '',
+          enrollment: String(beneficiario.Beneficio || '').padStart(10, '0'),
+          birth_date: beneficiario.DataNascimento || '1950-01-01',
           income_amount: parseFloat(resumoFinanceiro?.ValorBeneficio || '5000')
         },
-        refinancing_contracts: selected_contracts
+        refinancing_contracts: selected_contracts || []
       };
 
       // 4. Fazer simulação no C6
@@ -1195,7 +1195,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           }
         } catch (error) {
           console.error(`❌ Tentativa ${attemptCount} falhou:`, error);
-          return { success: false, error: error.message, attempt: attemptCount };
+          return { success: false, error: error instanceof Error ? error.message : String(error), attempt: attemptCount };
         }
       };
 
@@ -2323,7 +2323,7 @@ consultation = await storage.getConsultationByCpf(cpf as string, userId);
 
               // Atualizar se houve mudança
               if (newStatus !== digitization.status || formalizationLink !== digitization.formalizationLink) {
-                await storage.updateC6DigitizationStatus(digitization.id, newStatus, formalizationLink);
+                await storage.updateC6DigitizationStatus(digitization.id, newStatus, formalizationLink || undefined);
                 updatedCount++;
                 updates.push({
                   proposalNumber: digitization.proposalNumber,
