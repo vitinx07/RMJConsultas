@@ -857,9 +857,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       if (!simulationResponse.ok) {
         const errorData = await simulationResponse.json();
+        console.log('❌ ERRO DETALHADO C6 SIMULAÇÃO:', {
+          status: simulationResponse.status,
+          errorData,
+          payload: simulationPayload
+        });
         return res.status(simulationResponse.status).json({
-          error: 'Erro na simulação C6 Bank',
-          details: errorData
+          error: `Erro na simulação C6 Bank: ${errorData.message || 'Erro desconhecido'}`,
+          details: errorData,
+          c6Message: errorData.details || errorData.message || 'Sem detalhes adicionais'
         });
       }
 

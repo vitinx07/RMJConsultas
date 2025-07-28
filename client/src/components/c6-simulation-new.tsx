@@ -290,7 +290,10 @@ export function C6Simulation({
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.error || 'Erro na simulação C6 Bank');
+        console.log('❌ ERRO DETALHADO FRONTEND C6:', errorData);
+        const errorMessage = errorData.error || 'Erro na simulação C6 Bank';
+        const c6Details = errorData.c6Message || errorData.details || '';
+        throw new Error(c6Details ? `${errorMessage}\n\nDetalhes: ${c6Details}` : errorMessage);
       }
 
       return response.json();
@@ -723,8 +726,8 @@ export function C6Simulation({
                           key={contract.Contrato}
                           className={`p-3 border rounded cursor-pointer transition-colors ${
                             selectedContracts.includes(contract.Contrato) 
-                              ? 'border-blue-500 bg-blue-50' 
-                              : 'border-gray-200 hover:border-gray-300'
+                              ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20 dark:border-blue-400' 
+                              : 'border-gray-200 hover:border-gray-300 dark:border-gray-700 dark:hover:border-gray-600 dark:bg-gray-800/50'
                           }`}
                           onClick={() => {
                             setSelectedContracts(prev => {
@@ -738,12 +741,17 @@ export function C6Simulation({
                         >
                           <div className="flex justify-between items-center">
                             <div>
-                              <div className="font-medium">Contrato: {contract.Contrato}</div>
-                              <div className="text-sm text-gray-600">
+                              <div className="font-medium dark:text-gray-100">Contrato: {contract.Contrato}</div>
+                              <div className="text-sm text-gray-600 dark:text-gray-400">
                                 Parcela: R$ {contract.ValorParcela?.toFixed(2)}
                               </div>
+                              {contract.ParcelasPagas && (
+                                <div className="text-sm text-green-600 dark:text-green-400">
+                                  Parcelas Pagas: {contract.ParcelasPagas}
+                                </div>
+                              )}
                               {contract.SaldoDevedor && (
-                                <div className="text-sm text-gray-600">
+                                <div className="text-sm text-gray-600 dark:text-gray-400">
                                   Saldo Devedor: R$ {contract.SaldoDevedor.toFixed(2)}
                                 </div>
                               )}
@@ -762,11 +770,11 @@ export function C6Simulation({
                       ))}
 
                       {selectedContracts.length > 0 && (
-                        <div className="bg-blue-50 p-3 rounded">
-                          <div className="text-sm font-medium text-blue-800">
+                        <div className="bg-blue-50 dark:bg-blue-900/20 p-3 rounded border dark:border-blue-800">
+                          <div className="text-sm font-medium text-blue-800 dark:text-blue-200">
                             Total selecionado: {selectedContracts.length} contrato(s)
                           </div>
-                          <div className="text-sm text-blue-600">
+                          <div className="text-sm text-blue-600 dark:text-blue-300">
                             Parcela total: R$ {
                               c6Contracts
                                 .filter((c: any) => selectedContracts.includes(c.Contrato))
@@ -794,7 +802,7 @@ export function C6Simulation({
                       <select
                         value={installmentQuantity}
                         onChange={(e) => setInstallmentQuantity(Number(e.target.value))}
-                        className="w-full p-2 border border-gray-300 rounded-md"
+                        className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-800 dark:text-gray-100"
                       >
                         {[72,84,96].map(months => (
                           <option key={months} value={months}>{months} meses</option>
@@ -825,7 +833,7 @@ export function C6Simulation({
                           const value = parseFloat(e.target.value) || 0;
                           setManualInstallmentAmount(value);
                         }}
-                        className="w-full p-2 border border-gray-300 rounded-md"
+                        className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-800 dark:text-gray-100"
                         placeholder="0.00"
                       />
                     </div>
@@ -857,38 +865,38 @@ export function C6Simulation({
                   <h3 className="font-semibold text-lg">3. Escolha a Condição de Crédito</h3>
 
                   <div className="overflow-x-auto">
-                    <table className="w-full border-collapse border border-gray-200">
+                    <table className="w-full border-collapse border border-gray-200 dark:border-gray-700">
                       <thead>
-                        <tr className="bg-gray-50">
-                          <th className="border border-gray-200 px-4 py-2 text-left">Tabela</th>
-                          <th className="border border-gray-200 px-4 py-2 text-left">Prazo (meses)</th>
-                          <th className="border border-gray-200 px-4 py-2 text-left">Parcela</th>
-                          <th className="border border-gray-200 px-4 py-2 text-left">Troco</th>
-                          <th className="border border-gray-200 px-4 py-2 text-left">Taxa</th>
-                          <th className="border border-gray-200 px-4 py-2 text-center">Ação</th>
+                        <tr className="bg-gray-50 dark:bg-gray-800">
+                          <th className="border border-gray-200 dark:border-gray-700 px-4 py-2 text-left dark:text-gray-200">Tabela</th>
+                          <th className="border border-gray-200 dark:border-gray-700 px-4 py-2 text-left dark:text-gray-200">Prazo (meses)</th>
+                          <th className="border border-gray-200 dark:border-gray-700 px-4 py-2 text-left dark:text-gray-200">Parcela</th>
+                          <th className="border border-gray-200 dark:border-gray-700 px-4 py-2 text-left dark:text-gray-200">Troco</th>
+                          <th className="border border-gray-200 dark:border-gray-700 px-4 py-2 text-left dark:text-gray-200">Taxa</th>
+                          <th className="border border-gray-200 dark:border-gray-700 px-4 py-2 text-center dark:text-gray-200">Ação</th>
                         </tr>
                       </thead>
                       <tbody>
                         {creditConditions.map((condition, index) => (
-                          <tr key={index} className="hover:bg-gray-50">
-                            <td className="border border-gray-200 px-4 py-2 font-medium">
+                          <tr key={index} className="hover:bg-gray-50 dark:hover:bg-gray-800">
+                            <td className="border border-gray-200 dark:border-gray-700 px-4 py-2 font-medium dark:text-gray-200">
                               {condition.covenant?.description || `Tabela ${condition.covenant?.code || index + 1}`}
                             </td>
-                            <td className="border border-gray-200 px-4 py-2">
+                            <td className="border border-gray-200 dark:border-gray-700 px-4 py-2 dark:text-gray-200">
                               {condition.installment_quantity} meses
                             </td>
-                            <td className="border border-gray-200 px-4 py-2">
+                            <td className="border border-gray-200 dark:border-gray-700 px-4 py-2 dark:text-gray-200">
                               R$ {condition.installment_amount?.toFixed(2)}
                             </td>
-                            <td className="border border-gray-200 px-4 py-2 text-green-600 font-medium">
+                            <td className="border border-gray-200 dark:border-gray-700 px-4 py-2 text-green-600 dark:text-green-400 font-medium">
                               R$ {condition.client_amount?.toFixed(2)}
                             </td>
-                            <td className="border border-gray-200 px-4 py-2">
+                            <td className="border border-gray-200 dark:border-gray-700 px-4 py-2 dark:text-gray-200">
                               {condition.monthly_customer_rate ? `${condition.monthly_customer_rate}%` :
                                condition.covenant?.rate_percentage ? `${condition.covenant.rate_percentage}%` : 
                                condition.interest_rate ? `${condition.interest_rate}%` : 'N/A'}
                             </td>
-                            <td className="border border-gray-200 px-4 py-2 text-center">
+                            <td className="border border-gray-200 dark:border-gray-700 px-4 py-2 text-center">
                               <Button
                                 size="sm"
                                 onClick={() => {
@@ -931,15 +939,15 @@ export function C6Simulation({
             </CardHeader>
             <CardContent className="space-y-6">
               {selectedCondition && (
-                <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
-                  <h3 className="font-semibold text-blue-800 mb-2">Condição Selecionada</h3>
+                <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg border border-blue-200 dark:border-blue-800">
+                  <h3 className="font-semibold text-blue-800 dark:text-blue-200 mb-2">Condição Selecionada</h3>
                   <div className="flex justify-between items-center">
                     <span className="font-medium">{selectedCondition.covenant.description}</span>
                     <span className="text-green-600 font-bold">
                       Troco: R$ {selectedCondition.client_amount.toFixed(2)}
                     </span>
                   </div>
-                  <div className="text-sm text-gray-600">
+                  <div className="text-sm text-gray-600 dark:text-gray-400">
                     Parcela: R$ {selectedCondition.installment_amount.toFixed(2)} | 
                     Taxa: {selectedCondition.monthly_customer_rate ? `${selectedCondition.monthly_customer_rate}%` :
                            selectedCondition.covenant?.rate_percentage ? `${selectedCondition.covenant.rate_percentage}%` : 
