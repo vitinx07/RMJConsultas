@@ -873,25 +873,60 @@ export async function registerRoutes(app: Express): Promise<Server> {
         valorBeneficio: resumoFinanceiro?.ValorBeneficio
       });
       
-      // Preparar dados do cliente conforme exemplo da documentação C6
+      // Validar e formatar dados obrigatórios do cliente
+      const cpfRaw = beneficiario.CPF?.toString();
+      const beneficioRaw = beneficiario.Beneficio || beneficiario.NumeroBeneficio;
+      const dataNascimento = beneficiario.DataNascimento;
+      const valorBeneficio = resumoFinanceiro?.ValorBeneficio;
+
+      // Verificações de campos obrigatórios
+      if (!cpfRaw || cpfRaw === '0' || cpfRaw.length < 10) {
+        return res.status(400).json({ 
+          error: 'CPF inválido ou não encontrado. Verifique os dados do cliente na consulta MULTI CORBAN.',
+          field: 'cpf',
+          value: cpfRaw
+        });
+      }
+
+      if (!beneficioRaw || beneficioRaw === '0' || beneficioRaw.toString().length < 9) {
+        return res.status(400).json({ 
+          error: 'Número de benefício inválido ou não encontrado. Verifique os dados do cliente na consulta MULTI CORBAN.',
+          field: 'beneficio',
+          value: beneficioRaw
+        });
+      }
+
+      if (!dataNascimento || dataNascimento === '1900-01-01') {
+        return res.status(400).json({ 
+          error: 'Data de nascimento inválida ou não encontrada. Verifique os dados do cliente na consulta MULTI CORBAN.',
+          field: 'dataNascimento',
+          value: dataNascimento
+        });
+      }
+
+      if (!valorBeneficio || valorBeneficio <= 0) {
+        return res.status(400).json({ 
+          error: 'Valor do benefício inválido ou não encontrado. Verifique os dados financeiros do cliente.',
+          field: 'valorBeneficio',
+          value: valorBeneficio
+        });
+      }
+
+      // Preparar dados do cliente com validação completa
       const formattedClientData = {
         tax_identifier: (() => {
-          // CPF deve ter exatamente 11 dígitos
-          const rawCpf = beneficiario.CPF?.toString() || '0';
-          const cleanCpf = rawCpf.replace(/\D/g, ''); // Remove pontos, hífens e outros
-          return cleanCpf.padStart(11, '0'); // Garante 11 dígitos
+          const cleanCpf = cpfRaw.replace(/\D/g, '');
+          return cleanCpf.padStart(11, '0');
         })(),
         enrollment: (() => {
-          // Matrícula/Benefício deve ter exatamente 10 dígitos
-          const rawBeneficio = beneficiario.Beneficio || beneficiario.NumeroBeneficio || '0';
-          const cleanBeneficio = String(rawBeneficio).replace(/\D/g, ''); // Remove não-números
-          return cleanBeneficio.padStart(10, '0'); // Garante 10 dígitos
+          const cleanBeneficio = String(beneficioRaw).replace(/\D/g, '');
+          return cleanBeneficio.padStart(10, '0');
         })(),
-        birth_date: beneficiario.DataNascimento || '1950-01-01',
-        income_amount: parseFloat(resumoFinanceiro?.ValorBeneficio || '5000')
+        birth_date: dataNascimento,
+        income_amount: parseFloat(valorBeneficio.toString())
       };
 
-      console.log('🔍 DADOS CLIENTE FORMATADOS:', formattedClientData);
+      console.log('🔍 DADOS CLIENTE VALIDADOS E FORMATADOS:', formattedClientData);
 
       const simulationPayload = {
         operation_type: "REFINANCIAMENTO",
@@ -907,7 +942,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
           : { installment_amount }
         ),
         client: formattedClientData,
-        refinancing_contracts: selected_contracts || []
+        refinancing_contracts: (() => {
+          // Validar contratos selecionados
+          if (!selected_contracts || selected_contracts.length === 0) {
+            throw new Error('Nenhum contrato selecionado para refinanciamento');
+          }
+          
+          // Filtrar contratos válidos (não nulos e não vazios)
+          const validContracts = selected_contracts.filter((contract: any) => 
+            contract && contract.toString().trim() !== '' && contract !== '0'
+          );
+          
+          if (validContracts.length === 0) {
+            throw new Error('Nenhum contrato válido encontrado para refinanciamento');
+          }
+          
+          console.log('🔍 CONTRATOS VALIDADOS:', validContracts);
+          return validContracts;
+        })()
       };
 
       // Log do payload de simulação
@@ -932,11 +984,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
           payload: simulationPayload
         });
         
-        // Tratamento específico baseado na documentação C6
+        // Tratamento específico de erros C6 com análise detalhada
         const c6ErrorMessage = getC6ErrorMessage(errorData);
         
         // Log detalhado do erro para debug
         console.log('❌ DETALHES COMPLETOS DO ERRO C6:', JSON.stringify(errorData, null, 2));
+        
+        // Análise específica do erro "Nullable object must have a value"
+        if (errorData.details && Array.isArray(errorData.details)) {
+          const nullableError = errorData.details.find((detail: any) => 
+            detail.code === 'BVLPFUN-106' || 
+            detail.message?.includes('Nullable object must have a value')
+          );
+          
+          if (nullableError) {
+            return res.status(simulationResponse.status).json({
+              error: 'Erro de Elegibilidade do Contrato',
+              message: 'Um ou mais contratos selecionados não estão elegíveis para refinanciamento no C6 Bank. Isso pode ocorrer quando:\n\n• O contrato está em um status que não permite operações\n• Há pendências ou bloqueios no contrato\n• O contrato não atende aos critérios atuais do C6\n• Dados essenciais do contrato estão ausentes no sistema\n\nTente selecionar outros contratos ou verifique o status dos contratos no sistema.',
+              details: errorData,
+              contracts: selected_contracts,
+              suggestion: 'Verifique se os contratos estão ativos e sem bloqueios'
+            });
+          }
+        }
         
         return res.status(simulationResponse.status).json({
           error: `Erro na simulação C6 Bank: ${c6ErrorMessage}`,

@@ -295,8 +295,10 @@ export function C6Simulation({
         // Extrair mensagem específica do C6 com tratamento melhorado
         let errorMessage = errorData.error || 'Erro na simulação C6 Bank';
         
-        // Verificar se há mensagens específicas do C6
-        if (errorData.c6Message && Array.isArray(errorData.c6Message)) {
+        // Tratar erro específico de elegibilidade do contrato
+        if (errorData.error === 'Erro de Elegibilidade do Contrato') {
+          errorMessage = errorData.message || 'Contratos não elegíveis para refinanciamento';
+        } else if (errorData.c6Message && Array.isArray(errorData.c6Message)) {
           const specificError = errorData.c6Message[0]?.message || errorData.c6Message[0];
           if (typeof specificError === 'string') {
             errorMessage = specificError;
