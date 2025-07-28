@@ -468,22 +468,31 @@ export default function DigitalizacoesPage() {
               <div className="flex">
                 <span className="font-medium w-24">Banco:</span>
                 <span>
-                  {(client.bank_data?.bank_code || 
-                    dadosCompletos.client?.bank_data?.bank_code || 
-                    data.originalPayload?.client?.bank_data?.bank_code) || '- Banco null'}
+                  {(() => {
+                    // Buscar primeiro nas liberações do cliente
+                    const clientLiberation = liberations.find((lib: any) => lib.beneficiary_type === 'Cliente');
+                    return clientLiberation?.bank_code || 
+                           client.bank_data?.bank_code || 
+                           dadosCompletos.client?.bank_data?.bank_code || 
+                           data.originalPayload?.client?.bank_data?.bank_code || 
+                           'N/A';
+                  })()}
                 </span>
               </div>
               <div className="flex">
                 <span className="font-medium w-24">Agência:</span>
                 <span>
                   {(() => {
-                    const agencyNumber = client.bank_data?.agency_number || 
+                    const clientLiberation = liberations.find((lib: any) => lib.beneficiary_type === 'Cliente');
+                    const agencyNumber = clientLiberation?.agency_number || 
+                                       client.bank_data?.agency_number || 
                                        dadosCompletos.client?.bank_data?.agency_number || 
                                        data.originalPayload?.client?.bank_data?.agency_number;
-                    const agencyDigit = client.bank_data?.agency_digit || 
+                    const agencyDigit = clientLiberation?.agency_digit || 
+                                      client.bank_data?.agency_digit || 
                                       dadosCompletos.client?.bank_data?.agency_digit || 
                                       data.originalPayload?.client?.bank_data?.agency_digit;
-                    return agencyNumber ? `${agencyNumber}-${agencyDigit || ''}` : 'N/A';
+                    return agencyNumber ? `${agencyNumber}${agencyDigit ? `-${agencyDigit}` : ''}` : 'N/A';
                   })()}
                 </span>
               </div>
@@ -491,23 +500,31 @@ export default function DigitalizacoesPage() {
                 <span className="font-medium w-24">Conta:</span>
                 <span>
                   {(() => {
-                    const accountNumber = client.bank_data?.account_number || 
+                    const clientLiberation = liberations.find((lib: any) => lib.beneficiary_type === 'Cliente');
+                    const accountNumber = clientLiberation?.account_number || 
+                                        client.bank_data?.account_number || 
                                         dadosCompletos.client?.bank_data?.account_number || 
                                         data.originalPayload?.client?.bank_data?.account_number ||
                                         client.account_number;
-                    const accountDigit = client.bank_data?.account_digit || 
+                    const accountDigit = clientLiberation?.account_digit || 
+                                       client.bank_data?.account_digit || 
                                        dadosCompletos.client?.bank_data?.account_digit || 
                                        data.originalPayload?.client?.bank_data?.account_digit;
-                    return accountNumber ? `${accountNumber}-${accountDigit || ''}` : 'N/A';
+                    return accountNumber ? `${accountNumber}${accountDigit ? `-${accountDigit}` : ''}` : 'N/A';
                   })()}
                 </span>
               </div>
               <div className="flex">
                 <span className="font-medium w-24">Tipo:</span>
                 <span>
-                  {(client.bank_data?.account_type || 
-                    dadosCompletos.client?.bank_data?.account_type || 
-                    data.originalPayload?.client?.bank_data?.account_type) || 'N/A'}
+                  {(() => {
+                    const clientLiberation = liberations.find((lib: any) => lib.beneficiary_type === 'Cliente');
+                    return clientLiberation?.account_type || 
+                           client.bank_data?.account_type || 
+                           dadosCompletos.client?.bank_data?.account_type || 
+                           data.originalPayload?.client?.bank_data?.account_type || 
+                           'N/A';
+                  })()}
                 </span>
               </div>
             </div>

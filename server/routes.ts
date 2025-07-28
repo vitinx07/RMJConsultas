@@ -837,7 +837,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         ),
         client: {
           tax_identifier: beneficiario.CPF,
-          enrollment: beneficiario.Beneficio,
+          enrollment: String(beneficiario.Beneficio).padStart(10, '0'),
           birth_date: beneficiario.DataNascimento,
           income_amount: parseFloat(resumoFinanceiro?.ValorBeneficio || '5000')
         },
@@ -1015,7 +1015,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             zip_code: proposal_data.client.address.zip_code.replace('-', '') // Remove hífen do CEP
           },
           professional_data: {
-            enrollment: benefit_data.Beneficiario?.Beneficio
+            enrollment: String(benefit_data.Beneficiario?.Beneficio || '').padStart(10, '0')
           }
         },
         refinancing_contracts: selected_contracts,
