@@ -447,27 +447,33 @@ export function BenefitDetails({ benefit }: BenefitDetailsProps) {
                     <University className="h-4 w-4 text-blue-600 dark:text-blue-400" />
                     <h5 className="font-semibold text-foreground">Dados Bancários</h5>
                   </div>
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-muted-foreground">Banco:</span>
-                      <div className="flex items-center gap-2">
-                        <BankIcon bankCode={DadosBancarios.Banco} className="w-4 h-4" />
+                  {!DadosBancarios.Banco && !DadosBancarios.Agencia && !DadosBancarios.ContaPagto ? (
+                    <div className="text-center py-4">
+                      <span className="text-muted-foreground">Não tem conta</span>
+                    </div>
+                  ) : (
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm text-muted-foreground">Banco:</span>
+                        <div className="flex items-center gap-2">
+                          <BankIcon bankCode={DadosBancarios.Banco} className="w-4 h-4" />
+                          <span className="font-medium text-foreground text-sm">
+                            {DadosBancarios.Banco ? `${DadosBancarios.Banco} - ${getBankName(DadosBancarios.Banco)}` : 'N/A'}
+                          </span>
+                        </div>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm text-muted-foreground">Agência:</span>
+                        <span className="font-medium text-foreground text-sm">{DadosBancarios.Agencia || 'N/A'}</span>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm text-muted-foreground">Conta:</span>
                         <span className="font-medium text-foreground text-sm">
-                          {DadosBancarios.Banco} - {getBankName(DadosBancarios.Banco)}
+                          {DadosBancarios.ContaPagto || 'N/A'}
                         </span>
                       </div>
                     </div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-muted-foreground">Agência:</span>
-                      <span className="font-medium text-foreground text-sm">{DadosBancarios.Agencia}</span>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-muted-foreground">Conta:</span>
-                      <span className="font-medium text-foreground text-sm">
-                        {DadosBancarios.ContaPagto || '3140636'}
-                      </span>
-                    </div>
-                  </div>
+                  )}
                 </div>
 
                 {/* Card Information */}
