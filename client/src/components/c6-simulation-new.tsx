@@ -763,41 +763,12 @@ export function C6Simulation({
                                 </div>
                                 <span className="px-2 py-1 text-xs bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 rounded-full font-medium">
                                   {(() => {
-                                    // Debug: vamos ver todos os campos do contrato
-                                    console.log('🔍 Dados completos do contrato:', contract);
+                                    // Cálculo correto das parcelas pagas: Prazo Total - Parcelas Restantes
+                                    const prazoTotal = parseInt(contract.Prazo) || 0;
+                                    const parcelasRestantes = parseInt(contract.ParcelasRestantes) || 0;
+                                    const parcelasPagas = prazoTotal - parcelasRestantes;
                                     
-                                    // Busca parcelas pagas usando todos os campos possíveis da API MultiCorban
-                                    const parcelasPagas = contract.ParcelasPagas || 
-                                                         contract.Parcelas_Pagas || 
-                                                         contract.ParcelasQuitadas || 
-                                                         contract.QtdParcelasPayas || 
-                                                         contract.QtdParcelasPagas ||
-                                                         contract.parcelas_pagas ||
-                                                         contract.qtd_parcelas_pagas ||
-                                                         contract.ParcelaPaga ||
-                                                         contract.NumeroParcelasPagas ||
-                                                         contract.Parcela_Paga ||
-                                                         contract.ParcelasAtrasadas ||
-                                                         contract.ParcelasVencidas ||
-                                                         contract.QtdParcelas ||
-                                                         contract.PagasAtualizadas ||
-                                                         0;
-                                    
-                                    console.log('🔍 Parcelas pagas encontradas:', parcelasPagas);
-                                    
-                                    // Mapear contratos específicos conhecidos baseado na imagem fornecida
-                                    let finalValue = parcelasPagas;
-                                    if (contract.Contrato === '1900108845') {
-                                      finalValue = 0; // Da imagem
-                                    } else if (contract.Contrato === '90140829736') {
-                                      finalValue = 0; // Da imagem
-                                    } else if (contract.Contrato === '90139334768') {
-                                      finalValue = 0; // Da imagem  
-                                    } else if (contract.Contrato === '010114568481') {
-                                      finalValue = 0; // Da imagem
-                                    }
-                                    
-                                    return `${finalValue} pagas`;
+                                    return `${parcelasPagas} pagas`;
                                   })()}
                                 </span>
                               </div>
