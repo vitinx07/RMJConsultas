@@ -674,9 +674,8 @@ export function C6Simulation({
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
         <Button 
-          variant="outline" 
           size="sm" 
-          className={`bg-green-50 hover:bg-green-100 text-green-700 border-green-200 ${className}`}
+          className={`bg-green-600 hover:bg-green-700 dark:bg-green-600 dark:hover:bg-green-700 text-white dark:text-white border-0 min-w-[80px] h-8 px-3 rounded-md font-medium transition-all duration-200 shadow-sm hover:shadow-md active:scale-95 ${className}`}
           onClick={() => {
             setIsOpen(true);
             fetchBenefitData.mutate(cpf);
