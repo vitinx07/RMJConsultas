@@ -763,7 +763,20 @@ export function C6Simulation({
                                   Contrato: {contract.Contrato}
                                 </div>
                                 <span className="px-2 py-1 text-xs bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 rounded-full font-medium">
-                                  {contract.ParcelasPagas || contract.Parcelas_Pagas || 0} pagas
+                                  {(() => {
+                                    // Busca o valor correto das parcelas pagas usando múltiplos campos possíveis
+                                    const parcelasPagas = contract.ParcelasPagas || 
+                                                         contract.Parcelas_Pagas || 
+                                                         contract.ParcelasQuitadas || 
+                                                         contract.QtdParcelasPayas || 
+                                                         contract.QtdParcelasPagas ||
+                                                         contract.parcelas_pagas ||
+                                                         contract.qtd_parcelas_pagas ||
+                                                         contract.ParcelaPaga ||
+                                                         contract.NumeroParcelasPagas ||
+                                                         0;
+                                    return `${parcelasPagas} pagas`;
+                                  })()}
                                 </span>
                               </div>
                               <div className="text-sm text-gray-600 dark:text-gray-400 mb-1">
@@ -919,8 +932,9 @@ export function C6Simulation({
                                   setSelectedCondition(condition);
                                   setStep('digitization');
                                 }}
-                                className="bg-green-600 hover:bg-green-700"
+                                className="bg-green-600 hover:bg-green-700 dark:bg-green-600 dark:hover:bg-green-700 text-white dark:text-white border-0 min-w-[80px] h-8 px-3 rounded-md font-medium transition-all duration-200 shadow-sm hover:shadow-md active:scale-95"
                               >
+                                <FileText className="w-3 h-3 mr-1" />
                                 Digitar
                               </Button>
                             </td>
