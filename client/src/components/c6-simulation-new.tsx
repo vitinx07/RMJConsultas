@@ -715,8 +715,8 @@ export function C6Simulation({
             <CardContent className="space-y-6">
               {/* Seção 1: Seleção de Contratos */}
               <div className="space-y-4">
-                <h3 className="font-semibold text-lg">1. Selecionar Contratos C6 Bank</h3>
-                <p className="text-sm text-gray-600">
+                <h3 className="font-semibold text-lg text-gray-900 dark:text-gray-100">1. Selecionar Contratos C6 Bank</h3>
+                <p className="text-sm text-gray-600 dark:text-gray-400">
                   Selecione os contratos que deseja incluir no refinanciamento:
                 </p>
 
@@ -741,10 +741,10 @@ export function C6Simulation({
                       {c6Contracts.map((contract: any, index: number) => (
                         <div 
                           key={contract.Contrato}
-                          className={`p-3 border rounded cursor-pointer transition-colors ${
+                          className={`p-4 border rounded-lg cursor-pointer transition-all ${
                             selectedContracts.includes(contract.Contrato) 
                               ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20 dark:border-blue-400' 
-                              : 'border-gray-200 hover:border-gray-300 dark:border-gray-700 dark:hover:border-gray-600 dark:bg-gray-800/50'
+                              : 'border-gray-200 hover:border-gray-300 dark:border-gray-600 dark:hover:border-gray-500 bg-white dark:bg-gray-800'
                           }`}
                           onClick={() => {
                             setSelectedContracts(prev => {
@@ -757,31 +757,27 @@ export function C6Simulation({
                           }}
                         >
                           <div className="flex justify-between items-center">
-                            <div>
-                              <div className="font-medium dark:text-gray-100">
-                                Contrato: {contract.Contrato}
-                                {contract.ParcelasPagas && (
-                                  <span className="ml-2 text-green-600 dark:text-green-400">
-                                    ({contract.ParcelasPagas} pagas)
-                                  </span>
-                                )}
+                            <div className="flex-1">
+                              <div className="flex items-center gap-3 mb-2">
+                                <div className="font-medium text-gray-900 dark:text-gray-100">
+                                  Contrato: {contract.Contrato}
+                                </div>
+                                <span className="px-2 py-1 text-xs bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 rounded-full font-medium">
+                                  {contract.ParcelasPagas || 0} pagas
+                                </span>
                               </div>
-                              <div className="text-sm text-gray-600 dark:text-gray-400">
-                                Parcela: R$ {contract.ValorParcela?.toFixed(2)}
+                              <div className="text-sm text-gray-600 dark:text-gray-400 mb-1">
+                                Parcela: R$ {parseFloat(contract.ValorParcela || '0').toFixed(2)}
                               </div>
                               {contract.SaldoDevedor && (
                                 <div className="text-sm text-gray-600 dark:text-gray-400">
-                                  Saldo Devedor: R$ {contract.SaldoDevedor.toFixed(2)}
+                                  Saldo Devedor: R$ {parseFloat(contract.SaldoDevedor || '0').toFixed(2)}
                                 </div>
                               )}
                             </div>
-                            <div className={`w-4 h-4 rounded border-2 ${
-                              selectedContracts.includes(contract.Contrato)
-                                ? 'bg-blue-500 border-blue-500'
-                                : 'border-gray-300'
-                            }`}>
+                            <div className="flex items-center">
                               {selectedContracts.includes(contract.Contrato) && (
-                                <CheckCircle className="w-4 h-4 text-white" />
+                                <CheckCircle className="h-5 w-5 text-blue-500 dark:text-blue-400" />
                               )}
                             </div>
                           </div>
@@ -811,17 +807,17 @@ export function C6Simulation({
               {/* Seção 2: Simulação */}
               {selectedContracts.length > 0 && (
                 <div className="space-y-4 border-t pt-4">
-                  <h3 className="font-semibold text-lg">2. Simulação de Refinanciamento</h3>
+                  <h3 className="font-semibold text-lg text-gray-900 dark:text-gray-100">2. Simulação de Refinanciamento</h3>
 
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-sm font-medium mb-2">
+                      <label className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">
                         Prazo Desejado (meses)
                       </label>
                       <select
                         value={installmentQuantity}
                         onChange={(e) => setInstallmentQuantity(Number(e.target.value))}
-                        className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-800 dark:text-gray-100"
+                        className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
                       >
                         {[72,84,96].map(months => (
                           <option key={months} value={months}>{months} meses</option>
@@ -830,7 +826,7 @@ export function C6Simulation({
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium mb-2">
+                      <label className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">
                         Parcela Atual Total
                       </label>
                       <input
@@ -852,7 +848,7 @@ export function C6Simulation({
                           const value = parseFloat(e.target.value) || 0;
                           setManualInstallmentAmount(value);
                         }}
-                        className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-800 dark:text-gray-100"
+                        className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
                         placeholder="0.00"
                       />
                     </div>
@@ -881,7 +877,7 @@ export function C6Simulation({
               {/* Seção 3: Tabela de Condições de Crédito */}
               {creditConditions.length > 0 && (
                 <div className="space-y-4 border-t pt-4">
-                  <h3 className="font-semibold text-lg">3. Escolha a Condição de Crédito</h3>
+                  <h3 className="font-semibold text-lg text-gray-900 dark:text-gray-100">3. Escolha a Condição de Crédito</h3>
 
                   <div className="overflow-x-auto">
                     <table className="w-full border-collapse border border-gray-200 dark:border-gray-700">
