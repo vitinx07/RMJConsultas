@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useToast } from "@/hooks/use-toast";
-import { Building2, Calculator, FileText, Loader2, CheckCircle, XCircle, Clock, AlertTriangle } from "lucide-react";
+import { Building2, Calculator, FileText, Loader2, CheckCircle, XCircle, Clock, AlertTriangle, BarChart3, Copy, ExternalLink } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 
@@ -763,7 +763,7 @@ export function C6Simulation({
                                   Contrato: {contract.Contrato}
                                 </div>
                                 <span className="px-2 py-1 text-xs bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 rounded-full font-medium">
-                                  {contract.ParcelasPagas || 0} pagas
+                                  {contract.ParcelasPagas || contract.Parcelas_Pagas || 0} pagas
                                 </span>
                               </div>
                               <div className="text-sm text-gray-600 dark:text-gray-400 mb-1">
@@ -857,7 +857,8 @@ export function C6Simulation({
                   <Button 
                     onClick={() => simulationMutation.mutate()} 
                     disabled={simulationMutation.isPending}
-                    className="w-full"
+                    className="w-full bg-green-600 hover:bg-green-700 text-white border-0"
+                    size="sm"
                   >
                     {simulationMutation.isPending ? (
                       <>
@@ -866,8 +867,8 @@ export function C6Simulation({
                       </>
                     ) : (
                       <>
-                        <Calculator className="mr-2 h-4 w-4" />
-                        Simular Refinanciamento
+                        <BarChart3 className="mr-2 h-4 w-4" />
+                        Simular
                       </>
                     )}
                   </Button>
