@@ -155,11 +155,10 @@ export function BanrisulSimulation({
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
         <Button 
-          variant="outline" 
           size="sm" 
-          className={`text-green-600 hover:text-green-700 border-green-300 hover:border-green-400 ${className}`}
+          className={`bg-green-600 hover:bg-green-700 dark:bg-green-600 dark:hover:bg-green-700 text-white dark:text-white border-0 min-w-[80px] h-8 px-3 rounded-md font-medium transition-all duration-200 shadow-sm hover:shadow-md active:scale-95 ${className}`}
         >
-          <Calculator className="h-4 w-4 mr-2" />
+          <Calculator className="h-3 w-3 mr-1" />
           Simular
         </Button>
       </DialogTrigger>

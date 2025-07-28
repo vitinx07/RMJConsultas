@@ -859,6 +859,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const clientInfo = await clientResponse.json();
       const beneficiario = clientInfo[0]?.Beneficiario;
       const resumoFinanceiro = clientInfo[0]?.ResumoFinanceiro;
+      
+      // Store full API data for contract validation
+      const apiData = clientInfo;
 
       if (!beneficiario) {
         return res.status(400).json({ error: 'Dados do cliente não encontrados' });
@@ -948,17 +951,44 @@ export async function registerRoutes(app: Express): Promise<Server> {
             throw new Error('Nenhum contrato selecionado para refinanciamento');
           }
           
-          // Filtrar contratos válidos (não nulos e não vazios)
-          const validContracts = selected_contracts.filter((contract: any) => 
-            contract && contract.toString().trim() !== '' && contract !== '0'
-          );
+          // Filtrar contratos válidos e garantir que são do C6 Bank (626)
+          const validC6Contracts = selected_contracts
+            .filter((contract: any) => contract && contract.toString().trim() !== '' && contract !== '0')
+            .map((contract: any) => contract.toString())
+            .filter((contractNumber: string) => {
+              // Buscar o contrato em todos os benefícios
+              let contractFound = false;
+              for (const benefit of apiData || []) {
+                if (benefit.Emprestimos) {
+                  const contract = benefit.Emprestimos.find((emp: any) => 
+                    emp.Contrato === contractNumber && emp.Banco === '626'
+                  );
+                  if (contract) {
+                    contractFound = true;
+                    console.log(`✅ Contrato ${contractNumber} encontrado no C6 Bank:`, {
+                      banco: contract.Banco,
+                      valorParcela: contract.ValorParcela,
+                      saldoDevedor: contract.SaldoDevedor
+                    });
+                    break;
+                  }
+                }
+              }
+              
+              if (!contractFound) {
+                console.log(`⚠️ Contrato ${contractNumber} não encontrado nos dados do C6 Bank (626)`);
+                return false;
+              }
+              
+              return true;
+            });
           
-          if (validContracts.length === 0) {
-            throw new Error('Nenhum contrato válido encontrado para refinanciamento');
+          if (validC6Contracts.length === 0) {
+            throw new Error('Nenhum contrato válido do C6 Bank encontrado para refinanciamento');
           }
           
-          console.log('🔍 CONTRATOS VALIDADOS:', validContracts);
-          return validContracts;
+          console.log('🔍 CONTRATOS C6 VALIDADOS:', validC6Contracts);
+          return validC6Contracts;
         })()
       };
 

@@ -528,7 +528,7 @@ export function C6Simulation({
                   <Button 
                     onClick={handleSimulation}
                     disabled={simulationMutation.isPending}
-                    className="w-full bg-blue-600 hover:bg-blue-700"
+                    className="w-full bg-green-600 hover:bg-green-700 dark:bg-green-600 dark:hover:bg-green-700 text-white dark:text-white border-0 min-h-[32px] px-4 rounded-md font-medium transition-all duration-200 shadow-sm hover:shadow-md active:scale-95"
                   >
                     {simulationMutation.isPending ? (
                       <>
