@@ -675,7 +675,7 @@ export function C6Simulation({
       <DialogTrigger asChild>
         <Button 
           size="sm" 
-          className={`bg-green-600 hover:bg-green-700 dark:bg-green-600 dark:hover:bg-green-700 text-white dark:text-white border-0 min-w-[80px] h-8 px-3 rounded-md font-medium transition-all duration-200 shadow-sm hover:shadow-md active:scale-95 ${className}`}
+          className={`bg-blue-600 hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-700 text-white dark:text-white border-0 min-w-[80px] h-8 px-3 rounded-md font-medium transition-all duration-200 shadow-sm hover:shadow-md active:scale-95 ${className}`}
           onClick={() => {
             setIsOpen(true);
             fetchBenefitData.mutate(cpf);
@@ -863,7 +863,7 @@ export function C6Simulation({
                   <Button 
                     onClick={() => simulationMutation.mutate()} 
                     disabled={simulationMutation.isPending}
-                    className="w-full bg-green-600 hover:bg-green-700 dark:bg-green-600 dark:hover:bg-green-700 text-white dark:text-white border-0 min-h-[32px] px-4 rounded-md font-medium transition-all duration-200 shadow-sm hover:shadow-md active:scale-95"
+                    className="w-full bg-blue-600 hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-700 text-white dark:text-white border-0 min-h-[32px] px-4 rounded-md font-medium transition-all duration-200 shadow-sm hover:shadow-md active:scale-95"
                     size="sm"
                   >
                     {simulationMutation.isPending ? (
@@ -910,7 +910,7 @@ export function C6Simulation({
                             <td className="border border-gray-200 dark:border-gray-700 px-4 py-2 dark:text-gray-200">
                               R$ {condition.installment_amount?.toFixed(2)}
                             </td>
-                            <td className="border border-gray-200 dark:border-gray-700 px-4 py-2 text-green-600 dark:text-green-400 font-medium">
+                            <td className="border border-gray-200 dark:border-gray-700 px-4 py-2 text-blue-600 dark:text-blue-400 font-medium">
                               R$ {condition.client_amount?.toFixed(2)}
                             </td>
                             <td className="border border-gray-200 dark:border-gray-700 px-4 py-2 dark:text-gray-200">
@@ -925,7 +925,7 @@ export function C6Simulation({
                                   setSelectedCondition(condition);
                                   setStep('digitization');
                                 }}
-                                className="bg-green-600 hover:bg-green-700 dark:bg-green-600 dark:hover:bg-green-700 text-white dark:text-white border-0 min-w-[80px] h-8 px-3 rounded-md font-medium transition-all duration-200 shadow-sm hover:shadow-md active:scale-95"
+                                className="bg-blue-600 hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-700 text-white dark:text-white border-0 min-w-[80px] h-8 px-3 rounded-md font-medium transition-all duration-200 shadow-sm hover:shadow-md active:scale-95"
                               >
                                 <FileText className="w-3 h-3 mr-1" />
                                 Digitar
@@ -966,7 +966,7 @@ export function C6Simulation({
                   <h3 className="font-semibold text-blue-800 dark:text-blue-200 mb-2">Condição Selecionada</h3>
                   <div className="flex justify-between items-center">
                     <span className="font-medium">{selectedCondition.covenant.description}</span>
-                    <span className="text-green-600 font-bold">
+                    <span className="text-blue-600 font-bold">
                       Troco: R$ {selectedCondition.client_amount.toFixed(2)}
                     </span>
                   </div>
@@ -1335,7 +1335,7 @@ export function C6Simulation({
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <CheckCircle className="h-5 w-5 text-green-600" />
+                <CheckCircle className="h-5 w-5 text-blue-600" />
                 Proposta Digitalizada com Sucesso
               </CardTitle>
             </CardHeader>
@@ -1349,9 +1349,9 @@ export function C6Simulation({
 
               {formalizationUrl ? (
                 <div className="text-center space-y-4">
-                  <div className="p-4 bg-green-50 rounded-lg">
-                    <CheckCircle className="h-8 w-8 text-green-600 mx-auto mb-2" />
-                    <p className="text-green-800 font-medium">Link de formalização disponível!</p>
+                  <div className="p-4 bg-blue-50 rounded-lg">
+                    <CheckCircle className="h-8 w-8 text-blue-600 mx-auto mb-2" />
+                    <p className="text-blue-800 font-medium">Link de formalização disponível!</p>
                   </div>
 
                   <div className="space-y-2">
@@ -1378,7 +1378,7 @@ export function C6Simulation({
 
                   <Button 
                     onClick={() => window.open(formalizationUrl, '_blank')}
-                    className="w-full bg-green-600 hover:bg-green-700"
+                    className="w-full bg-blue-600 hover:bg-blue-700"
                   >
                     Abrir Link de Assinatura
                   </Button>

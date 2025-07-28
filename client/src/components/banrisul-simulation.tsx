@@ -156,7 +156,7 @@ export function BanrisulSimulation({
       <DialogTrigger asChild>
         <Button 
           size="sm" 
-          className={`bg-green-600 hover:bg-green-700 dark:bg-green-600 dark:hover:bg-green-700 text-white dark:text-white border-0 min-w-[80px] h-8 px-3 rounded-md font-medium transition-all duration-200 shadow-sm hover:shadow-md active:scale-95 ${className}`}
+          className={`bg-blue-600 hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-700 text-white dark:text-white border-0 min-w-[80px] h-8 px-3 rounded-md font-medium transition-all duration-200 shadow-sm hover:shadow-md active:scale-95 ${className}`}
         >
           <Calculator className="h-3 w-3 mr-1" />
           Simular
@@ -165,7 +165,7 @@ export function BanrisulSimulation({
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center space-x-2">
-            <Calculator className="h-5 w-5 text-green-600" />
+            <Calculator className="h-5 w-5 text-blue-600" />
             <span>Simulação de Refinanciamento Banrisul</span>
           </DialogTitle>
         </DialogHeader>
@@ -233,7 +233,7 @@ export function BanrisulSimulation({
                 <Button 
                   onClick={handleSimulation}
                   disabled={simulationMutation.isPending}
-                  className="bg-green-600 hover:bg-green-700"
+                  className="bg-blue-600 hover:bg-blue-700"
                 >
                   {simulationMutation.isPending ? (
                     <>
@@ -263,13 +263,13 @@ export function BanrisulSimulation({
           {simulationResult && (
             <Card>
               <CardHeader>
-                <CardTitle className="text-lg text-green-600">Resultado da Simulação</CardTitle>
+                <CardTitle className="text-lg text-blue-600">Resultado da Simulação</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                   <div className="text-center">
                     <Label className="text-sm font-medium text-muted-foreground">Valor Liberado</Label>
-                    <p className="text-lg font-bold text-green-600">{formatCurrency(simulationResult.valorAF)}</p>
+                    <p className="text-lg font-bold text-blue-600">{formatCurrency(simulationResult.valorAF)}</p>
                   </div>
                   <div className="text-center">
                     <Label className="text-sm font-medium text-muted-foreground">Prazo</Label>
@@ -338,7 +338,7 @@ export function BanrisulSimulation({
           {allOptions.length > 0 && prazo && (
             <Card>
               <CardHeader>
-                <CardTitle className="text-lg text-green-600">
+                <CardTitle className="text-lg text-blue-600">
                   Opções Disponíveis para {prazo} meses ({allOptions.filter(option => option.prazo === prazo).length} opções)
                 </CardTitle>
               </CardHeader>
@@ -360,7 +360,7 @@ export function BanrisulSimulation({
                         .map((option, index) => (
                           <TableRow key={`${option.prazo}-${option.descricaoPlano}-${index}`} className="hover:bg-muted/50">
                             <TableCell className="font-medium">{option.descricaoPlano}</TableCell>
-                            <TableCell className="text-right font-bold text-green-600">
+                            <TableCell className="text-right font-bold text-blue-600">
                               {formatCurrency(option.valorAF)}
                             </TableCell>
                             <TableCell className="text-right">
@@ -387,7 +387,7 @@ export function BanrisulSimulation({
                                 className={`text-xs ${
                                   simulationResult?.prazo === option.prazo && 
                                   simulationResult?.descricaoPlano === option.descricaoPlano
-                                    ? 'bg-green-100 text-green-700 border-green-300'
+                                    ? 'bg-blue-100 text-blue-700 border-blue-300'
                                     : ''
                                 }`}
                               >
