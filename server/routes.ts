@@ -847,7 +847,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         ? `https://${req.headers.host}` 
         : 'http://localhost:5000';
 
-      const clientData = await fetch(`${baseUrl}/api/multicorban/cpf`, {
+      const clientResponse = await fetch(`${baseUrl}/api/multicorban/cpf`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -856,7 +856,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         body: JSON.stringify({ cpf })
       });
 
-      const clientInfo = await clientData.json();
+      const clientInfo = await clientResponse.json();
       const beneficiario = clientInfo[0]?.Beneficiario;
       const resumoFinanceiro = clientInfo[0]?.ResumoFinanceiro;
 
@@ -873,35 +873,40 @@ export async function registerRoutes(app: Express): Promise<Server> {
         valorBeneficio: resumoFinanceiro?.ValorBeneficio
       });
       
+      // Preparar dados do cliente conforme exemplo da documentação C6
+      const formattedClientData = {
+        tax_identifier: (() => {
+          // CPF deve ter exatamente 11 dígitos
+          const rawCpf = beneficiario.CPF?.toString() || '0';
+          const cleanCpf = rawCpf.replace(/\D/g, ''); // Remove pontos, hífens e outros
+          return cleanCpf.padStart(11, '0'); // Garante 11 dígitos
+        })(),
+        enrollment: (() => {
+          // Matrícula/Benefício deve ter exatamente 10 dígitos
+          const rawBeneficio = beneficiario.Beneficio || beneficiario.NumeroBeneficio || '0';
+          const cleanBeneficio = String(rawBeneficio).replace(/\D/g, ''); // Remove não-números
+          return cleanBeneficio.padStart(10, '0'); // Garante 10 dígitos
+        })(),
+        birth_date: beneficiario.DataNascimento || '1950-01-01',
+        income_amount: parseFloat(resumoFinanceiro?.ValorBeneficio || '5000')
+      };
+
+      console.log('🔍 DADOS CLIENTE FORMATADOS:', formattedClientData);
+
       const simulationPayload = {
         operation_type: "REFINANCIAMENTO",
         product_type_code: "0002",
         simulation_type,
         formalization_subtype: "DIGITAL_WEB",
         promoter_code: "003130",
-        covenant_group: "INSS",
+        covenant_group: "INSS", 
         public_agency: "000001",
         installment_quantity,
         ...(simulation_type === 'POR_VALOR_SOLICITADO' 
           ? { requested_amount } 
           : { installment_amount }
         ),
-        client: {
-          tax_identifier: (() => {
-            // CPF deve ter exatamente 11 dígitos
-            const rawCpf = beneficiario.CPF?.toString() || '0';
-            const cleanCpf = rawCpf.replace(/\D/g, ''); // Remove pontos, hífens e outros
-            return cleanCpf.padStart(11, '0'); // Garante 11 dígitos
-          })(),
-          enrollment: (() => {
-            // Matrícula/Benefício deve ter exatamente 10 dígitos
-            const rawBeneficio = beneficiario.Beneficio || beneficiario.NumeroBeneficio || '0';
-            const cleanBeneficio = String(rawBeneficio).replace(/\D/g, ''); // Remove não-números
-            return cleanBeneficio.padStart(10, '0'); // Garante 10 dígitos
-          })(),
-          birth_date: beneficiario.DataNascimento || '1950-01-01',
-          income_amount: parseFloat(resumoFinanceiro?.ValorBeneficio || '5000')
-        },
+        client: formattedClientData,
         refinancing_contracts: selected_contracts || []
       };
 
@@ -929,6 +934,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         
         // Tratamento específico baseado na documentação C6
         const c6ErrorMessage = getC6ErrorMessage(errorData);
+        
+        // Log detalhado do erro para debug
+        console.log('❌ DETALHES COMPLETOS DO ERRO C6:', JSON.stringify(errorData, null, 2));
         
         return res.status(simulationResponse.status).json({
           error: `Erro na simulação C6 Bank: ${c6ErrorMessage}`,
