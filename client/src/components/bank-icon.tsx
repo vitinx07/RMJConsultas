@@ -65,7 +65,9 @@ export function BankIcon({ bankCode, className = "w-6 h-6" }: BankIconProps) {
 
     "422": "https://gestao.sistemacorban.com.br/imagens/0422.5c21f943.svg", //Banco Safra
 
-    "001": "https://gestao.sistemacorban.com.br/imagens/0001.e743891b.svg", //Banco Safra
+    "001": "https://gestao.sistemacorban.com.br/imagens/0001.e743891b.svg", //Banco BB
+
+    "079": "https://cdn.brandfetch.io/id-EZkq3JI/w/400/h/400/theme/dark/icon.png?c=1dxbfHSJFAPEGdCLU4o5B", //Banco BB
   };
 
   // Mapeamento de códigos de banco para classes CSS dos ícones
