@@ -94,7 +94,7 @@ export function getBankName(code: string): string {
     '212': 'Banco Original',
     '237': 'Banco Bradesco',
     '260': 'Nubank',
-    '290': 'Banco PagSeguro',
+    '290': 'Banco PagBank',
     '318': 'Banco BMG',
     '323': 'Banco Mercado Pago',
     '336': 'Banco C6',
@@ -105,7 +105,7 @@ export function getBankName(code: string): string {
     '925': 'Banco BRB',
     '329': 'Banco QI',
     '012': 'Banco Inbursa',
-    '935': 'Banco Crefisa',
+    '935': 'Banco Facta Financeira',
     '604': 'Banco Industrial do Brasil',
     '623': 'Banco Pan',
     '633': 'Banco Rendimento',
@@ -127,6 +127,8 @@ export function getBankName(code: string): string {
     '359': 'Banco Zema CFI',
     '079': 'Picpay',
     '908': 'Parati',
+    '069': 'Crefisa',
+    '081': 'PagSeguro',
   };
 
   return bankMap[code] || `Banco ${code}`;

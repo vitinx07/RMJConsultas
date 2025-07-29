@@ -30,7 +30,7 @@ export function BankIcon({ bankCode, className = "w-6 h-6" }: BankIconProps) {
     "707":
       "https://play-lh.googleusercontent.com/uaDvaAZW8Ls995RWP6ER_F6P8MGCuHE8bmMSRApbakgQ_BJDcm-XJdiu1vXa8ZKO=w240-h480-rw", //Banco Daycoval
 
-    "935":
+    "069":
       "https://evef.com.br/images/vetor/download%20vetor%20crefisa%20financeira%20correspondente%20bancario.jpg", //Banco Crevisa
 
     "318":
@@ -70,6 +70,14 @@ export function BankIcon({ bankCode, className = "w-6 h-6" }: BankIconProps) {
     "079": "https://cdn.brandfetch.io/id-EZkq3JI/w/400/h/400/theme/dark/icon.png?c=1dxbfHSJFAPEGdCLU4o5B", //Banco Picpay
 
     "908": "https://media.licdn.com/dms/image/v2/C4D0BAQEdzHu5qfDFYQ/company-logo_200_200/company-logo_200_200/0/1630541214338?e=2147483647&v=beta&t=-BRE56c3A7P2gHaWSmsH_SPPJ9kCxgz4gcmjBKBjeRo", //Banco Parati
+
+    "935": "http://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSn0Wlj-sP-AHppus8rZsng3tsrdbJwkk6r5g&s", //Banco facta
+
+     "290": "https://play-lh.googleusercontent.com/O9GpqGB-9aE8Qt79JM1VXoVA5rRQjLb4LVk7yVwd2cuWeAi0ML6uVbc7aXZEOeyYwg", //Banco PagBank
+
+    "081": "https://companieslogo.com/img/orig/PAGS.D-fe3bae61.png?t=1720244493", //Banco Pagseguro
+
+    
   };
 
   // mapeamento de codigos de banco para classes CSS dos icones do github
