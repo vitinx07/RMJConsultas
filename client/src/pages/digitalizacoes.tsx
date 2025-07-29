@@ -608,7 +608,11 @@ export default function DigitalizacoesPage() {
       });
 
       if (!response.ok) {
-        throw new Error('Erro ao consultar proposta');
+        const errorData = await response.json();
+        const errorMessage = response.status === 404 ? 
+          "Não foi retornado resultado com o número de proposta informado" :
+          errorData.error || 'Erro ao consultar proposta';
+        throw new Error(errorMessage);
       }
 
       const data = await response.json();
@@ -622,13 +626,9 @@ export default function DigitalizacoesPage() {
         duration: 3000,
       });
     } catch (error: any) {
-      const errorMessage = error?.response?.status === 404 ? 
-        "Proposta não encontrada no sistema C6 Bank" :
-        "Não foi possível consultar a proposta";
-      
       toast({
         title: "Erro na Consulta",
-        description: errorMessage,
+        description: error.message || "Não foi possível consultar a proposta",
         variant: "destructive",
       });
     } finally {
@@ -647,7 +647,11 @@ export default function DigitalizacoesPage() {
       });
 
       if (!response.ok) {
-        throw new Error('Erro ao consultar movimentação');
+        const errorData = await response.json();
+        const errorMessage = response.status === 404 ? 
+          "Não foi retornado resultado com o número de proposta informado" :
+          errorData.error || 'Erro ao consultar movimentação';
+        throw new Error(errorMessage);
       }
 
       const data = await response.json();
@@ -673,13 +677,9 @@ export default function DigitalizacoesPage() {
         loanTrack: data.loanTrack
       });
     } catch (error: any) {
-      const errorMessage = error?.response?.status === 404 ? 
-        "Movimentações ainda não disponíveis para esta proposta" :
-        "Não foi possível consultar a movimentação";
-      
       toast({
         title: "Erro na Movimentação",
-        description: errorMessage,
+        description: error.message || "Não foi possível consultar a movimentação",
         variant: "destructive",
       });
     } finally {
