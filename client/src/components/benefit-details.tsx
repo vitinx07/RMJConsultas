@@ -1077,7 +1077,7 @@ export function BenefitDetails({ benefit }: BenefitDetailsProps) {
                           </span>
                         </div>
                         <div className="text-xs text-muted-foreground mt-2">
-                          * Cálculo aproximado usando fator {FATOR_CONSIGNADO}
+                          
                         </div>
                       </div>
                     </div>
@@ -1109,7 +1109,7 @@ export function BenefitDetails({ benefit }: BenefitDetailsProps) {
                           </span>
                         </div>
                         <div className="text-xs text-muted-foreground mt-2">
-                          * Valores aproximados baseados nos fatores de mercado
+                          
                         </div>
                       </div>
                     </div>
@@ -1141,7 +1141,7 @@ export function BenefitDetails({ benefit }: BenefitDetailsProps) {
                           </span>
                         </div>
                         <div className="text-xs text-muted-foreground mt-2">
-                          * Valores aproximados baseados nos fatores de mercado
+                          
                         </div>
                       </div>
                     </div>
