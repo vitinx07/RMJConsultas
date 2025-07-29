@@ -434,13 +434,13 @@ export default function DigitalizacoesPage() {
               )}
 
               {/* Seguro */}
-              {(dadosCompletos.insurance_package || dadosCompletos.insurance_details || selectedDigitization.selectedInsurance !== 'none') && (
+              {(dadosCompletos.insurance_package || dadosCompletos.insurance_details) && (
                 <div className="mt-4 p-3 bg-yellow-50 dark:bg-yellow-900/20 rounded">
                   <h4 className="font-semibold mb-2 text-yellow-800 dark:text-yellow-200">🛡️ Seguro</h4>
                   <div className="grid grid-cols-1 gap-1 text-xs">
-                    {(dadosCompletos.insurance_package || selectedDigitization.selectedInsurance !== 'none') && (
+                    {dadosCompletos.insurance_package && (
                       <div>
-                        <span className="font-medium">Pacote:</span> {dadosCompletos.insurance_package || 'Pacote SEGURO'}
+                        <span className="font-medium">Pacote:</span> {dadosCompletos.insurance_package}
                       </div>
                     )}
                     {dadosCompletos.insurance_details && (
@@ -451,11 +451,6 @@ export default function DigitalizacoesPage() {
                     {dadosCompletos.insurance_value && (
                       <div>
                         <span className="font-medium">Valor:</span> R$ {dadosCompletos.insurance_value.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                      </div>
-                    )}
-                    {selectedDigitization.selectedInsurance && selectedDigitization.selectedInsurance !== 'none' && !dadosCompletos.insurance_package && (
-                      <div>
-                        <span className="font-medium">Selecionado:</span> {selectedDigitization.selectedInsurance}
                       </div>
                     )}
                   </div>
