@@ -25,7 +25,6 @@ export interface AuthenticatedRequest extends Request {
   };
 }
 
-// Middleware para verificar se o usuário está autenticado
 export const requireAuth = async (req: Request, res: Response, next: NextFunction) => {
   console.log(`🔒 Auth check - Path: ${req.path}, Session exists: ${!!req.session}, UserID: ${req.session?.userId || 'none'}`);
   
