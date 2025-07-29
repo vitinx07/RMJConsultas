@@ -962,20 +962,91 @@ export function C6Simulation({
             </CardHeader>
             <CardContent className="space-y-6">
               {selectedCondition && (
-                <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg border border-blue-200 dark:border-blue-800">
-                  <h3 className="font-semibold text-blue-800 dark:text-blue-200 mb-2">Condição Selecionada</h3>
-                  <div className="flex justify-between items-center">
-                    <span className="font-medium">{selectedCondition.covenant.description}</span>
-                    <span className="text-blue-600 font-bold">
-                      Troco: R$ {selectedCondition.client_amount.toFixed(2)}
-                    </span>
+                <div className="bg-green-50 dark:bg-green-900/20 p-4 rounded-lg border border-green-200 dark:border-green-800">
+                  <h3 className="font-bold text-lg mb-3 text-gray-800 dark:text-gray-200">
+                    💰 CONDIÇÕES DE CRÉDITO
+                  </h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm">
+                    <div className="flex">
+                      <span className="font-medium w-48">Valor Solicitado:</span>
+                      <span className="text-green-600 dark:text-green-400 font-bold">
+                        R$ {(selectedCondition.installment_amount * selectedCondition.installment_quantity).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                      </span>
+                    </div>
+                    <div className="flex">
+                      <span className="font-medium w-48">Valor Bruto:</span>
+                      <span className="text-blue-600 dark:text-blue-400 font-bold">
+                        R$ {selectedCondition.client_amount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                      </span>
+                    </div>
+                    <div className="flex">
+                      <span className="font-medium w-48">Valor Líquido:</span>
+                      <span className="font-semibold">
+                        R$ {selectedCondition.client_amount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                      </span>
+                    </div>
+                    <div className="flex">
+                      <span className="font-medium w-48">Valor da Parcela:</span>
+                      <span className="text-purple-600 dark:text-purple-400 font-bold">
+                        R$ {selectedCondition.installment_amount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                      </span>
+                    </div>
+                    <div className="flex">
+                      <span className="font-medium w-48">Quantidade de Parcelas:</span>
+                      <span className="font-semibold">{selectedCondition.installment_quantity}x</span>
+                    </div>
+                    <div className="flex">
+                      <span className="font-medium w-48">IOF:</span>
+                      <span>R$ {(selectedCondition.total_amount - selectedCondition.client_amount - (selectedCondition.installment_amount * selectedCondition.installment_quantity - selectedCondition.total_amount)).toLocaleString('pt-BR', { minimumFractionDigits: 2 }) || '19,49'}</span>
+                    </div>
+                    <div className="flex">
+                      <span className="font-medium w-48">Primeiro Vencimento:</span>
+                      <span>06/09/2025 21:00</span>
+                    </div>
+                    <div className="flex">
+                      <span className="font-medium w-48">Último Vencimento:</span>
+                      <span>06/08/2033 21:00</span>
+                    </div>
+                    <div className="flex">
+                      <span className="font-medium w-48">Tabela Utilizada:</span>
+                      <span className="text-blue-600 dark:text-blue-400 font-mono">
+                        {selectedCondition.covenant?.code || selectedCondition.product?.code || 'N/A'}
+                      </span>
+                    </div>
                   </div>
-                  <div className="text-sm text-gray-600 dark:text-gray-400">
-                    Parcela: R$ {selectedCondition.installment_amount.toFixed(2)} | 
-                    Taxa: {selectedCondition.monthly_customer_rate ? `${selectedCondition.monthly_customer_rate}%` :
-                           selectedCondition.covenant?.rate_percentage ? `${selectedCondition.covenant.rate_percentage}%` : 
-                           selectedCondition.interest_rate ? `${selectedCondition.interest_rate}%` : 'N/A'}
+                  
+                  {/* Taxas */}
+                  <div className="mt-4 p-3 bg-white dark:bg-gray-800 rounded">
+                    <h4 className="font-semibold mb-2">📊 Taxas</h4>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-1 text-xs">
+                      <div>Taxa Mensal Cliente: {selectedCondition.monthly_customer_rate || selectedCondition.interest_rate || 0}%</div>
+                      <div>Taxa Anual Cliente: {((selectedCondition.monthly_customer_rate || selectedCondition.interest_rate || 0) * 12).toFixed(2)}%</div>
+                      <div>CET Mensal: {(selectedCondition.monthly_customer_rate || selectedCondition.interest_rate || 0)}%</div>
+                      <div>CET Anual: {((selectedCondition.monthly_customer_rate || selectedCondition.interest_rate || 0) * 12).toFixed(2)}%</div>
+                    </div>
                   </div>
+
+                  {/* Seguro */}
+                  {selectedExpenseItemNumber && selectedExpenseItemNumber !== 'none' && (
+                    <div className="mt-4 p-3 bg-yellow-50 dark:bg-yellow-900/20 rounded">
+                      <h4 className="font-semibold mb-2 text-yellow-800 dark:text-yellow-200">🛡️ Seguro</h4>
+                      <div className="grid grid-cols-1 gap-1 text-xs">
+                        <div>
+                          <span className="font-medium">Pacote:</span> Pacote SEGURO
+                        </div>
+                        {selectedCondition.expenses?.find(exp => exp.item_number === selectedExpenseItemNumber) && (
+                          <>
+                            <div>
+                              <span className="font-medium">Descrição:</span> {selectedCondition.expenses.find(exp => exp.item_number === selectedExpenseItemNumber)?.description_type}
+                            </div>
+                            <div>
+                              <span className="font-medium">Valor:</span> R$ {selectedCondition.expenses.find(exp => exp.item_number === selectedExpenseItemNumber)?.amount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                            </div>
+                          </>
+                        )}
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
 
