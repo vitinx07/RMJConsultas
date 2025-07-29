@@ -1561,7 +1561,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         body: new URLSearchParams({
           username: '46437248890_003130',
           password: 'Nipo4810**'
-        })
+        }),
+        signal: AbortSignal.timeout(30000) // Timeout de 30 segundos
       });
 
       if (!authResponse.ok) {
@@ -1577,7 +1578,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         headers: {
           'Authorization': token,
           'Accept': 'application/vnd.c6bank_fgts_consult_v2+json'
-        }
+        },
+        signal: AbortSignal.timeout(30000) // Timeout de 30 segundos
       });
 
       if (!response.ok) {
@@ -1619,9 +1621,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       res.json(proposalDetails);
 
-    } catch (error) {
+    } catch (error: any) {
       console.error('❌ Erro ao consultar proposta:', error);
-      res.status(500).json({ error: 'Erro ao consultar proposta na API C6' });
+      
+      // Tratamento específico para timeout
+      if (error.name === 'AbortError' || error.cause?.code === 'UND_ERR_CONNECT_TIMEOUT') {
+        return res.status(504).json({ 
+          error: 'Tempo limite excedido',
+          message: 'A consulta está demorando mais que o esperado. Por favor, tente novamente em alguns instantes.',
+          details: 'A API do C6 Bank não respondeu dentro do tempo limite de 30 segundos.'
+        });
+      }
+      
+      res.status(500).json({ 
+        error: 'Erro ao consultar proposta na API C6',
+        message: 'Ocorreu um erro ao consultar a proposta. Por favor, tente novamente.',
+        details: error.message || 'Erro interno do servidor'
+      });
     }
   });
 
@@ -1645,7 +1661,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         body: new URLSearchParams({
           username: '46437248890_003130',
           password: 'Nipo4810**'
-        })
+        }),
+        signal: AbortSignal.timeout(30000) // Timeout de 30 segundos
       });
 
       if (!authResponse.ok) {
@@ -1661,7 +1678,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         headers: {
           'Authorization': token,
           'Accept': 'application/vnd.c6bank_fgts_consult_v2+json'
-        }
+        },
+        signal: AbortSignal.timeout(30000) // Timeout de 30 segundos
       });
 
       if (!response.ok) {
