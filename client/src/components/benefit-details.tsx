@@ -11,7 +11,8 @@ import {
   UserX,
   PiggyBank,
   Calculator,
-  Printer
+  Printer,
+  TrendingUp
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { 
@@ -22,6 +23,12 @@ import {
 } from "@/components/ui/accordion";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { 
   Table, 
   TableBody, 
@@ -51,6 +58,47 @@ export function BenefitDetails({ benefit }: BenefitDetailsProps) {
     Associacao,
     DadosRepresentante 
   } = benefit;
+
+  const [showSimulation, setShowSimulation] = useState(false);
+
+  // Fatores de simulação
+  const FATOR_CONSIGNADO = 35.6674;
+  const FATOR_RMC_RCC_PARCELA = 0.637;
+  const FATOR_RMC_RCC_LIBERADO = 22.4;
+
+  // Calcular simulações
+  const calcularSimulacoes = () => {
+    const simulacoes = {
+      consignado: null as { valorEmprestimo: number } | null,
+      rmc: null as { valorParcela: number; valorLiberado: number } | null,
+      rcc: null as { valorParcela: number; valorLiberado: number } | null,
+    };
+
+    // Simulação Empréstimo Consignado
+    if (ResumoFinanceiro.MargemDisponivelEmprestimo && ResumoFinanceiro.MargemDisponivelEmprestimo > 0) {
+      simulacoes.consignado = {
+        valorEmprestimo: ResumoFinanceiro.MargemDisponivelEmprestimo * FATOR_CONSIGNADO
+      };
+    }
+
+    // Simulação RMC
+    if (ResumoFinanceiro.MargemDisponivelRmc && ResumoFinanceiro.MargemDisponivelRmc > 0) {
+      simulacoes.rmc = {
+        valorParcela: ResumoFinanceiro.MargemDisponivelRmc * FATOR_RMC_RCC_PARCELA,
+        valorLiberado: ResumoFinanceiro.MargemDisponivelRmc * FATOR_RMC_RCC_LIBERADO
+      };
+    }
+
+    // Simulação RCC
+    if (ResumoFinanceiro.MargemDisponivelRcc && ResumoFinanceiro.MargemDisponivelRcc > 0) {
+      simulacoes.rcc = {
+        valorParcela: ResumoFinanceiro.MargemDisponivelRcc * FATOR_RMC_RCC_PARCELA,
+        valorLiberado: ResumoFinanceiro.MargemDisponivelRcc * FATOR_RMC_RCC_LIBERADO
+      };
+    }
+
+    return simulacoes;
+  };
 
   const handlePrintContracts = () => {
     const printContent = `
@@ -557,11 +605,23 @@ export function BenefitDetails({ benefit }: BenefitDetailsProps) {
                 <div className="space-y-4">
                   <div className="bg-green-50 dark:bg-green-900/20 rounded-lg p-4 border border-green-200 dark:border-green-800">
                     <div className="flex items-center justify-between">
-                      <div>
+                      <div className="flex-1">
                         <p className="text-sm text-muted-foreground">Margem Empréstimo</p>
-                        <p className="text-2xl font-bold text-green-600 dark:text-green-400">
-                          {formatCurrency(ResumoFinanceiro.MargemDisponivelEmprestimo)}
-                        </p>
+                        <div className="flex items-center gap-3">
+                          <p className="text-2xl font-bold text-green-600 dark:text-green-400">
+                            {formatCurrency(ResumoFinanceiro.MargemDisponivelEmprestimo)}
+                          </p>
+                          {ResumoFinanceiro.MargemDisponivelEmprestimo > 0 && (
+                            <Button 
+                              size="sm" 
+                              className="bg-green-600 hover:bg-green-700 text-white"
+                              onClick={() => setShowSimulation(true)}
+                            >
+                              <TrendingUp className="h-4 w-4 mr-1" />
+                              Simular
+                            </Button>
+                          )}
+                        </div>
                       </div>
                       <div className="w-16 h-16 bg-green-600 dark:bg-green-700 rounded-full flex items-center justify-center">
                         <PiggyBank className="h-8 w-8 text-white" />
@@ -980,6 +1040,126 @@ export function BenefitDetails({ benefit }: BenefitDetailsProps) {
 
         </Accordion>
       </Card>
+
+      {/* Modal de Simulação */}
+      <Dialog open={showSimulation} onOpenChange={setShowSimulation}>
+        <DialogContent className="sm:max-w-[600px]">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <TrendingUp className="h-5 w-5 text-primary" />
+              Simulação de Valores Aproximados
+            </DialogTitle>
+          </DialogHeader>
+          
+          <div className="space-y-4 mt-4">
+            {(() => {
+              const simulacoes = calcularSimulacoes();
+              
+              return (
+                <>
+                  {/* Empréstimo Consignado */}
+                  {simulacoes.consignado && (
+                    <div className="bg-green-50 dark:bg-green-900/20 p-4 rounded-lg border border-green-200 dark:border-green-800">
+                      <h3 className="font-semibold text-green-800 dark:text-green-400 mb-2">
+                        Empréstimo Consignado
+                      </h3>
+                      <div className="space-y-2">
+                        <div className="flex justify-between items-center">
+                          <span className="text-sm text-muted-foreground">Margem Disponível:</span>
+                          <span className="font-semibold text-green-600 dark:text-green-400">
+                            {formatCurrency(ResumoFinanceiro.MargemDisponivelEmprestimo)}
+                          </span>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span className="text-sm text-muted-foreground">Valor Aproximado do Empréstimo:</span>
+                          <span className="text-xl font-bold text-green-600 dark:text-green-400">
+                            {formatCurrency(simulacoes.consignado.valorEmprestimo)}
+                          </span>
+                        </div>
+                        <div className="text-xs text-muted-foreground mt-2">
+                          * Cálculo aproximado usando fator {FATOR_CONSIGNADO}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Margem RMC */}
+                  {simulacoes.rmc && (
+                    <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg border border-blue-200 dark:border-blue-800">
+                      <h3 className="font-semibold text-blue-800 dark:text-blue-400 mb-2">
+                        Margem RMC - Cartão de Crédito Consignado
+                      </h3>
+                      <div className="space-y-2">
+                        <div className="flex justify-between items-center">
+                          <span className="text-sm text-muted-foreground">Margem Disponível:</span>
+                          <span className="font-semibold text-blue-600 dark:text-blue-400">
+                            {formatCurrency(ResumoFinanceiro.MargemDisponivelRmc)}
+                          </span>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span className="text-sm text-muted-foreground">Parcela Mensal Estimada:</span>
+                          <span className="font-bold text-blue-600 dark:text-blue-400">
+                            {formatCurrency(simulacoes.rmc.valorParcela)}
+                          </span>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span className="text-sm text-muted-foreground">Valor Liberado (Troco):</span>
+                          <span className="text-xl font-bold text-blue-600 dark:text-blue-400">
+                            {formatCurrency(simulacoes.rmc.valorLiberado)}
+                          </span>
+                        </div>
+                        <div className="text-xs text-muted-foreground mt-2">
+                          * Valores aproximados baseados nos fatores de mercado
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Margem RCC */}
+                  {simulacoes.rcc && (
+                    <div className="bg-purple-50 dark:bg-purple-900/20 p-4 rounded-lg border border-purple-200 dark:border-purple-800">
+                      <h3 className="font-semibold text-purple-800 dark:text-purple-400 mb-2">
+                        Margem RCC - Reserva de Margem Consignável
+                      </h3>
+                      <div className="space-y-2">
+                        <div className="flex justify-between items-center">
+                          <span className="text-sm text-muted-foreground">Margem Disponível:</span>
+                          <span className="font-semibold text-purple-600 dark:text-purple-400">
+                            {formatCurrency(ResumoFinanceiro.MargemDisponivelRcc)}
+                          </span>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span className="text-sm text-muted-foreground">Parcela Mensal Estimada:</span>
+                          <span className="font-bold text-purple-600 dark:text-purple-400">
+                            {formatCurrency(simulacoes.rcc.valorParcela)}
+                          </span>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span className="text-sm text-muted-foreground">Valor Liberado (Troco):</span>
+                          <span className="text-xl font-bold text-purple-600 dark:text-purple-400">
+                            {formatCurrency(simulacoes.rcc.valorLiberado)}
+                          </span>
+                        </div>
+                        <div className="text-xs text-muted-foreground mt-2">
+                          * Valores aproximados baseados nos fatores de mercado
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Aviso importante */}
+                  <div className="bg-amber-50 dark:bg-amber-900/20 p-3 rounded-lg border border-amber-200 dark:border-amber-800">
+                    <p className="text-sm text-amber-800 dark:text-amber-400">
+                      <strong>Importante:</strong> Estes são valores aproximados para fins de referência. 
+                      Os valores finais podem variar de acordo com as condições específicas de cada instituição financeira.
+                    </p>
+                  </div>
+                </>
+              );
+            })()}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
