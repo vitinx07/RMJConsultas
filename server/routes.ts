@@ -1586,11 +1586,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const errorText = await response.text();
         console.log('❌ Erro na consulta da proposta:', errorText);
 
-        if (response.status === 404) {
+        if (response.status === 404 || response.status === 422) {
+          let errorData;
+          try {
+            errorData = JSON.parse(errorText);
+          } catch {
+            errorData = { message: errorText };
+          }
+          
           return res.status(404).json({ 
             error: 'Proposta não encontrada',
-            message: `A proposta ${proposalNumber} não foi localizada no sistema C6 Bank. Verifique se o número está correto.`,
-            proposalNumber 
+            message: errorData.message || `A proposta ${proposalNumber} não foi localizada no sistema C6 Bank. Verifique se o número está correto.`,
+            proposalNumber,
+            details: errorData.details || []
           });
         }
 
@@ -1686,11 +1694,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const errorText = await response.text();
         console.log('❌ Erro na consulta de movimentação:', errorText);
 
-        if (response.status === 404) {
+        if (response.status === 404 || response.status === 422) {
+          let errorData;
+          try {
+            errorData = JSON.parse(errorText);
+          } catch {
+            errorData = { message: errorText };
+          }
+          
           return res.status(404).json({ 
             error: 'Movimentação não encontrada',
-            message: `Não foi possível localizar movimentações para a proposta ${proposalNumber}. A proposta pode ainda estar em processamento inicial.`,
-            proposalNumber 
+            message: errorData.message || `Não foi possível localizar movimentações para a proposta ${proposalNumber}. A proposta pode ainda estar em processamento inicial.`,
+            proposalNumber,
+            details: errorData.details || []
           });
         }
 
