@@ -12,7 +12,8 @@ import {
   PiggyBank,
   Calculator,
   Printer,
-  TrendingUp
+  TrendingUp,
+  Phone
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { 
@@ -161,6 +162,17 @@ export function BenefitDetails({ benefit }: BenefitDetailsProps) {
             <div class="info-item"><strong>Endereço:</strong> ${Beneficiario.Endereco}, ${Beneficiario.Bairro}</div>
             <div class="info-item"><strong>Cidade/UF:</strong> ${Beneficiario.Cidade} - ${Beneficiario.UF}</div>
             <div class="info-item"><strong>CEP:</strong> ${Beneficiario.CEP}</div>
+            ${Beneficiario.Telefones && Beneficiario.Telefones.length > 0 ? `
+              <div class="info-item" style="grid-column: 1 / -1;"><strong>Telefones:</strong> ${Beneficiario.Telefones.map(tel => {
+                const numero = tel.TELEFONE;
+                const formatado = numero.length === 11 
+                  ? `(${numero.substring(0, 2)}) ${numero.substring(2, 3)} ${numero.substring(3, 7)}-${numero.substring(7)}`
+                  : numero.length === 10
+                  ? `(${numero.substring(0, 2)}) ${numero.substring(2, 6)}-${numero.substring(6)}`
+                  : numero;
+                return formatado;
+              }).join(' | ')}</div>
+            ` : ''}
             <div class="info-item"><strong>Situação:</strong> ${Beneficiario.Situacao}</div>
             <div class="info-item"><strong>Bloqueado para Empréstimo:</strong> ${Beneficiario.BloqueadoEmprestimo === 'SIM' ? 'SIM' : 'NÃO'}</div>
             <div class="info-item"><strong>Espécie:</strong> ${Beneficiario.Especie} - ${getBenefitSpeciesName(Beneficiario.Especie)}</div>
@@ -475,6 +487,37 @@ export function BenefitDetails({ benefit }: BenefitDetailsProps) {
                     </p>
                   </div>
                 </div>
+                
+                {/* Telefones */}
+                {Beneficiario.Telefones && Beneficiario.Telefones.length > 0 && (
+                  <div className="flex items-start gap-3 md:col-span-2 lg:col-span-3">
+                    <Phone className="h-5 w-5 text-muted-foreground mt-1" />
+                    <div className="flex-1">
+                      <p className="text-sm text-muted-foreground mb-2">Telefones</p>
+                      <div className="flex flex-wrap gap-3">
+                        {Beneficiario.Telefones.map((tel, index) => {
+                          const numero = tel.TELEFONE;
+                          const formatado = numero.length === 11 
+                            ? `(${numero.substring(0, 2)}) ${numero.substring(2, 3)} ${numero.substring(3, 7)}-${numero.substring(7)}`
+                            : numero.length === 10
+                            ? `(${numero.substring(0, 2)}) ${numero.substring(2, 6)}-${numero.substring(6)}`
+                            : numero;
+                          
+                          return (
+                            <Badge 
+                              key={index} 
+                              variant="secondary" 
+                              className="bg-blue-100 dark:bg-blue-900/20 text-blue-800 dark:text-blue-300 font-semibold px-3 py-1"
+                            >
+                              <Phone className="h-3 w-3 mr-1" />
+                              {formatado}
+                            </Badge>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
             </AccordionContent>
           </AccordionItem>

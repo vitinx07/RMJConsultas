@@ -324,19 +324,54 @@ function ConsultationDetails({ consultation, onExportPDF }: { consultation: any,
             Dados de Contato
           </AccordionTrigger>
           <AccordionContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="text-sm font-medium text-muted-foreground">CEP</label>
-                <p className="text-sm">{currentBenefit.Beneficiario?.Cep || 'N/A'}</p>
+            <div className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="text-sm font-medium text-muted-foreground">CEP</label>
+                  <p className="text-sm">{currentBenefit.Beneficiario?.CEP || currentBenefit.Beneficiario?.Cep || 'N/A'}</p>
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-muted-foreground">Email</label>
+                  <p className="text-sm">{currentBenefit.Beneficiario?.Email || 'N/A'}</p>
+                </div>
               </div>
-              <div>
-                <label className="text-sm font-medium text-muted-foreground">Telefone</label>
-                <p className="text-sm">{currentBenefit.Beneficiario?.Telefone || 'N/A'}</p>
-              </div>
-              <div>
-                <label className="text-sm font-medium text-muted-foreground">Email</label>
-                <p className="text-sm">{currentBenefit.Beneficiario?.Email || 'N/A'}</p>
-              </div>
+              
+              {/* Telefones no novo formato */}
+              {currentBenefit.Beneficiario?.Telefones && currentBenefit.Beneficiario.Telefones.length > 0 && (
+                <div>
+                  <label className="text-sm font-medium text-muted-foreground mb-2 block">Telefones</label>
+                  <div className="flex flex-wrap gap-2">
+                    {currentBenefit.Beneficiario.Telefones.map((tel: any, index: number) => {
+                      const numero = tel.TELEFONE;
+                      const formatado = numero.length === 11 
+                        ? `(${numero.substring(0, 2)}) ${numero.substring(2, 3)} ${numero.substring(3, 7)}-${numero.substring(7)}`
+                        : numero.length === 10
+                        ? `(${numero.substring(0, 2)}) ${numero.substring(2, 6)}-${numero.substring(6)}`
+                        : numero;
+                      
+                      return (
+                        <Badge 
+                          key={index} 
+                          variant="secondary" 
+                          className="bg-blue-100 dark:bg-blue-900/20 text-blue-800 dark:text-blue-300"
+                        >
+                          <Phone className="h-3 w-3 mr-1" />
+                          {formatado}
+                        </Badge>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+              
+              {/* Telefone antigo (caso não tenha o novo formato) */}
+              {(!currentBenefit.Beneficiario?.Telefones || currentBenefit.Beneficiario.Telefones.length === 0) && 
+               currentBenefit.Beneficiario?.Telefone && (
+                <div>
+                  <label className="text-sm font-medium text-muted-foreground">Telefone</label>
+                  <p className="text-sm">{currentBenefit.Beneficiario.Telefone}</p>
+                </div>
+              )}
             </div>
           </AccordionContent>
         </AccordionItem>
@@ -415,8 +450,19 @@ ${benefit.Beneficiario?.MotivoBloqueio ? `Motivo do Bloqueio: ${benefit.Benefici
 
 DADOS DE CONTATO E ENDEREÇO
 =================================================================
-CEP: ${benefit.Beneficiario?.Cep || 'N/A'}
-Telefone: ${benefit.Beneficiario?.Telefone || 'N/A'}
+CEP: ${benefit.Beneficiario?.CEP || benefit.Beneficiario?.Cep || 'N/A'}
+${benefit.Beneficiario?.Telefones && benefit.Beneficiario.Telefones.length > 0 ? 
+  `Telefones: ${benefit.Beneficiario.Telefones.map((tel: any) => {
+    const numero = tel.TELEFONE;
+    const formatado = numero.length === 11 
+      ? `(${numero.substring(0, 2)}) ${numero.substring(2, 3)} ${numero.substring(3, 7)}-${numero.substring(7)}`
+      : numero.length === 10
+      ? `(${numero.substring(0, 2)}) ${numero.substring(2, 6)}-${numero.substring(6)}`
+      : numero;
+    return formatado;
+  }).join(' | ')}`
+  : benefit.Beneficiario?.Telefone ? `Telefone: ${benefit.Beneficiario.Telefone}` : 'Telefone: N/A'
+}
 Email: ${benefit.Beneficiario?.Email || 'N/A'}
 
 CONTRATOS DE EMPRÉSTIMO ATIVOS

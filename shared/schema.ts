@@ -38,6 +38,9 @@ export const beneficiarySchema = z.object({
   Cidade: z.string(),
   CEP: z.string(),
   MotivoBloqueio: z.string().nullable(),
+  Telefones: z.array(z.object({
+    TELEFONE: z.string()
+  })).optional(),
 });
 
 export const financialSummarySchema = z.object({
