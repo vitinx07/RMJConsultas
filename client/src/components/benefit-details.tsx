@@ -683,13 +683,25 @@ export function BenefitDetails({ benefit }: BenefitDetailsProps) {
                           <Badge variant="destructive" className="text-xs">NEGATIVA</Badge>
                         )}
                       </div>
-                      <p className={`text-lg font-semibold ${
-                        ResumoFinanceiro.MargemDisponivelRmc < 0 ? 
-                        'text-red-600 dark:text-red-400' : 
-                        'text-foreground'
-                      }`}>
-                        {formatCurrency(ResumoFinanceiro.MargemDisponivelRmc)}
-                      </p>
+                      <div className="flex items-center gap-2">
+                        <p className={`text-lg font-semibold ${
+                          ResumoFinanceiro.MargemDisponivelRmc < 0 ? 
+                          'text-red-600 dark:text-red-400' : 
+                          'text-foreground'
+                        }`}>
+                          {formatCurrency(ResumoFinanceiro.MargemDisponivelRmc)}
+                        </p>
+                        {ResumoFinanceiro.MargemDisponivelRmc > 0 && (
+                          <Button 
+                            size="sm" 
+                            variant="outline"
+                            className="h-6 px-2 text-xs"
+                            onClick={() => setShowSimulation(true)}
+                          >
+                            Simular
+                          </Button>
+                        )}
+                      </div>
                       {ResumoFinanceiro.MargemDisponivelRmc < 0 && (
                         <p className="text-xs text-red-600 dark:text-red-400 mt-1">
                           Cliente com cartão em débito
@@ -707,13 +719,25 @@ export function BenefitDetails({ benefit }: BenefitDetailsProps) {
                           <Badge variant="destructive" className="text-xs">NEGATIVA</Badge>
                         )}
                       </div>
-                      <p className={`text-lg font-semibold ${
-                        ResumoFinanceiro.MargemDisponivelRcc < 0 ? 
-                        'text-red-600 dark:text-red-400' : 
-                        'text-foreground'
-                      }`}>
-                        {formatCurrency(ResumoFinanceiro.MargemDisponivelRcc)}
-                      </p>
+                      <div className="flex items-center gap-2">
+                        <p className={`text-lg font-semibold ${
+                          ResumoFinanceiro.MargemDisponivelRcc < 0 ? 
+                          'text-red-600 dark:text-red-400' : 
+                          'text-foreground'
+                        }`}>
+                          {formatCurrency(ResumoFinanceiro.MargemDisponivelRcc)}
+                        </p>
+                        {ResumoFinanceiro.MargemDisponivelRcc > 0 && (
+                          <Button 
+                            size="sm" 
+                            variant="outline"
+                            className="h-6 px-2 text-xs"
+                            onClick={() => setShowSimulation(true)}
+                          >
+                            Simular
+                          </Button>
+                        )}
+                      </div>
                       {ResumoFinanceiro.MargemDisponivelRcc < 0 && (
                         <p className="text-xs text-red-600 dark:text-red-400 mt-1">
                           Cliente com cartão em débito
