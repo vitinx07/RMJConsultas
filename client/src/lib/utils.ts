@@ -126,6 +126,7 @@ export function getBankName(code: string): string {
     '389': 'Banco Mercantil',
     '359': 'Banco Zema CFI',
     '079': 'Picpay',
+    '908': 'Parati',
   };
 
   return bankMap[code] || `Banco ${code}`;

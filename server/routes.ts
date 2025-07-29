@@ -667,7 +667,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
               beneficiaryName: beneficiary.Nome,
               benefitValue: financial.ValorBeneficio,
               availableMargin: financial.MargemDisponivelEmprestimo,
-              loanBlocked: beneficiary.BloqueadoEmprestimo === "SIM",
+              loanBlocked: beneficiary.BloqueadoEmprestimo === "SIM" || beneficiary.BloqueadoEmprestimo === "1",
               blockReason: beneficiary.MotivoBloqueio,
               resultData: benefit,
             });
@@ -737,7 +737,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             beneficiaryName: beneficiary.Nome,
             benefitValue: financial.ValorBeneficio,
             availableMargin: financial.MargemDisponivelEmprestimo,
-            loanBlocked: beneficiary.BloqueadoEmprestimo === "SIM",
+            loanBlocked: beneficiary.BloqueadoEmprestimo === "SIM" || beneficiary.BloqueadoEmprestimo === "1",
             blockReason: beneficiary.MotivoBloqueio,
             resultData: data,
           });
@@ -1916,7 +1916,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
               enrichedData.availableMargin = firstBenefit.ResumoFinanceiro.MargemDisponivelEmprestimo;
             }
             if (enrichedData.loanBlocked === null || enrichedData.loanBlocked === undefined) {
-              enrichedData.loanBlocked = firstBenefit.Beneficiario?.BloqueadoEmprestimo === 'SIM' || firstBenefit.Beneficiario?.BloqueadoEmprestimo === 'S';
+              enrichedData.loanBlocked = firstBenefit.Beneficiario?.BloqueadoEmprestimo === 'SIM' || firstBenefit.Beneficiario?.BloqueadoEmprestimo === 'S' || firstBenefit.Beneficiario?.BloqueadoEmprestimo === '1';
             }
           }
         }

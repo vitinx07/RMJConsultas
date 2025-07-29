@@ -67,10 +67,12 @@ export function BankIcon({ bankCode, className = "w-6 h-6" }: BankIconProps) {
 
     "001": "https://gestao.sistemacorban.com.br/imagens/0001.e743891b.svg", //Banco BB
 
-    "079": "https://cdn.brandfetch.io/id-EZkq3JI/w/400/h/400/theme/dark/icon.png?c=1dxbfHSJFAPEGdCLU4o5B", //Banco BB
+    "079": "https://cdn.brandfetch.io/id-EZkq3JI/w/400/h/400/theme/dark/icon.png?c=1dxbfHSJFAPEGdCLU4o5B", //Banco Picpay
+
+    "908": "https://media.licdn.com/dms/image/v2/C4D0BAQEdzHu5qfDFYQ/company-logo_200_200/company-logo_200_200/0/1630541214338?e=2147483647&v=beta&t=-BRE56c3A7P2gHaWSmsH_SPPJ9kCxgz4gcmjBKBjeRo", //Banco Parati
   };
 
-  // Mapeamento de códigos de banco para classes CSS dos ícones
+  // mapeamento de codigos de banco para classes CSS dos icones do github
   const bankIconClasses: { [key: string]: string } = {
     "001": "ibb-banco-brasil", // Banco do Brasil
     "033": "ibb-santander", // Santander
@@ -92,7 +94,7 @@ export function BankIcon({ bankCode, className = "w-6 h-6" }: BankIconProps) {
     "003": "ibb-banco-amazonia", // Banco da Amazônia
   };
 
-  // Cores de fallback para bancos sem ícone da fonte
+  // Cores de fallback para bancos sem icone da fonte
   const bankColors: { [key: string]: string } = {
     "001": "#FED100", // Banco do Brasil
     "033": "#E60012", // Santander
