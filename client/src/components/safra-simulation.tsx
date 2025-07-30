@@ -9,10 +9,9 @@ import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 
 interface SafraSimulationProps {
-  isOpen: boolean;
-  onClose: () => void;
-  contratos: any[];
+  safraContracts: any[];
   beneficiaryData: any;
+  onClose: () => void;
 }
 
 interface SimulationResult {
@@ -23,7 +22,7 @@ interface SimulationResult {
   valorTotal?: number;
 }
 
-export function SafraSimulation({ isOpen, onClose, contratos, beneficiaryData }: SafraSimulationProps) {
+export function SafraSimulation({ safraContracts, beneficiaryData, onClose }: SafraSimulationProps) {
   const [selectedContracts, setSelectedContracts] = useState<string[]>([]);
   const [isSimulating, setIsSimulating] = useState(false);
   const [simulationResults, setSimulationResults] = useState<SimulationResult[]>([]);
@@ -33,20 +32,15 @@ export function SafraSimulation({ isOpen, onClose, contratos, beneficiaryData }:
   const [idConvenio, setIdConvenio] = useState<number | null>(null);
   const { toast } = useToast();
 
-  // Filtra apenas contratos do Safra (código 422)
-  const safraContracts = contratos.filter(c => c.Banco === '422');
-
   useEffect(() => {
-    if (isOpen) {
-      // Reset state when opening
-      setSelectedContracts([]);
-      setSimulationResults([]);
-      setError(null);
-      setSelectedOption('');
-      setToken(null);
-      setIdConvenio(null);
-    }
-  }, [isOpen]);
+    // Reset state when component mounts
+    setSelectedContracts([]);
+    setSimulationResults([]);
+    setError(null);
+    setSelectedOption('');
+    setToken(null);
+    setIdConvenio(null);
+  }, []);
 
   const handleContractToggle = (contractId: string) => {
     setSelectedContracts(prev => {
@@ -240,8 +234,6 @@ export function SafraSimulation({ isOpen, onClose, contratos, beneficiaryData }:
       setIsSimulating(false);
     }
   };
-
-  if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
