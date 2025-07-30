@@ -818,6 +818,116 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Safra Bank API endpoints
+  app.post('/api/safra/auth', requireAuthHybrid, async (req, res) => {
+    try {
+      const username = process.env.SAFRA_USERNAME || "APICB510203";
+      const password = process.env.SAFRA_PASSWORD || "89ixu$55_2";
+      
+      const response = await fetch("https://api.safrafinanceira.com.br/apl-api-correspondente/api/v1/Token", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username, password }),
+        signal: AbortSignal.timeout(30000) // 30 second timeout
+      });
+      
+      if (!response.ok) {
+        throw new Error(`Erro na autenticação: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      const token = data.accessToken || data.token;
+      
+      if (!token) {
+        throw new Error("Token não retornado pela API");
+      }
+      
+      res.json({ success: true, token });
+    } catch (error: any) {
+      console.error("❌ Erro na autenticação Safra:", error.message);
+      res.status(500).json({ error: error.message || "Erro na autenticação" });
+    }
+  });
+
+  app.post('/api/safra/convenio', requireAuthHybrid, async (req, res) => {
+    try {
+      const { token } = req.body;
+      
+      if (!token) {
+        return res.status(400).json({ error: "Token não fornecido" });
+      }
+      
+      const response = await fetch("https://api.safrafinanceira.com.br/apl-api-correspondente/api/v1/Convenio?nome=INSS", {
+        method: "GET",
+        headers: { 
+          "Authorization": `Bearer ${token}`,
+          "Content-Type": "application/json"
+        },
+        signal: AbortSignal.timeout(30000)
+      });
+      
+      if (!response.ok) {
+        throw new Error(`Erro ao buscar convênio: ${response.status}`);
+      }
+      
+      const convenios = await response.json();
+      const convenioINSS = convenios.find((c: any) => c.nome?.toUpperCase() === "INSS");
+      
+      if (!convenioINSS) {
+        throw new Error("Convênio INSS não encontrado");
+      }
+      
+      res.json({ success: true, idConvenio: convenioINSS.idConvenio });
+    } catch (error: any) {
+      console.error("❌ Erro ao buscar convênio Safra:", error.message);
+      res.status(500).json({ error: error.message || "Erro ao buscar convênio" });
+    }
+  });
+
+  app.post('/api/safra/simular', requireAuthHybrid, async (req, res) => {
+    try {
+      const { token, payload } = req.body;
+      
+      if (!token || !payload) {
+        return res.status(400).json({ error: "Token ou dados não fornecidos" });
+      }
+      
+      console.log("🔍 Simulando refinanciamento Safra:", JSON.stringify(payload, null, 2));
+      
+      const response = await fetch("https://api.safrafinanceira.com.br/apl-api-correspondente/api/v1/Calculo/Refin", {
+        method: "POST",
+        headers: { 
+          "Authorization": `Bearer ${token}`,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(payload),
+        signal: AbortSignal.timeout(30000)
+      });
+      
+      const responseData = await response.json();
+      
+      if (!response.ok) {
+        console.error("❌ Erro na simulação Safra:", responseData);
+        
+        // Trata críticas específicas da API
+        if (responseData.criticas && responseData.criticas.length > 0) {
+          return res.status(400).json({ 
+            error: responseData.criticas[0],
+            criticas: responseData.criticas
+          });
+        }
+        
+        throw new Error(`Erro na simulação: ${response.status}`);
+      }
+      
+      console.log("✅ Simulação Safra realizada com sucesso");
+      res.json(responseData);
+    } catch (error: any) {
+      console.error("❌ Erro na simulação Safra:", error.message);
+      res.status(500).json({ error: error.message || "Erro na simulação" });
+    }
+  });
+
   // C6 Bank API endpoints (full implementation)
   app.post('/api/c6-bank/simulate', requireAuthHybrid, async (req, res) => {
     try {

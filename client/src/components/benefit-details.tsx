@@ -13,7 +13,8 @@ import {
   Calculator,
   Printer,
   TrendingUp,
-  Phone
+  Phone,
+  BarChart3
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { 
@@ -43,6 +44,7 @@ import { formatCurrency, formatDate, formatDateWithAge, formatCPF, formatBankAcc
 import { BankIcon } from "@/components/bank-icon";
 import { BanrisulSimulation } from "@/components/banrisul-simulation";
 import { C6Simulation } from "@/components/c6-simulation-new";
+import { SafraSimulation } from "@/components/safra-simulation";
 
 interface BenefitDetailsProps {
   benefit: Benefit;
@@ -61,6 +63,8 @@ export function BenefitDetails({ benefit }: BenefitDetailsProps) {
   } = benefit;
 
   const [showSimulation, setShowSimulation] = useState(false);
+  const [showSafraSimulation, setShowSafraSimulation] = useState(false);
+  const [safraContracts, setSafraContracts] = useState<any[]>([]);
 
   // Fatores de simulação
   const FATOR_CONSIGNADO = 35.6674;
@@ -930,6 +934,40 @@ export function BenefitDetails({ benefit }: BenefitDetailsProps) {
                                     />
                                   );
                                 }
+
+                                // Verificar Banco Safra (código 422)
+                                if (originalBankCode === '422' || originalBankCode === '422 - Banco Safra') {
+                                  return (
+                                    <Button
+                                      size="sm"
+                                      className="bg-green-600 hover:bg-green-700 text-white min-w-[80px] h-8"
+                                      onClick={() => {
+                                        setSafraContracts([emprestimo]);
+                                        setShowSafraSimulation(true);
+                                      }}
+                                    >
+                                      <BarChart3 className="h-4 w-4 mr-1" />
+                                      Simular
+                                    </Button>
+                                  );
+                                }
+
+                                // Verificar por nome Safra
+                                if (bankNameFromAPI && bankNameFromAPI.toLowerCase().includes('safra')) {
+                                  return (
+                                    <Button
+                                      size="sm"
+                                      className="bg-green-600 hover:bg-green-700 text-white min-w-[80px] h-8"
+                                      onClick={() => {
+                                        setSafraContracts([emprestimo]);
+                                        setShowSafraSimulation(true);
+                                      }}
+                                    >
+                                      <BarChart3 className="h-4 w-4 mr-1" />
+                                      Simular
+                                    </Button>
+                                  );
+                                }
                                 
                                 return <span className="text-muted-foreground text-xs">N/A</span>;
                               })()}
@@ -1227,6 +1265,15 @@ export function BenefitDetails({ benefit }: BenefitDetailsProps) {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Modal de Simulação Safra */}
+      {showSafraSimulation && (
+        <SafraSimulation
+          beneficiaryData={Beneficiario}
+          safraContracts={safraContracts}
+          onClose={() => setShowSafraSimulation(false)}
+        />
+      )}
     </div>
   );
 }
