@@ -116,7 +116,7 @@ export function getBankName(code: string): string {
     '745': 'Banco Citibank',
     '748': 'Banco Cooperativo Sicredi',
     '756': 'Banco Cooperativo do Brasil',
-    '254': 'Banco Paraná Banco S.A',
+    '254': 'Banco Paraná',
     '626': 'Banco C6',
     '029': 'Banco Itaú Consignado',
     '121': 'Banco Agibank',
@@ -130,6 +130,7 @@ export function getBankName(code: string): string {
     '069': 'Crefisa',
     '081': 'PagSeguro',
     '752': 'BNP Paribas Brasil',
+    '330': 'BANCO BARI S.A.',
   };
 
   return bankMap[code] || `Banco ${code}`;

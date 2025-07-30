@@ -77,9 +77,10 @@ export function BankIcon({ bankCode, className = "w-6 h-6" }: BankIconProps) {
 
     "081": "https://companieslogo.com/img/orig/PAGS.D-fe3bae61.png?t=1720244493", //Banco Pagseguro
 
-     "752": "https://upload.wikimedia.org/wikipedia/commons/b/b2/BNP_Paribas.png", //Banco Pagseguro
+     "752": "https://upload.wikimedia.org/wikipedia/commons/b/b2/BNP_Paribas.png", //Banco bnp paribas
 
-    
+     "330": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRvRoDNpF6IY03IDWqksl0lJ6j7QROyxhf0MA&s", //Banco Bari
+  
   };
 
   // mapeamento de codigos de banco para classes CSS dos icones do github
