@@ -681,8 +681,8 @@ export function C6Simulation({
             fetchBenefitData.mutate(cpf);
           }}
         >
-          <Building2 className="h-3 w-3 mr-1" />
-          Simular
+          <FileText className="h-3 w-3 mr-1" />
+          Digitar
         </Button>
       </DialogTrigger>
 
