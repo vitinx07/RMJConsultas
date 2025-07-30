@@ -1057,6 +1057,18 @@ export default function DigitalizacoesPage() {
                       <div className="flex justify-between">
                         <span className="text-sm">Valor Bruto:</span>
                         <span className="font-medium text-green-600">
+                          R$ {(() => {
+                            const creditCondition = digitization.creditCondition as any;
+                            const installmentQty = creditCondition?.installment_quantity || 0;
+                            const installmentAmt = parseFloat(String(digitization.installmentAmount)) || 0;
+                            const grossAmount = installmentAmt * installmentQty;
+                            return grossAmount.toLocaleString('pt-BR', { minimumFractionDigits: 2 });
+                          })()}
+                        </span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-sm">Valor Solicitado:</span>
+                        <span className="font-medium">
                           R$ {formatCurrency(digitization.requestedAmount)}
                         </span>
                       </div>
@@ -1064,6 +1076,14 @@ export default function DigitalizacoesPage() {
                         <span className="text-sm">Parcela:</span>
                         <span className="font-medium">
                           R$ {formatCurrency(digitization.installmentAmount)}
+                          {(() => {
+                            const creditCondition = digitization.creditCondition as any;
+                            const installmentQty = creditCondition?.installment_quantity;
+                            if (installmentQty) {
+                              return ` x ${installmentQty}`;
+                            }
+                            return '';
+                          })()}
                         </span>
                       </div>
                       <div className="flex justify-between">
@@ -1095,6 +1115,29 @@ export default function DigitalizacoesPage() {
                           </Button>
                         </div>
                       ))}
+                    </div>
+                    
+                    {/* Tabela Utilizada */}
+                    <div className="mt-3 pt-3 border-t">
+                      <div className="text-xs text-muted-foreground">Tabela:</div>
+                      <div className="text-sm font-medium">
+                        {(() => {
+                          const creditCondition = digitization.creditCondition as any;
+                          const productDesc = creditCondition?.product?.description || '';
+                          const covenantDesc = creditCondition?.covenant?.description || '';
+                          
+                          // Procura por INSS Refin nas descrições
+                          if (productDesc.includes('INSS REFIN')) {
+                            return productDesc;
+                          } else if (covenantDesc.includes('INSS REFIN')) {
+                            return covenantDesc;
+                          } else if (productDesc || covenantDesc) {
+                            return productDesc || covenantDesc;
+                          } else {
+                            return 'Tabela não informada';
+                          }
+                        })()}
+                      </div>
                     </div>
                   </div>
 
