@@ -129,6 +129,7 @@ export function getBankName(code: string): string {
     '908': 'Parati',
     '069': 'Crefisa',
     '081': 'PagSeguro',
+    '752': 'BNP Paribas Brasil',
   };
 
   return bankMap[code] || `Banco ${code}`;
