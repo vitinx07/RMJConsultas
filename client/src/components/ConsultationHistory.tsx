@@ -362,9 +362,9 @@ function ConsultationDetails({ consultation, onExportPDF }: { consultation: any,
                     {currentBenefit.Beneficiario.Telefones.map((tel: any, index: number) => {
                       const numero = tel.TELEFONE;
                       const formatado = numero.length === 11 
-                        ? `(${numero.substring(0, 2)}) ${numero.substring(2, 3)} ${numero.substring(3, 7)}-${numero.substring(7)}`
+                        ? `(${numero.substring(0, 2)})${numero.substring(2, 7)}-${numero.substring(7)}`
                         : numero.length === 10
-                        ? `(${numero.substring(0, 2)}) ${numero.substring(2, 6)}-${numero.substring(6)}`
+                        ? `(${numero.substring(0, 2)})${numero.substring(2, 6)}-${numero.substring(6)}`
                         : numero;
                       
                       return (
