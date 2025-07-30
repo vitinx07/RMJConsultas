@@ -442,13 +442,12 @@ export function C6Simulation({
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
         <Button 
-          variant="outline" 
           size="sm" 
-          className={`text-blue-600 hover:text-blue-700 border-blue-300 hover:border-blue-400 ${className}`}
+          className={`bg-blue-600 hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-700 text-white dark:text-white border-0 min-w-[80px] h-8 px-3 rounded-md font-medium transition-all duration-200 shadow-sm hover:shadow-md active:scale-95 ${className}`}
           onClick={handleOpenDialog}
         >
-          <Building2 className="h-4 w-4 mr-2" />
-          C6 Bank
+          <FileText className="h-3 w-3 mr-1" />
+          Digitar
         </Button>
       </DialogTrigger>
       <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">

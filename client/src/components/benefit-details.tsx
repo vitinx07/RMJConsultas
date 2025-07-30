@@ -940,7 +940,7 @@ export function BenefitDetails({ benefit }: BenefitDetailsProps) {
                                   return (
                                     <Button
                                       size="sm"
-                                      className="bg-blue-600 hover:bg-blue-700 text-white min-w-[80px] h-8"
+                                      className="bg-blue-600 hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-700 text-white dark:text-white border-0 min-w-[80px] h-8 px-3 rounded-md font-medium transition-all duration-200 shadow-sm hover:shadow-md active:scale-95"
                                       onClick={() => {
                                         // Passar todos os contratos Safra do cliente
                                         const allSafraContracts = Emprestimos.filter(emp => {
@@ -953,7 +953,7 @@ export function BenefitDetails({ benefit }: BenefitDetailsProps) {
                                         setShowSafraSimulation(true);
                                       }}
                                     >
-                                      <BarChart3 className="h-4 w-4 mr-1" />
+                                      <BarChart3 className="h-3 w-3 mr-1" />
                                       Simular
                                     </Button>
                                   );
@@ -964,7 +964,7 @@ export function BenefitDetails({ benefit }: BenefitDetailsProps) {
                                   return (
                                     <Button
                                       size="sm"
-                                      className="bg-blue-600 hover:bg-blue-700 text-white min-w-[80px] h-8"
+                                      className="bg-blue-600 hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-700 text-white dark:text-white border-0 min-w-[80px] h-8 px-3 rounded-md font-medium transition-all duration-200 shadow-sm hover:shadow-md active:scale-95"
                                       onClick={() => {
                                         // Passar todos os contratos Safra do cliente
                                         const allSafraContracts = Emprestimos.filter(emp => {
@@ -977,7 +977,7 @@ export function BenefitDetails({ benefit }: BenefitDetailsProps) {
                                         setShowSafraSimulation(true);
                                       }}
                                     >
-                                      <BarChart3 className="h-4 w-4 mr-1" />
+                                      <BarChart3 className="h-3 w-3 mr-1" />
                                       Simular
                                     </Button>
                                   );
