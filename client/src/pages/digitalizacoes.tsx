@@ -244,6 +244,12 @@ export default function DigitalizacoesPage() {
     const liberations = dadosCompletos.liberations || [];
     const origins = dadosCompletos.origins || [];
 
+    // Log completo dos dados da proposta no console
+    console.log('\n' + '='.repeat(50));
+    console.log(' '.repeat(15) + 'RELATÓRIO DA PROPOSTA');
+    console.log('='.repeat(50));
+    console.log('Dados completos da proposta:', JSON.stringify(dadosCompletos, null, 2));
+
     return (
       <Dialog open={isOpen} onOpenChange={onClose}>
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
@@ -375,19 +381,25 @@ export default function DigitalizacoesPage() {
                 <div className="flex">
                   <span className="font-medium w-48">Valor Solicitado:</span>
                   <span className="text-green-600 dark:text-green-400 font-bold">
-                    R$ {(creditCondition.requested_amount || creditCondition.installment_amount * creditCondition.installment_quantity || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                    R$ {(creditCondition.requested_amount || creditCondition.net_amount || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                   </span>
                 </div>
                 <div className="flex">
                   <span className="font-medium w-48">Valor Bruto:</span>
                   <span className="text-blue-600 dark:text-blue-400 font-bold">
-                    R$ {(creditCondition.client_amount || creditCondition.net_amount || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                    R$ {(creditCondition.gross_amount || (creditCondition.installment_amount * creditCondition.installment_quantity) || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                   </span>
                 </div>
                 <div className="flex">
                   <span className="font-medium w-48">Valor Líquido:</span>
                   <span className="font-semibold">
-                    R$ {(creditCondition.client_amount || creditCondition.net_amount || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                    R$ {(creditCondition.net_amount || creditCondition.requested_amount || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                  </span>
+                </div>
+                <div className="flex">
+                  <span className="font-medium w-48">Valor Principal:</span>
+                  <span className="font-semibold">
+                    R$ {(creditCondition.principal_amount || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                   </span>
                 </div>
                 <div className="flex">
@@ -424,11 +436,47 @@ export default function DigitalizacoesPage() {
               {creditCondition.taxes && (
                 <div className="mt-4 p-3 bg-white dark:bg-gray-800 rounded">
                   <h4 className="font-semibold mb-2">📊 Taxas</h4>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-1 text-xs">
-                    <div>Taxa Mensal Cliente: {creditCondition.taxes.monthly_customer_rate || 0}%</div>
-                    <div>Taxa Anual Cliente: {creditCondition.taxes.annual_customer_rate || 0}%</div>
-                    <div>CET Mensal: {creditCondition.taxes.monthly_effective_total_cost_rate || 0}%</div>
-                    <div>CET Anual: {creditCondition.taxes.annual_effective_total_cost_rate || 0}%</div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm">
+                    <div className="flex">
+                      <span className="font-medium w-40">Taxa Mensal Cliente:</span>
+                      <span>{creditCondition.taxes.monthly_customer_rate || 0}%</span>
+                    </div>
+                    <div className="flex">
+                      <span className="font-medium w-40">Taxa Anual Cliente:</span>
+                      <span>{creditCondition.taxes.annual_customer_rate || 0}%</span>
+                    </div>
+                    <div className="flex">
+                      <span className="font-medium w-40">CET Mensal:</span>
+                      <span className="text-orange-600 dark:text-orange-400">{creditCondition.taxes.monthly_effective_total_cost_rate || 0}%</span>
+                    </div>
+                    <div className="flex">
+                      <span className="font-medium w-40">CET Anual:</span>
+                      <span className="text-orange-600 dark:text-orange-400">{creditCondition.taxes.annual_effective_total_cost_rate || 0}%</span>
+                    </div>
+                    {creditCondition.taxes.monthly_appropriation_rate && (
+                      <div className="flex">
+                        <span className="font-medium w-40">Taxa Apropriação Mensal:</span>
+                        <span>{creditCondition.taxes.monthly_appropriation_rate}%</span>
+                      </div>
+                    )}
+                    {creditCondition.taxes.annual_appropriation_rate && (
+                      <div className="flex">
+                        <span className="font-medium w-40">Taxa Apropriação Anual:</span>
+                        <span>{creditCondition.taxes.annual_appropriation_rate}%</span>
+                      </div>
+                    )}
+                    {creditCondition.taxes.monthly_nominal_rate && (
+                      <div className="flex">
+                        <span className="font-medium w-40">Taxa Nominal Mensal:</span>
+                        <span>{creditCondition.taxes.monthly_nominal_rate}%</span>
+                      </div>
+                    )}
+                    {creditCondition.taxes.annual_nominal_rate && (
+                      <div className="flex">
+                        <span className="font-medium w-40">Taxa Nominal Anual:</span>
+                        <span>{creditCondition.taxes.annual_nominal_rate}%</span>
+                      </div>
+                    )}
                   </div>
                 </div>
               )}
@@ -574,6 +622,121 @@ export default function DigitalizacoesPage() {
               </div>
             </div>
           )}
+
+          {/* ORIGENS E CORRESPONDENTE */}
+          {origins.length > 0 && (
+            <div className="bg-purple-50 dark:bg-purple-900/20 p-4 rounded-lg">
+              <h3 className="font-bold text-lg mb-3 text-gray-800 dark:text-gray-200">
+                🏢 ORIGENS E CORRESPONDENTE
+              </h3>
+              <div className="space-y-3">
+                {origins.map((origin: any, index: number) => (
+                  <div key={index} className="bg-white dark:bg-gray-800 p-3 rounded border">
+                    <div className="grid grid-cols-1 gap-1 text-sm">
+                      <div><span className="font-medium">Tipo:</span> {origin.type.replace(/_/g, ' ').toUpperCase()}</div>
+                      <div><span className="font-medium">Código:</span> {origin.code}</div>
+                      <div><span className="font-medium">Descrição:</span> {origin.description}</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* CONVÊNIO E PRODUTO */}
+          {(dadosCompletos.agreement || dadosCompletos.product) && (
+            <div className="bg-indigo-50 dark:bg-indigo-900/20 p-4 rounded-lg">
+              <h3 className="font-bold text-lg mb-3 text-gray-800 dark:text-gray-200">
+                📑 CONVÊNIO E PRODUTO
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm">
+                {dadosCompletos.agreement && (
+                  <>
+                    <div className="flex">
+                      <span className="font-medium w-32">Convênio:</span>
+                      <span>{dadosCompletos.agreement.description || 'N/A'}</span>
+                    </div>
+                    {dadosCompletos.agreement.code && (
+                      <div className="flex">
+                        <span className="font-medium w-32">Código:</span>
+                        <span className="font-mono">{dadosCompletos.agreement.code}</span>
+                      </div>
+                    )}
+                  </>
+                )}
+                {dadosCompletos.product && (
+                  <>
+                    <div className="flex">
+                      <span className="font-medium w-32">Produto:</span>
+                      <span>{dadosCompletos.product.description || 'N/A'}</span>
+                    </div>
+                    <div className="flex">
+                      <span className="font-medium w-32">Código:</span>
+                      <span className="font-mono">{dadosCompletos.product.code || 'N/A'}</span>
+                    </div>
+                  </>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* INFORMAÇÕES DE FORMALIZAÇÃO */}
+          {dadosCompletos.formalization_type && (
+            <div className="bg-amber-50 dark:bg-amber-900/20 p-4 rounded-lg">
+              <h3 className="font-bold text-lg mb-3 text-gray-800 dark:text-gray-200">
+                📝 INFORMAÇÕES DE FORMALIZAÇÃO
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm">
+                <div className="flex">
+                  <span className="font-medium w-48">Tipo de Formalização:</span>
+                  <span>{dadosCompletos.formalization_sub_type_description || 'N/A'}</span>
+                </div>
+                <div className="flex">
+                  <span className="font-medium w-48">Código de Formalização:</span>
+                  <span className="font-mono">{dadosCompletos.formalization_code || 'N/A'}</span>
+                </div>
+                <div className="flex">
+                  <span className="font-medium w-48">Login Digitador:</span>
+                  <span className="font-mono">{dadosCompletos.login_typist || 'N/A'}</span>
+                </div>
+                {dadosCompletos.operation_number && (
+                  <div className="flex">
+                    <span className="font-medium w-48">Número da Operação:</span>
+                    <span className="font-mono text-purple-600 dark:text-purple-400">{dadosCompletos.operation_number}</span>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* OBSERVAÇÕES E HISTÓRICO (Loan Track) */}
+          {loanTrack && Object.keys(loanTrack).length > 0 && (
+            <div className="bg-orange-50 dark:bg-orange-900/20 p-4 rounded-lg">
+              <h3 className="font-bold text-lg mb-3 text-gray-800 dark:text-gray-200">
+                📝 OBSERVAÇÕES E HISTÓRICO (Loan Track)
+              </h3>
+              <div className="space-y-2">
+                {Object.entries(loanTrack).map(([key, value]) => (
+                  <div key={key} className="text-sm">
+                    <span className="font-medium">{key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}:</span> {String(value)}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* RESUMO COMPLETO DA PROPOSTA */}
+          <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg border-2 border-blue-300 dark:border-blue-700">
+            <h3 className="font-bold text-lg mb-3 text-center text-blue-800 dark:text-blue-200">
+              📊 RESUMO COMPLETO DA PROPOSTA
+            </h3>
+            <div className="text-center text-sm text-gray-600 dark:text-gray-400 mb-3">
+              Para mais detalhes, consulte o JSON completo da resposta disponível no console do navegador.
+            </div>
+            <div className="bg-white dark:bg-gray-800 p-3 rounded text-xs font-mono overflow-x-auto">
+              <pre>{JSON.stringify(dadosCompletos, null, 2).substring(0, 500)}...</pre>
+            </div>
+          </div>
 
           {/* BOTÃO PARA FECHAR */}
           <div className="text-center pt-4">
