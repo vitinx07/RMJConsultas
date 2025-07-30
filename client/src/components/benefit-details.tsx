@@ -942,7 +942,14 @@ export function BenefitDetails({ benefit }: BenefitDetailsProps) {
                                       size="sm"
                                       className="bg-blue-600 hover:bg-blue-700 text-white min-w-[80px] h-8"
                                       onClick={() => {
-                                        setSafraContracts([emprestimo]);
+                                        // Passar todos os contratos Safra do cliente
+                                        const allSafraContracts = Emprestimos.filter(emp => {
+                                          const bankCode = emp.Banco || emp.CodigoBanco || '';
+                                          const bankName = emp.NomeBanco || '';
+                                          return (bankCode === '422' || bankCode === '422 - Banco Safra') || 
+                                                 (bankName && bankName.toLowerCase().includes('safra'));
+                                        });
+                                        setSafraContracts(allSafraContracts);
                                         setShowSafraSimulation(true);
                                       }}
                                     >
@@ -959,7 +966,14 @@ export function BenefitDetails({ benefit }: BenefitDetailsProps) {
                                       size="sm"
                                       className="bg-blue-600 hover:bg-blue-700 text-white min-w-[80px] h-8"
                                       onClick={() => {
-                                        setSafraContracts([emprestimo]);
+                                        // Passar todos os contratos Safra do cliente
+                                        const allSafraContracts = Emprestimos.filter(emp => {
+                                          const bankCode = emp.Banco || emp.CodigoBanco || '';
+                                          const bankName = emp.NomeBanco || '';
+                                          return (bankCode === '422' || bankCode === '422 - Banco Safra') || 
+                                                 (bankName && bankName.toLowerCase().includes('safra'));
+                                        });
+                                        setSafraContracts(allSafraContracts);
                                         setShowSafraSimulation(true);
                                       }}
                                     >

@@ -32,7 +32,7 @@ export function SafraSimulation({ safraContracts, beneficiaryData, onClose }: Sa
   const [selectedOption, setSelectedOption] = useState<string>('');
   const [token, setToken] = useState<string | null>(null);
   const [idConvenio, setIdConvenio] = useState<number | null>(null);
-  const [selectedPrazos, setSelectedPrazos] = useState<number[]>([84, 96]);
+  const [selectedPrazos, setSelectedPrazos] = useState<number[]>([96, 84]);
   const [valorParcela, setValorParcela] = useState<string>('');
   const [simulationMode, setSimulationMode] = useState<'prazo' | 'parcela'>('prazo');
   const { toast } = useToast();
@@ -290,7 +290,14 @@ export function SafraSimulation({ safraContracts, beneficiaryData, onClose }: Sa
                         <div>
                           <span className="font-medium">Contrato: {contrato.Contrato}</span>
                           <span className="text-sm text-gray-500 ml-2">
-                            ({contrato.ParcelasPagas || '0'} parcelas pagas)
+                            ({(() => {
+                              // Calcular parcelas pagas usando a fórmula: Prazo Total - Parcelas Restantes
+                              const prazoTotal = parseInt(contrato.Prazo) || 0;
+                              const parcelasRestantes = parseInt(contrato.ParcelasRestantes) || 0;
+                              const parcelasPagas = prazoTotal > 0 && parcelasRestantes >= 0 ? 
+                                Math.max(0, prazoTotal - parcelasRestantes) : 0;
+                              return parcelasPagas;
+                            })()} parcelas pagas)
                           </span>
                         </div>
                         <div className="text-right">
@@ -329,7 +336,7 @@ export function SafraSimulation({ safraContracts, beneficiaryData, onClose }: Sa
               <div className="space-y-3">
                 <Label>Selecione os Prazos (meses)</Label>
                 <div className="grid grid-cols-4 gap-3">
-                  {[84, 96, 108, 120].map((prazo) => (
+                  {[96, 90, 84, 72].map((prazo) => (
                     <div key={prazo} className="flex items-center space-x-2">
                       <Checkbox
                         id={`prazo-${prazo}`}
@@ -392,7 +399,7 @@ export function SafraSimulation({ safraContracts, beneficiaryData, onClose }: Sa
               ) : (
                 <>
                   <Calculator className="mr-2 h-4 w-4" />
-                  Simular Refinanciamento
+                  Simular
                 </>
               )}
             </Button>
@@ -414,7 +421,7 @@ export function SafraSimulation({ safraContracts, beneficiaryData, onClose }: Sa
           {/* Resultados */}
           {simulationResults.length > 0 && (
             <div className="space-y-4">
-              <h3 className="font-semibold text-lg">Opções de Refinanciamento</h3>
+              <h3 className="font-semibold text-lg">Resultados da Simulação</h3>
               <RadioGroup value={selectedOption} onValueChange={setSelectedOption}>
                 {simulationResults.map((result, index) => (
                   <div key={index} className="border rounded-lg p-4 hover:bg-gray-50 dark:hover:bg-gray-800">
@@ -450,23 +457,7 @@ export function SafraSimulation({ safraContracts, beneficiaryData, onClose }: Sa
                 ))}
               </RadioGroup>
 
-              {selectedOption && (
-                <div className="flex justify-end">
-                  <Button
-                    className="bg-blue-600 hover:bg-blue-700"
-                    onClick={() => {
-                      toast({
-                        title: "Opção selecionada",
-                        description: "Continue com o processo de refinanciamento",
-                      });
-                      onClose();
-                    }}
-                  >
-                    <FileText className="mr-2 h-4 w-4" />
-                    Prosseguir com Refinanciamento
-                  </Button>
-                </div>
-              )}
+
             </div>
           )}
         </CardContent>
