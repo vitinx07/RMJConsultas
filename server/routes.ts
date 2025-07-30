@@ -922,13 +922,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       console.log("✅ Simulação Safra realizada com sucesso");
       
-      // Filtrar resultados pelos prazos selecionados (se especificados)
-      if (responseData.simulacoes && payload.prazos && payload.prazos.length > 0) {
-        const selectedPrazos = payload.prazos;
-        responseData.simulacoes = responseData.simulacoes.filter((sim: any) => 
-          selectedPrazos.includes(sim.prazo)
-        );
-        console.log(`🔍 Filtrados ${responseData.simulacoes.length} resultados pelos prazos: ${selectedPrazos.join(', ')}`);
+      // Filtrar resultados pelos prazos selecionados
+      if (responseData.simulacoes) {
+        if (payload.prazos && payload.prazos.length > 0) {
+          // Se prazos específicos foram selecionados, filtrar por eles
+          const selectedPrazos = payload.prazos;
+          responseData.simulacoes = responseData.simulacoes.filter((sim: any) => 
+            selectedPrazos.includes(sim.prazo)
+          );
+          console.log(`🔍 Filtrados ${responseData.simulacoes.length} resultados pelos prazos: ${selectedPrazos.join(', ')}`);
+        } else {
+          // Se nenhum prazo foi selecionado, mostrar apenas o maior prazo disponível
+          const maxPrazo = Math.max(...responseData.simulacoes.map((sim: any) => sim.prazo));
+          responseData.simulacoes = responseData.simulacoes.filter((sim: any) => 
+            sim.prazo === maxPrazo
+          );
+          console.log(`🔍 Nenhum prazo selecionado - mostrando apenas o maior prazo disponível: ${maxPrazo} meses`);
+        }
       }
       
       res.json(responseData);

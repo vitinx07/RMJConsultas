@@ -32,7 +32,7 @@ export function SafraSimulation({ safraContracts, beneficiaryData, onClose }: Sa
   const [selectedOption, setSelectedOption] = useState<string>('');
   const [token, setToken] = useState<string | null>(null);
   const [idConvenio, setIdConvenio] = useState<number | null>(null);
-  const [selectedPrazos, setSelectedPrazos] = useState<number[]>([96, 84]);
+  const [selectedPrazos, setSelectedPrazos] = useState<number[]>([]);
   const [valorParcela, setValorParcela] = useState<string>('');
   const [simulationMode, setSimulationMode] = useState<'prazo' | 'parcela'>('prazo');
   const { toast } = useToast();
@@ -175,7 +175,7 @@ export function SafraSimulation({ safraContracts, beneficiaryData, onClose }: Sa
         matricula: beneficiaryData.Beneficio,
         isCotacao: true,
         refins: refins,
-        prazos: simulationMode === 'prazo' ? selectedPrazos : [84, 96, 108, 120], // Usa prazos selecionados ou todos disponíveis
+        prazos: simulationMode === 'prazo' ? selectedPrazos : [], // Array vazio para valor da parcela
         dtNascimento: formatDate(beneficiaryData.DataNascimento),
         idSexo: beneficiaryData.Sexo || "N/A",
         idSituacaoEmpregado: mapSituacaoBeneficio(beneficiaryData.Situacao),
@@ -340,9 +340,9 @@ export function SafraSimulation({ safraContracts, beneficiaryData, onClose }: Sa
             {/* Seleção de Prazos */}
             {simulationMode === 'prazo' && (
               <div className="space-y-3">
-                <Label>Selecione os Prazos (meses)</Label>
-                <div className="grid grid-cols-4 gap-3">
-                  {[96, 90, 84, 72].map((prazo) => (
+                <Label>Selecione os Prazos (meses) - Deixe vazio para maior prazo disponível</Label>
+                <div className="grid grid-cols-6 gap-2 max-h-48 overflow-y-auto">
+                  {Array.from({length: 37}, (_, i) => 96 - i).map((prazo) => (
                     <div key={prazo} className="flex items-center space-x-2">
                       <Checkbox
                         id={`prazo-${prazo}`}
