@@ -921,6 +921,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       console.log("✅ Simulação Safra realizada com sucesso");
+      
+      // Filtrar resultados pelos prazos selecionados (se especificados)
+      if (responseData.simulacoes && payload.prazos && payload.prazos.length > 0) {
+        const selectedPrazos = payload.prazos;
+        responseData.simulacoes = responseData.simulacoes.filter((sim: any) => 
+          selectedPrazos.includes(sim.prazo)
+        );
+        console.log(`🔍 Filtrados ${responseData.simulacoes.length} resultados pelos prazos: ${selectedPrazos.join(', ')}`);
+      }
+      
       res.json(responseData);
     } catch (error: any) {
       console.error("❌ Erro na simulação Safra:", error.message);

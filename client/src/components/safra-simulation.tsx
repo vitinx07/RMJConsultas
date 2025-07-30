@@ -210,10 +210,16 @@ export function SafraSimulation({ safraContracts, beneficiaryData, onClose }: Sa
       const data = await response.json();
 
       if (!response.ok) {
-        if (data.criticas) {
-          throw new Error(data.criticas[0] || data.error);
+        let errorMessage = 'Erro na simulação';
+        
+        // Extrair mensagem de erro da API Safra
+        if (data.criticas && data.criticas.length > 0) {
+          errorMessage = `Crítica da API: ${data.criticas.join('; ')}`;
+        } else if (data.error) {
+          errorMessage = data.error;
         }
-        throw new Error(data.error || 'Erro na simulação');
+        
+        throw new Error(errorMessage);
       }
 
       // 5. Processar resultados
