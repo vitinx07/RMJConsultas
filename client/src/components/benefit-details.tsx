@@ -545,11 +545,11 @@ export function BenefitDetails({ benefit }: BenefitDetailsProps) {
                                   <MessageCircle className="h-3 w-3 text-green-600 dark:text-green-400" />
                                 </button>
                                 <button
-                                  onClick={() => copyPhone(numero)}
+                                  onClick={() => copyPhone(formatado)}
                                   className="p-1 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
                                   title="Copiar número"
                                 >
-                                  {copiedPhone === numero ? (
+                                  {copiedPhone === formatado ? (
                                     <Check className="h-3 w-3 text-green-600 dark:text-green-400" />
                                   ) : (
                                     <Copy className="h-3 w-3 text-gray-600 dark:text-gray-400" />
