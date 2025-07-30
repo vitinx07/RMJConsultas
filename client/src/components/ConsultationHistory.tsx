@@ -8,7 +8,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 
-import { Search, Eye, FileText, Calendar, User, AlertTriangle, DollarSign, CreditCard, Building2, Phone, Download } from "lucide-react";
+import { Search, Eye, FileText, Calendar, User, AlertTriangle, DollarSign, CreditCard, Building2, Phone, Download, MessageCircle, Copy, Check } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -32,10 +32,28 @@ const formatCPF = (cpf: string): string => {
 // Componente para exibir detalhes completos da consulta
 function ConsultationDetails({ consultation, onExportPDF }: { consultation: any, onExportPDF: (consultation: any, benefit: any) => void }) {
   const [selectedBenefitIndex, setSelectedBenefitIndex] = useState<number>(0);
+  const [copiedPhone, setCopiedPhone] = useState<string | null>(null);
   
   const resultData = consultation.resultData;
   const benefits = Array.isArray(resultData) ? resultData : [resultData];
   const currentBenefit = benefits[selectedBenefitIndex];
+
+  // Função para copiar telefone
+  const copyPhone = async (phone: string) => {
+    try {
+      await navigator.clipboard.writeText(phone);
+      setCopiedPhone(phone);
+      setTimeout(() => setCopiedPhone(null), 2000);
+    } catch (err) {
+      console.error('Erro ao copiar telefone:', err);
+    }
+  };
+
+  // Função para criar link do WhatsApp
+  const createWhatsAppLink = (phone: string) => {
+    const cleanPhone = phone.replace(/\D/g, '');
+    return `https://wa.me/55${cleanPhone}`;
+  };
 
   if (!currentBenefit) {
     return <div className="text-center py-8">Dados da consulta não encontrados</div>;
@@ -340,7 +358,7 @@ function ConsultationDetails({ consultation, onExportPDF }: { consultation: any,
               {currentBenefit.Beneficiario?.Telefones && currentBenefit.Beneficiario.Telefones.length > 0 && (
                 <div>
                   <label className="text-sm font-medium text-muted-foreground mb-2 block">Telefones</label>
-                  <div className="flex flex-wrap gap-2">
+                  <div className="flex flex-wrap gap-3">
                     {currentBenefit.Beneficiario.Telefones.map((tel: any, index: number) => {
                       const numero = tel.TELEFONE;
                       const formatado = numero.length === 11 
@@ -350,14 +368,34 @@ function ConsultationDetails({ consultation, onExportPDF }: { consultation: any,
                         : numero;
                       
                       return (
-                        <Badge 
-                          key={index} 
-                          variant="secondary" 
-                          className="bg-blue-100 dark:bg-blue-900/20 text-blue-800 dark:text-blue-300"
-                        >
-                          <Phone className="h-3 w-3 mr-1" />
-                          {formatado}
-                        </Badge>
+                        <div key={index} className="flex items-center gap-2 bg-blue-100 dark:bg-blue-900/20 rounded-lg px-3 py-2">
+                          <div className="flex items-center gap-1">
+                            <Phone className="h-3 w-3 text-blue-600 dark:text-blue-400" />
+                            <span className="text-blue-800 dark:text-blue-300 font-semibold text-sm">
+                              {formatado}
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-1 ml-2">
+                            <button
+                              onClick={() => window.open(createWhatsAppLink(numero), '_blank')}
+                              className="p-1 rounded-full hover:bg-green-100 dark:hover:bg-green-900/30 transition-colors"
+                              title="Abrir no WhatsApp"
+                            >
+                              <MessageCircle className="h-3 w-3 text-green-600 dark:text-green-400" />
+                            </button>
+                            <button
+                              onClick={() => copyPhone(numero)}
+                              className="p-1 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                              title="Copiar número"
+                            >
+                              {copiedPhone === numero ? (
+                                <Check className="h-3 w-3 text-green-600 dark:text-green-400" />
+                              ) : (
+                                <Copy className="h-3 w-3 text-gray-600 dark:text-gray-400" />
+                              )}
+                            </button>
+                          </div>
+                        </div>
                       );
                     })}
                   </div>

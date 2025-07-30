@@ -14,7 +14,10 @@ import {
   Printer,
   TrendingUp,
   Phone,
-  BarChart3
+  BarChart3,
+  MessageCircle,
+  Copy,
+  Check
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { 
@@ -65,11 +68,29 @@ export function BenefitDetails({ benefit }: BenefitDetailsProps) {
   const [showSimulation, setShowSimulation] = useState(false);
   const [showSafraSimulation, setShowSafraSimulation] = useState(false);
   const [safraContracts, setSafraContracts] = useState<any[]>([]);
+  const [copiedPhone, setCopiedPhone] = useState<string | null>(null);
 
   // Fatores de simulação
   const FATOR_CONSIGNADO = 35.6674;
   const FATOR_RMC_RCC_PARCELA = 0.637;
   const FATOR_RMC_RCC_LIBERADO = 22.4;
+
+  // Função para copiar telefone
+  const copyPhone = async (phone: string) => {
+    try {
+      await navigator.clipboard.writeText(phone);
+      setCopiedPhone(phone);
+      setTimeout(() => setCopiedPhone(null), 2000);
+    } catch (err) {
+      console.error('Erro ao copiar telefone:', err);
+    }
+  };
+
+  // Função para criar link do WhatsApp
+  const createWhatsAppLink = (phone: string) => {
+    const cleanPhone = phone.replace(/\D/g, '');
+    return `https://wa.me/55${cleanPhone}`;
+  };
 
   // Calcular simulações
   const calcularSimulacoes = () => {
@@ -508,14 +529,34 @@ export function BenefitDetails({ benefit }: BenefitDetailsProps) {
                             : numero;
                           
                           return (
-                            <Badge 
-                              key={index} 
-                              variant="secondary" 
-                              className="bg-blue-100 dark:bg-blue-900/20 text-blue-800 dark:text-blue-300 font-semibold px-3 py-1"
-                            >
-                              <Phone className="h-3 w-3 mr-1" />
-                              {formatado}
-                            </Badge>
+                            <div key={index} className="flex items-center gap-2 bg-blue-100 dark:bg-blue-900/20 rounded-lg px-3 py-2">
+                              <div className="flex items-center gap-1">
+                                <Phone className="h-3 w-3 text-blue-600 dark:text-blue-400" />
+                                <span className="text-blue-800 dark:text-blue-300 font-semibold text-sm">
+                                  {formatado}
+                                </span>
+                              </div>
+                              <div className="flex items-center gap-1 ml-2">
+                                <button
+                                  onClick={() => window.open(createWhatsAppLink(numero), '_blank')}
+                                  className="p-1 rounded-full hover:bg-green-100 dark:hover:bg-green-900/30 transition-colors"
+                                  title="Abrir no WhatsApp"
+                                >
+                                  <MessageCircle className="h-3 w-3 text-green-600 dark:text-green-400" />
+                                </button>
+                                <button
+                                  onClick={() => copyPhone(numero)}
+                                  className="p-1 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                                  title="Copiar número"
+                                >
+                                  {copiedPhone === numero ? (
+                                    <Check className="h-3 w-3 text-green-600 dark:text-green-400" />
+                                  ) : (
+                                    <Copy className="h-3 w-3 text-gray-600 dark:text-gray-400" />
+                                  )}
+                                </button>
+                              </div>
+                            </div>
                           );
                         })}
                       </div>
