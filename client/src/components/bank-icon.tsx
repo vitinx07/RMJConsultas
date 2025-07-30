@@ -79,7 +79,7 @@ export function BankIcon({ bankCode, className = "w-6 h-6" }: BankIconProps) {
 
      "752": "https://upload.wikimedia.org/wikipedia/commons/b/b2/BNP_Paribas.png", //Banco bnp paribas
 
-     "330": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRvRoDNpF6IY03IDWqksl0lJ6j7QROyxhf0MA&s", //Banco Bari
+     "330": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRvRoDNpF6IY03IDWqksl0lJ6j7QROyxhf0MA&s", //Banco bari
   
   };
 
