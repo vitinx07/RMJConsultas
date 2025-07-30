@@ -940,7 +940,7 @@ export function BenefitDetails({ benefit }: BenefitDetailsProps) {
                                   return (
                                     <Button
                                       size="sm"
-                                      className="bg-green-600 hover:bg-green-700 text-white min-w-[80px] h-8"
+                                      className="bg-blue-600 hover:bg-blue-700 text-white min-w-[80px] h-8"
                                       onClick={() => {
                                         setSafraContracts([emprestimo]);
                                         setShowSafraSimulation(true);
@@ -957,7 +957,7 @@ export function BenefitDetails({ benefit }: BenefitDetailsProps) {
                                   return (
                                     <Button
                                       size="sm"
-                                      className="bg-green-600 hover:bg-green-700 text-white min-w-[80px] h-8"
+                                      className="bg-blue-600 hover:bg-blue-700 text-white min-w-[80px] h-8"
                                       onClick={() => {
                                         setSafraContracts([emprestimo]);
                                         setShowSafraSimulation(true);

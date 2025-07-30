@@ -7,6 +7,8 @@ import { useToast } from '@/hooks/use-toast';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Input } from '@/components/ui/input';
 
 interface SafraSimulationProps {
   safraContracts: any[];
@@ -30,6 +32,9 @@ export function SafraSimulation({ safraContracts, beneficiaryData, onClose }: Sa
   const [selectedOption, setSelectedOption] = useState<string>('');
   const [token, setToken] = useState<string | null>(null);
   const [idConvenio, setIdConvenio] = useState<number | null>(null);
+  const [selectedPrazos, setSelectedPrazos] = useState<number[]>([84, 96]);
+  const [valorParcela, setValorParcela] = useState<string>('');
+  const [simulationMode, setSimulationMode] = useState<'prazo' | 'parcela'>('prazo');
   const { toast } = useToast();
 
   useEffect(() => {
@@ -170,7 +175,7 @@ export function SafraSimulation({ safraContracts, beneficiaryData, onClose }: Sa
         matricula: beneficiaryData.Beneficio,
         isCotacao: true,
         refins: refins,
-        prazos: [84, 96], // Simula para os prazos 84 e 96
+        prazos: simulationMode === 'prazo' ? selectedPrazos : [84, 96, 108, 120], // Usa prazos selecionados ou todos disponíveis
         dtNascimento: formatDate(beneficiaryData.DataNascimento),
         idSexo: beneficiaryData.Sexo || "N/A",
         idSituacaoEmpregado: mapSituacaoBeneficio(beneficiaryData.Situacao),
@@ -184,7 +189,7 @@ export function SafraSimulation({ safraContracts, beneficiaryData, onClose }: Sa
         idCorbansubs: 0,
         idComercial: 0,
         prazo: 0,
-        valorParcela: 0,
+        valorParcela: simulationMode === 'parcela' ? parseFloat(valorParcela.replace(/[R$\s.]/g, '').replace(',', '.')) : 0,
         valorPrincipal: 0,
         tarifaCadastro: 0,
         taxaJuros: 0,
@@ -300,6 +305,75 @@ export function SafraSimulation({ safraContracts, beneficiaryData, onClose }: Sa
             )}
           </div>
 
+          {/* Opções de Simulação */}
+          <div className="bg-gray-50 dark:bg-gray-900 p-4 rounded-lg space-y-4">
+            <h3 className="font-semibold mb-3">Opções de Simulação</h3>
+            
+            {/* Modo de Simulação */}
+            <div className="space-y-3">
+              <Label>Tipo de Simulação</Label>
+              <RadioGroup value={simulationMode} onValueChange={(value) => setSimulationMode(value as 'prazo' | 'parcela')}>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="prazo" id="prazo-mode" />
+                  <Label htmlFor="prazo-mode" className="cursor-pointer">Por Prazo</Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="parcela" id="parcela-mode" />
+                  <Label htmlFor="parcela-mode" className="cursor-pointer">Por Valor da Parcela</Label>
+                </div>
+              </RadioGroup>
+            </div>
+
+            {/* Seleção de Prazos */}
+            {simulationMode === 'prazo' && (
+              <div className="space-y-3">
+                <Label>Selecione os Prazos (meses)</Label>
+                <div className="grid grid-cols-4 gap-3">
+                  {[84, 96, 108, 120].map((prazo) => (
+                    <div key={prazo} className="flex items-center space-x-2">
+                      <Checkbox
+                        id={`prazo-${prazo}`}
+                        checked={selectedPrazos.includes(prazo)}
+                        onCheckedChange={(checked) => {
+                          if (checked) {
+                            setSelectedPrazos([...selectedPrazos, prazo]);
+                          } else {
+                            setSelectedPrazos(selectedPrazos.filter(p => p !== prazo));
+                          }
+                        }}
+                      />
+                      <Label htmlFor={`prazo-${prazo}`} className="cursor-pointer">
+                        {prazo} meses
+                      </Label>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Valor da Parcela */}
+            {simulationMode === 'parcela' && (
+              <div className="space-y-3">
+                <Label htmlFor="valor-parcela">Valor da Parcela Desejada</Label>
+                <Input
+                  id="valor-parcela"
+                  type="text"
+                  placeholder="R$ 0,00"
+                  value={valorParcela}
+                  onChange={(e) => {
+                    // Formatar valor como moeda
+                    const value = e.target.value.replace(/\D/g, '');
+                    const formatted = (Number(value) / 100).toLocaleString('pt-BR', {
+                      style: 'currency',
+                      currency: 'BRL'
+                    });
+                    setValorParcela(formatted);
+                  }}
+                />
+              </div>
+            )}
+          </div>
+
           {/* Botão de Simulação */}
           <div className="flex justify-end space-x-3">
             <Button variant="outline" onClick={onClose}>
@@ -308,7 +382,7 @@ export function SafraSimulation({ safraContracts, beneficiaryData, onClose }: Sa
             <Button
               onClick={handleSimulate}
               disabled={selectedContracts.length === 0 || isSimulating}
-              className="bg-green-600 hover:bg-green-700"
+              className="bg-blue-600 hover:bg-blue-700"
             >
               {isSimulating ? (
                 <>
@@ -350,7 +424,7 @@ export function SafraSimulation({ safraContracts, beneficiaryData, onClose }: Sa
                         <div className="space-y-2">
                           <div className="flex items-center space-x-2">
                             <Badge variant="secondary">Prazo: {result.prazo} meses</Badge>
-                            <Badge variant="default" className="bg-green-600">
+                            <Badge variant="default" className="bg-blue-600">
                               Troco: {formatCurrency(result.valorTroco)}
                             </Badge>
                           </div>
@@ -367,7 +441,7 @@ export function SafraSimulation({ safraContracts, beneficiaryData, onClose }: Sa
                         </div>
                         <div className="text-right">
                           {selectedOption === `option-${index}` && (
-                            <CheckCircle2 className="h-6 w-6 text-green-600" />
+                            <CheckCircle2 className="h-6 w-6 text-blue-600" />
                           )}
                         </div>
                       </div>
